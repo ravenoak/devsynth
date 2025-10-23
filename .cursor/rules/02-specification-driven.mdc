@@ -1,0 +1,92 @@
+---
+description: "Ensure all development follows specification-driven approach with SDD + BDD"
+alwaysApply: true
+globs: ["**/*.py", "**/*.md"]
+---
+
+# Specification-Driven Development (SDD) + BDD
+
+## Intent as Source of Truth
+
+Always prioritize specifications over assumptions:
+
+### Reference Hierarchy
+1. **Project Constitution** (`constitution.md`) - Core governance and standards
+2. **Specifications** (`docs/specifications/`) - Detailed functional requirements
+3. **BDD Scenarios** (`tests/behavior/features/`) - Executable acceptance criteria
+4. **API Contracts** - Interface definitions and data schemas
+
+## Behavior-Driven Development (BDD)
+
+### Gherkin Best Practices
+```gherkin
+Feature: [Feature Name]
+    As a [user role]
+    I want [goal]
+    So that [business value]
+
+    @speed_marker
+    Scenario: [Specific behavior]
+        Given [initial state]
+        When [action occurs]
+        Then [expected outcome]
+```
+
+**Guidelines**:
+- Use declarative style (what users want, not how)
+- Each scenario tests a single business rule
+- Include appropriate tags (@fast, @medium, @slow)
+- Ensure all outcomes are objectively verifiable
+
+## Development Workflow
+
+### For New Features
+1. **Reference Specifications**: Check `docs/specifications/` before implementing
+2. **Create BDD Scenarios**: Write executable acceptance criteria in `tests/behavior/features/`
+3. **Follow EDRR Process**: Use expand-differentiate-refine-retrospect methodology
+4. **Maintain Traceability**: Link requirements, specifications, code, and tests
+
+### Quality Gates
+- **Specification Compliance**: Ensure implementation matches documented requirements
+- **Test Coverage**: Comprehensive testing with speed markers
+- **Documentation Updates**: Keep specifications current with implementation
+- **Agent Collaboration**: Use WSDE model for complex decision-making
+
+## Examples
+
+```gherkin
+# BDD scenario example
+Feature: User Authentication
+    As a registered user
+    I want to log in with valid credentials
+    So that I can access my dashboard
+
+    @fast @security
+    Scenario: Successful login
+        Given I have a valid account
+        When I enter correct credentials
+        Then I should be authenticated
+        And redirected to my dashboard
+```
+
+```python
+# Implementation following specification
+def authenticate_user(credentials: UserCredentials) -> AuthResult:
+    """
+    Authenticate user based on specification requirements.
+
+    This implements the "Successful login" scenario from the BDD feature.
+    """
+    # Validate credentials (specification requirement)
+    # Check against user repository (architecture pattern)
+    # Return authentication result (API contract)
+    pass
+```
+
+## Related Rules
+- **testing-philosophy**: Testing standards and speed markers
+- **bdd-workflow**: Behavior-driven development guidelines
+- **documentation**: Documentation requirements and standards
+- **security-compliance**: Security requirements for specifications
+
+This approach ensures all development is grounded in clear intent and maintains alignment with stakeholder requirements.

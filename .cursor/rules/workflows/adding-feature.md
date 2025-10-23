@@ -21,6 +21,18 @@ Follow this structured workflow when adding any new feature to DevSynth.
 
 ### 1. Create Specification (MANDATORY FIRST STEP)
 
+**Using Cursor IDE:**
+```bash
+# In Cursor chat, use:
+/generate-specification <feature_name> feature
+
+# This will:
+# 1. Create specification in docs/specifications/<feature_name>.md
+# 2. Generate BDD scenarios in tests/behavior/features/<feature_name>.feature
+# 3. Provide implementation guidance with examples
+```
+
+**Manual Creation (if needed):**
 Location: `docs/specifications/<feature_name>.md`
 
 ```bash
@@ -235,6 +247,17 @@ class Test<Class>:
 
 ### 6. Implement the Feature
 
+**Using Cursor IDE:**
+```bash
+# In Cursor chat, use EDRR workflow:
+/expand-phase implement <feature_name> feature
+/differentiate-phase <feature_name> implementation approaches
+/refine-phase implement selected <feature_name> approach
+
+# Or use TestArchitect mode (Cmd+Shift+T) for comprehensive implementation
+```
+
+**Manual Implementation:**
 Location: `src/devsynth/<module>/<feature_name>.py`
 
 ```python
@@ -313,6 +336,18 @@ class <Class>:
 
 ### 7. Run All Tests
 
+**Using Cursor IDE:**
+```bash
+# Generate comprehensive tests automatically:
+/generate-test-suite <feature_name> component
+
+# This will create:
+# - Unit tests in tests/unit/<module>/test_<feature_name>.py
+# - Integration tests in tests/integration/<module>/test_<feature_name>_integration.py
+# - Additional BDD scenarios in tests/behavior/features/<feature_name>.feature
+```
+
+**Manual Testing:**
 ```bash
 # Run fast tests
 poetry run devsynth run-tests --speed=fast
@@ -322,6 +357,21 @@ poetry run pytest tests/behavior/features/<feature_name>.feature -v
 
 # Run unit tests
 poetry run pytest tests/unit/<module>/test_<feature_name>.py -v
+
+# Run integration tests
+poetry run pytest tests/integration/ -k "<feature_name>" -v
+```
+
+**Testing in Cursor Terminal:**
+```bash
+# Verify environment in Cursor terminal
+poetry run python --version  # Should show 3.12.x from .venv
+
+# Run tests with proper environment
+poetry run devsynth run-tests --speed=fast --no-parallel
+
+# Check coverage
+poetry run devsynth run-tests --report
 ```
 
 **Expected**: All tests should now pass
@@ -343,6 +393,19 @@ Document architectural decisions and component interactions.
 
 ### 9. Run Quality Checks
 
+**Using Cursor IDE:**
+```bash
+# Comprehensive code review
+/code-review <feature_name> implementation
+
+# This will analyze:
+# - Code quality and architecture compliance
+# - Security vulnerabilities and performance issues
+# - Testing coverage and documentation completeness
+# - Improvement suggestions and best practice recommendations
+```
+
+**Manual Quality Checks:**
 ```bash
 # Format code
 poetry run black .
@@ -362,6 +425,22 @@ poetry run python scripts/verify_requirements_traceability.py
 
 # Run dialectical audit
 poetry run python scripts/dialectical_audit.py
+
+# Security scanning
+poetry run bandit -r src/
+poetry run safety check
+```
+
+**Quality Validation in Cursor:**
+```bash
+# Validate BDD scenarios
+/validate-bdd-scenarios <feature_name>.feature
+
+# Check for missing speed markers
+/add-speed-markers tests/
+
+# Update specifications if needed
+/update-specifications <feature_name> implementation details
 ```
 
 **Resolve any issues before proceeding.**
@@ -468,9 +547,159 @@ Before considering feature complete:
 ❌ **Don't use vague commit messages**
 ✅ Use Conventional Commits format
 
+## Practical Cursor IDE Examples
+
+### Example 1: Adding a CLI Command
+
+**Complete workflow using Cursor IDE:**
+
+```bash
+# 1. Specification (Cursor chat)
+/generate-specification add offline mode to CLI
+
+# 2. Implementation (Cursor EDRR workflow)
+/expand-phase implement CLI offline mode
+/differentiate-phase CLI offline implementation approaches
+/refine-phase implement offline mode with transformers fallback
+
+# 3. Testing (Cursor commands)
+/generate-test-suite CLI offline functionality
+
+# 4. Integration (Terminal)
+/validate-bdd-scenarios cli_offline_mode.feature
+poetry run devsynth --help  # Verify new command appears
+```
+
+**Expected Results:**
+- ✅ Specification created in `docs/specifications/cli_offline_mode.md`
+- ✅ BDD scenarios in `tests/behavior/features/cli_offline_mode.feature`
+- ✅ Implementation in `src/devsynth/application/cli/commands/`
+- ✅ Unit tests with speed markers in `tests/unit/application/cli/`
+- ✅ Integration tests in `tests/integration/cli/`
+- ✅ Command appears in `devsynth --help` output
+
+### Example 2: Implementing a New Agent
+
+**Complete workflow using Cursor IDE:**
+
+```bash
+# 1. Specification (Cursor chat)
+/generate-specification conversation agent with memory
+
+# 2. Architecture (Cursor EDRR)
+/expand-phase implement agent with memory integration
+/differentiate-phase agent architecture patterns
+/refine-phase implement conversation agent using langgraph
+
+# 3. Testing (Cursor commands)
+/generate-test-suite conversation agent
+
+# 4. Integration (Terminal)
+poetry run pytest tests/unit/application/agents/test_conversation_agent.py -v
+poetry run pytest tests/behavior/features/conversation_agent.feature -v
+```
+
+**Expected Results:**
+- ✅ Agent implementation in `src/devsynth/application/agents/`
+- ✅ Memory integration with proper error handling
+- ✅ Configuration management for agent settings
+- ✅ Comprehensive test coverage with mocks for external dependencies
+- ✅ Documentation with usage examples and API reference
+
+### Example 3: Database Integration
+
+**Complete workflow using Cursor IDE:**
+
+```bash
+# 1. Specification (Cursor chat)
+/generate-specification database integration for user preferences
+
+# 2. Schema Design (Cursor EDRR)
+/expand-phase database schema options for preferences
+/differentiate-phase database backend comparison
+/refine-phase implement TinyDB integration for preferences
+
+# 3. Testing (Cursor commands)
+/generate-test-suite database integration tests
+
+# 4. Integration (Terminal)
+export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+poetry run pytest tests/integration/application/memory/ -k "preferences" -v
+```
+
+**Expected Results:**
+- ✅ Database adapter in `src/devsynth/adapters/`
+- ✅ Schema definition with proper data types
+- ✅ CRUD operations with error handling
+- ✅ Resource gating with environment variables
+- ✅ Integration tests with proper setup/teardown
+
+## Cursor IDE Best Practices for Feature Development
+
+### 1. Start with Clear Intent
+```bash
+# Always begin with specification generation
+/generate-specification [clear feature description]
+
+# Review generated specification before proceeding
+# Edit specification manually if needed for clarity
+```
+
+### 2. Use EDRR Process Systematically
+```bash
+# Don't skip phases - each provides value:
+/expand-phase [task]     # Multiple approaches
+/differentiate-phase [options]  # Structured comparison
+/refine-phase [selection]       # Implementation
+/retrospect-phase [analysis]    # Learning capture
+```
+
+### 3. Leverage Test Generation
+```bash
+# Generate comprehensive tests automatically
+/generate-test-suite [component]
+
+# This creates tests faster and more comprehensively than manual creation
+# Always review and adjust generated tests for your specific needs
+```
+
+### 4. Use Appropriate Modes
+```bash
+# EDRRImplementer Mode (Cmd+Shift+E) - For implementation tasks
+# SpecArchitect Mode (Cmd+Shift+S) - For specification and BDD work
+# TestArchitect Mode (Cmd+Shift+T) - For testing and quality work
+# CodeReviewer Mode (Cmd+Shift+R) - For review and analysis
+# DialecticalThinker Mode (Cmd+Shift+D) - For complex decisions
+```
+
+### 5. Environment Management
+```bash
+# Always verify environment in Cursor terminal
+poetry run python --version  # Should show .venv Python
+poetry run which python      # Should show .venv path
+
+# Set required environment variables
+export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+export DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true
+```
+
+### 6. Quality Integration
+```bash
+# Use code review for comprehensive analysis
+/code-review [recent changes]
+
+# Validate BDD scenarios
+/validate-bdd-scenarios [feature file]
+
+# Check test markers
+/add-speed-markers [test directory]
+```
+
 ## Example Complete Feature
 
 See completed examples in:
-- `examples/full_workflow/` - Complete feature workflow
-- `tests/behavior/features/memory_crud.feature` - CRUD feature
-- `docs/specifications/memory_crud.md` - Corresponding spec
+- `examples/full_workflow/` - Complete feature workflow demonstration
+- `tests/behavior/features/memory_crud.feature` - CRUD feature with comprehensive BDD
+- `docs/specifications/memory_crud.md` - Corresponding specification with dialectical analysis
+- `src/devsynth/application/memory/` - Implementation with proper architecture
+- `tests/unit/application/memory/` - Unit tests with speed markers and coverage

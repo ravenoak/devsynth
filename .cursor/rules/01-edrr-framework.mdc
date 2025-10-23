@@ -1,0 +1,69 @@
+---
+description: "Guide AI agents through EDRR phases with structured thinking"
+alwaysApply: true
+globs: ["**/*.py", "**/*.md"]
+---
+
+# EDRR Framework Integration
+
+For any development task, follow the **EDRR Framework** (Expand, Differentiate, Refine, Retrospect):
+
+## 1. EXPAND Phase
+- Generate multiple diverse approaches (at least 3 alternatives)
+- Explore different implementation strategies
+- Consider edge cases and potential challenges
+- Gather context from specifications and existing codebase
+
+## 2. DIFFERENTIATE Phase
+- Compare and evaluate different approaches
+- Analyze trade-offs between alternatives
+- Prioritize based on requirements and constraints
+- Use multi-criteria decision analysis
+
+## 3. REFINE Phase
+- Implement the selected approach with comprehensive testing
+- Optimize for performance, quality, and maintainability
+- Apply iterative improvement cycles
+- Ensure all acceptance criteria are met
+
+## 4. RETROSPECT Phase
+- Analyze the effectiveness of the chosen approach
+- Document lessons learned and best practices
+- Identify process improvements for future development
+- Update knowledge base with new insights
+
+## Key Guidelines
+- **Reference Materials**: Always check `docs/specifications/` and `tests/behavior/features/`
+- **Quality Gates**: Ensure testing, documentation, and compliance standards
+- **Agent Collaboration**: Use WSDE model for complex decision-making
+- **Continuous Learning**: Apply insights from retrospectives to future work
+
+## Examples
+
+```python
+# Example of EDRR in practice
+def implement_feature(requirements):
+    # EXPAND: Generate multiple approaches
+    approaches = [
+        "FastAPI with async patterns",
+        "Django with class-based views",
+        "Flask with minimal setup"
+    ]
+
+    # DIFFERENTIATE: Evaluate and select
+    selected = evaluate_approaches(approaches, requirements)
+
+    # REFINE: Implement with comprehensive testing
+    implementation = create_implementation(selected)
+    tests = generate_comprehensive_tests(implementation)
+
+    # RETROSPECT: Learn and improve
+    learnings = analyze_implementation(implementation, tests)
+    return implementation, learnings
+```
+
+## Related Rules
+- **testing-philosophy**: Testing standards and practices
+- **bdd-workflow**: Behavior-driven development guidelines
+
+This structured approach ensures comprehensive exploration, informed decision-making, and continuous improvement throughout the development lifecycle.

@@ -1,0 +1,88 @@
+---
+description: "Testing standards and practices for all development"
+alwaysApply: true
+globs: ["**/*.py"]
+---
+
+# Testing Standards
+
+## Core Requirements
+
+### Speed Markers (Required)
+Every test must include exactly one speed marker:
+- **@pytest.mark.fast**: Tests <1 second (unit tests)
+- **@pytest.mark.medium**: Tests 1-10 seconds (integration tests)
+- **@pytest.mark.slow**: Tests >10 seconds (end-to-end tests)
+
+### Test Organization
+- **tests/unit/**: Unit tests for individual components
+- **tests/integration/**: Integration tests for component interactions
+- **tests/behavior/**: BDD tests with Gherkin scenarios
+
+## Behavior-Driven Development (BDD)
+
+### Gherkin Best Practices
+```gherkin
+Feature: [Feature Name]
+    As a [user role]
+    I want [goal]
+    So that [business value]
+
+    @speed_marker @context_marker
+    Scenario: [Specific behavior]
+        Given [initial state]
+        When [action occurs]
+        Then [expected outcome]
+```
+
+### Implementation Guidelines
+- Use declarative style (what users want, not how)
+- Each scenario tests a single business rule
+- Include appropriate tags for categorization
+- Ensure all outcomes are objectively verifiable
+
+## Quality Standards
+
+### Coverage Requirements
+- Minimum 90% code coverage
+- All public functions must have tests
+- All conditional branches must be tested
+- Edge cases and error conditions covered
+
+### Best Practices
+- Use pytest fixtures for setup/teardown
+- Mock external dependencies appropriately
+- Ensure tests are deterministic and independent
+- Use clear, descriptive assertions
+
+## Examples
+
+```python
+# Unit test with speed marker
+@pytest.mark.fast
+def test_user_creation():
+    """Test user creation functionality."""
+    user = create_user(valid_data)
+    assert user.email == valid_data["email"]
+
+# Integration test
+@pytest.mark.medium
+def test_user_authentication_flow():
+    """Test complete authentication flow."""
+    # Setup, execute, verify pattern
+    pass
+
+# BDD scenario
+@scenario('user_authentication.feature', 'successful_login')
+def test_successful_login():
+    """Test successful user login."""
+    # Given, When, Then implementation
+    pass
+```
+
+## Related Rules
+- **testing-philosophy**: Testing standards and validation (self-reference)
+- **bdd-workflow**: Behavior-driven development practices
+- **error_handling**: Error handling and testing patterns
+
+Follow these standards to ensure comprehensive, maintainable, and reliable test coverage.

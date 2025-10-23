@@ -1,0 +1,75 @@
+---
+description: "Core project architecture and development principles - always applied"
+alwaysApply: true
+globs: ["**/*.py", "**/*.md"]
+---
+
+# DevSynth Architecture Guide
+
+## Core Principles
+
+### Development Methodology
+Follow the **EDRR Framework** (Expand, Differentiate, Refine, Retrospect):
+1. **EXPAND**: Generate multiple approaches and explore alternatives
+2. **DIFFERENTIATE**: Compare options and select best approach
+3. **REFINE**: Implement with comprehensive testing
+4. **RETROSPECT**: Learn and improve future development
+
+### Architecture Pattern
+- **Hexagonal Architecture**: Clear separation between domain logic and external concerns
+- **Specification-Driven Development (SDD)**: Intent as source of truth
+- **Behavior-Driven Development (BDD)**: Executable acceptance criteria
+
+## Development Standards
+
+### Code Quality
+- **Type Safety**: Strict mypy checking with comprehensive annotations
+- **Testing**: Every feature must have BDD scenarios and unit tests
+- **Documentation**: All public APIs require docstrings with examples
+- **Speed Markers**: All tests must have @pytest.mark.fast/medium/slow
+
+### Agent Collaboration
+- **WSDE Model**: Use Primus, Worker, Supervisor, Designer, Evaluator roles
+- **Consensus Building**: Require consensus for critical decisions
+- **Dialectical Reasoning**: Apply structured critical thinking
+
+## Reference Materials
+- **Specifications**: Check `docs/specifications/` for requirements
+- **BDD Tests**: Use `tests/behavior/features/` for acceptance criteria
+- **Constitution**: Reference `constitution.md` for governance
+- **Examples**: Follow patterns in `examples/` directory
+
+## Quality Gates
+- Always reference specifications before implementing
+- Ensure all code passes linting, type checking, and tests
+- Maintain clear reasoning for all implementation decisions
+- Update documentation as you implement
+
+## Examples
+
+```python
+# Following hexagonal architecture
+class UserService:
+    """Domain service following hexagonal architecture."""
+
+    def __init__(self, user_repository: UserRepository, event_publisher: EventPublisher):
+        self.user_repository = user_repository  # Port (interface)
+        self.event_publisher = event_publisher    # Port (interface)
+
+    def create_user(self, user_data: UserData) -> User:
+        """Create user with domain logic and side effects."""
+        # Domain logic
+        user = User.from_data(user_data)
+
+        # Use ports (interfaces), not concrete implementations
+        self.user_repository.save(user)
+        self.event_publisher.publish(UserCreatedEvent(user.id))
+
+        return user
+```
+
+## Related Rules
+- **testing-philosophy**: Testing standards and speed markers
+- **bdd-workflow**: Behavior-driven development practices
+
+This rule ensures all development aligns with DevSynth's architectural principles and quality standards.

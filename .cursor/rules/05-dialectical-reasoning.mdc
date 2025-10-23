@@ -1,0 +1,160 @@
+---
+description: "Dialectical reasoning and audit policy for quality assurance"
+alwaysApply: false
+globs: ["src/**/*.py", "tests/**/*.py", "docs/**/*.md", "issues/**/*.md"]
+---
+
+# Dialectical Reasoning and Audit Policy
+
+## Core Dialectical Principles
+
+### 1. Thesis, Antithesis, Synthesis
+Apply dialectical reasoning to all development decisions:
+- **Thesis**: Current state or proposed solution
+- **Antithesis**: Alternative perspectives, potential challenges, counterarguments
+- **Synthesis**: Higher-level understanding that resolves conflicts and improves the solution
+
+### 2. Multi-Perspective Analysis
+Consider multiple perspectives in all decisions:
+- **Technical Perspective**: Implementation feasibility, performance, maintainability
+- **Business Perspective**: User needs, business value, stakeholder requirements
+- **Security Perspective**: Security implications, compliance requirements
+- **Quality Perspective**: Testing coverage, code quality, documentation
+- **Architectural Perspective**: System design, integration, scalability
+
+### 3. Continuous Improvement
+Use dialectical process for ongoing enhancement:
+- **Question Assumptions**: Challenge underlying assumptions in proposed solutions
+- **Seek Contradictions**: Identify potential conflicts and inconsistencies
+- **Explore Alternatives**: Consider multiple approaches before committing
+- **Learn from Outcomes**: Analyze results and apply learnings to future decisions
+
+## Dialectical Development Process
+
+### For New Features
+1. **Expand**: Generate multiple implementation approaches (thesis, antithesis)
+2. **Differentiate**: Compare approaches using multiple criteria (antithesis analysis)
+3. **Refine**: Select and improve the best approach (synthesis)
+4. **Retrospect**: Analyze outcomes and capture learnings (continuous improvement)
+
+### For Problem Solving
+1. **State the Problem**: Clearly articulate the issue or requirement (thesis)
+2. **Explore Alternatives**: Consider multiple solutions and their trade-offs (antithesis)
+3. **Evaluate Critically**: Apply multiple evaluation criteria (dialectical analysis)
+4. **Synthesize Solution**: Combine best elements into optimal approach (synthesis)
+
+## Quality Assurance Through Dialectics
+
+### Code Review Process
+```python
+# Dialectical code review checklist
+def dialectical_code_review(code_changes):
+    # Thesis: What does this code do?
+    thesis = analyze_functionality(code_changes)
+
+    # Antithesis: What could go wrong? What alternatives exist?
+    antithesis = identify_risks_and_alternatives(code_changes)
+
+    # Synthesis: How can we improve this?
+    synthesis = propose_improvements(thesis, antithesis)
+
+    return synthesis
+```
+
+### Decision Making Framework
+1. **Multiple Options**: Always consider at least 2-3 alternative approaches
+2. **Trade-off Analysis**: Evaluate each option against multiple criteria
+3. **Stakeholder Input**: Consider perspectives from different stakeholders
+4. **Risk Assessment**: Identify and mitigate potential risks
+5. **Consensus Building**: Build agreement through discussion and compromise
+
+## Agent Collaboration Dialectics
+
+### WSDE Model Integration
+- **Primus (Coordinator)**: Ensures dialectical process is followed across all agents
+- **Worker (Executor)**: Implements solutions with awareness of alternatives considered
+- **Supervisor (Monitor)**: Validates that dialectical process was properly applied
+- **Designer (Creative)**: Generates diverse approaches and creative alternatives
+- **Evaluator (Analysis)**: Applies rigorous evaluation criteria and identifies weaknesses
+
+### Multi-Agent Consensus
+```python
+class DialecticalConsensus:
+    """Build consensus through dialectical process."""
+
+    def build_consensus(self, agents, proposal):
+        # Present thesis (proposal)
+        thesis = self.present_proposal(proposal)
+
+        # Gather antitheses (alternative views)
+        antitheses = self.gather_alternatives(agents, proposal)
+
+        # Synthesize consensus
+        consensus = self.synthesize_solution(thesis, antitheses)
+
+        return consensus
+```
+
+## Implementation Guidelines
+
+### Critical Decision Points
+Apply dialectical reasoning for:
+- **Architecture Decisions**: Component design, technology choices, integration patterns
+- **Feature Implementation**: Multiple implementation approaches, API design, user experience
+- **Problem Resolution**: Bug fixes, performance optimization, security enhancements
+- **Process Improvement**: Workflow changes, tool selection, methodology updates
+
+### Documentation Requirements
+For all significant decisions:
+- **Context**: What problem are we solving?
+- **Alternatives Considered**: What other approaches were evaluated?
+- **Decision Criteria**: What factors influenced the final choice?
+- **Trade-offs Accepted**: What compromises were made?
+- **Validation Approach**: How will we verify this decision was correct?
+
+## Learning and Adaptation
+
+### Retrospective Analysis
+After implementation:
+- **What worked well?** Identify successful elements to preserve
+- **What could be improved?** Identify areas for enhancement
+- **What was learned?** Capture new insights for future decisions
+- **How can we apply this?** Update processes and patterns accordingly
+
+### Pattern Recognition
+- **Success Patterns**: Document and reuse successful approaches
+- **Failure Patterns**: Analyze failures to prevent recurrence
+- **Improvement Patterns**: Identify opportunities for continuous enhancement
+- **Evolution Tracking**: Monitor how patterns evolve over time
+
+## Integration with Development Workflow
+
+### EDRR Framework Enhancement
+Enhance each EDRR phase with dialectical thinking:
+- **Expand**: Generate diverse approaches using dialectical creativity
+- **Differentiate**: Compare using multiple evaluation criteria
+- **Refine**: Improve through synthesis of best elements
+- **Retrospect**: Learn through analysis of outcomes and process
+
+### Specification Evolution
+Use dialectical process for specification development:
+- **Thesis**: Initial specification or requirement
+- **Antithesis**: Alternative interpretations and edge cases
+- **Synthesis**: Enhanced specification incorporating multiple perspectives
+- **Validation**: Testing against diverse scenarios and use cases
+
+## Quality Metrics
+
+### Dialectical Quality Indicators
+- **Multiple Perspectives**: Solutions that consider diverse viewpoints
+- **Trade-off Awareness**: Clear understanding of compromises made
+- **Alternative Evaluation**: Rigorous comparison of multiple approaches
+- **Learning Integration**: Application of lessons from past decisions
+- **Consensus Building**: Collaborative decision-making process
+
+## Related Rules
+- **testing-philosophy**: Testing standards and validation
+- **bdd-workflow**: Behavior-driven development practices
+- **security-compliance**: Security requirements and best practices
+
+This dialectical approach ensures that all development decisions are well-reasoned, thoroughly analyzed, and continuously improved through structured critical thinking and collaborative refinement.
