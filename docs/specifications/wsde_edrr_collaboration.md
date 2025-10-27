@@ -50,8 +50,26 @@ EDRR results.
    - `rejected` → phase outcome is discarded and the phase repeats.
 3. The mapping is stored alongside review metadata to support traceability.
 
-## 5. References
+## 5. DeepAgents Subagent Integration
 
+1. Complex tasks within EDRR phases may spawn specialized subagents using DeepAgents' subagent architecture.
+2. Subagents operate with context isolation to maintain focus on specific subtasks while keeping the main agent's context clean.
+3. Subagent results are integrated back into the main EDRR workflow through the peer-review process.
+4. Subagent spawning is triggered automatically when task complexity exceeds configurable thresholds.
+5. Subagent coordination follows the WSDE role model, with spawned agents taking on specialized worker roles.
+
+## 6. Subagent Lifecycle Management
+
+1. Subagents are spawned by the Primus role during task decomposition in the EXPAND phase.
+2. Each subagent receives a focused context and specific task assignment.
+3. Subagent results are collected and integrated during the REFINE phase.
+4. Failed subagents trigger fallback to the main agent workflow with appropriate error handling.
+5. Successful subagent completion contributes to the overall EDRR cycle progress tracking.
+
+## 7. References
+
+- [DeepAgents Library](https://github.com/langchain-ai/deepagents)
+- [DeepAgents Documentation](https://docs.langchain.com/oss/python/deepagents/overview)
 - [EDRR Specification](edrr_cycle_specification.md)
 - [WSDE Interaction Specification](wsde_interaction_specification.md)
 

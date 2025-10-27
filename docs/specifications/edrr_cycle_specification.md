@@ -89,6 +89,8 @@ The EDRR aims to:
 - Context retrieval from Memory System
 - Parallel exploration by multiple agents
 - Structured brainstorming protocols
+- DeepAgents planning tools integration (`write_todos` for systematic task decomposition)
+- Hierarchical task breakdown with subagent spawning capabilities
 
 
 ### 3.2 Differentiate
@@ -476,3 +478,9 @@ This feature is **implemented**. Core functionality resides in `src/devsynth/app
 ## What proofs confirm the solution?
 - BDD scenarios in [`tests/behavior/features/edrr_cycle_specification.feature`](../../tests/behavior/features/edrr_cycle_specification.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
+
+## References
+
+- [DeepAgents Library](https://github.com/langchain-ai/deepagents)
+- [DeepAgents Documentation](https://docs.langchain.com/oss/python/deepagents/overview)
+- [Cormen, T. H., C. E. Leiserson, R. L. Rivest, and C. Stein. Introduction to Algorithms. 4th ed., MIT Press, 2022.](https://mitpress.mit.edu/9780262033848/introduction-to-algorithms/)

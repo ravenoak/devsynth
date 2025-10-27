@@ -28,6 +28,23 @@ Agentic memory management shifts from human-engineered context pipelines to auto
 
 ## Specification
 
+### DeepAgents Integration
+
+#### Enhanced Task Decomposition
+- **Planning Tools Integration**: Utilize DeepAgents' `write_todos` tool for systematic task breakdown in EDRR Expand phase
+- **Hierarchical Sub-agent Spawning**: Leverage DeepAgents' subagent architecture for context isolation in complex tasks
+- **Progress Tracking**: Enable autonomous task progress monitoring and adaptation
+
+#### File System Context Management
+- **Context Offloading**: Use DeepAgents' file system tools (`ls`, `read_file`, `write_file`, `edit_file`) to prevent context window overflow
+- **Variable-Length Result Handling**: Manage large tool outputs through external file storage
+- **Persistent Context**: Maintain context continuity across agent sessions
+
+#### Long-term Memory Bridge
+- **LangGraph Store Integration**: Connect DeepAgents' persistent memory with DevSynth's hybrid memory system
+- **Cross-Session Continuity**: Maintain coherent state across extended development cycles
+- **Knowledge Preservation**: Ensure critical architectural decisions persist across conversations
+
 ### Cognitive Memory Framework
 
 #### Four Memory Types
@@ -127,10 +144,16 @@ Agentic memory management shifts from human-engineered context pipelines to auto
 - Long-horizon tasks maintain coherence across extended sessions
 - Metacognitive capabilities enhance decision-making quality
 - Safety mechanisms provide appropriate human oversight boundaries
+- DeepAgents planning tools integrate with EDRR Expand phase for systematic task breakdown
+- File system context management prevents context window overflow in extended sessions
+- Subagent spawning enables context isolation for specialized development tasks
+- Long-term memory bridge maintains continuity across agent conversations
 
 ## References
 
 - [LLM Context Management: A Critical Review](../../inspirational_docs/LLM%20Context%20Management_%20A%20Critical%20Review.md)
 - [Anthropic Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+- [DeepAgents Library](https://github.com/langchain-ai/deepagents)
+- [DeepAgents Documentation](https://docs.langchain.com/oss/python/deepagents/overview)
 - [WSDE-EDRR Collaboration](wsde_edrr_collaboration.md)
 - [Cognitive Memory Framework](cognitive_temporal_memory_framework.md)
