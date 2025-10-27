@@ -1,0 +1,64 @@
+2025-10-27 12:33:52,890 - devsynth.testing.run_tests - INFO - test collection cache hit for target=all-tests (fast)
+2025-10-27 12:33:52,899 - devsynth.testing.run_tests - INFO - test collection cache miss for target=all-tests (medium) — decomposing all-tests into dependent targets
+2025-10-27 12:33:52,905 - devsynth.testing.run_tests - INFO - test collection cache miss for target=unit-tests (medium) — collecting via pytest
+2025-10-27 12:33:58,232 - devsynth.testing.run_tests - INFO - test collection cache miss for target=integration-tests (medium) — collecting via pytest
+2025-10-27 12:34:08,536 - devsynth.testing.run_tests - INFO - test collection cache miss for target=behavior-tests (medium) — collecting via pytest
+2025-10-27 12:41:50,694 - devsynth.testing.run_tests - INFO - Coverage data file detected at .coverage (196608 bytes)
+2025-10-27 12:41:51,202 - devsynth.testing.run_tests - WARNING - Failed to write coverage HTML report
+2025-10-27 12:41:51,945 - devsynth.testing.run_tests - WARNING - Failed to write coverage JSON report
+Error: closing tag &#x27;[/private/var/folders/2v/lbss3by10y51bg7c07nd23rh0000gn/                                                                               T/pytest-of-caitlyn/pytest-1404/test_init_cmd_creates_config_s0]&#x27; at position 2062119 doesn&#x27;t match any open tag
+Re-run with --help for usage or check logs.
+Traceback (most recent call last):
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/cli/typer_adapter.py", line 900, in run_cli
+    build_app()()
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/typer/main.py", line 330, in __call__
+    raise e
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/typer/main.py", line 313, in __call__
+    return get_command(self)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/click/core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/typer/core.py", line 765, in main
+    return _main(
+           ^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/typer/core.py", line 193, in _main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/click/core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/click/core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/click/core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/typer/main.py", line 690, in wrapper
+    return callback(**use_params)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/cli/commands/run_tests_cmd.py", line 525, in run_tests_cmd
+    ux_bridge.print(output)
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/interface/ux_bridge.py", line 420, in print
+    self.display_result(message, highlight=highlight, message_type=message_type)
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/interface/cli.py", line 697, in display_result
+    self.console.print(sanitize_output(message), highlight=highlight)
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/rich/console.py", line 1698, in print
+    renderables = self._collect_renderables(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/rich/console.py", line 1558, in _collect_renderables
+    self.render_str(
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/rich/console.py", line 1448, in render_str
+    rich_text = render_markup(
+                ^^^^^^^^^^^^^^
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/rich/markup.py", line 167, in render
+    raise MarkupError(
+rich.errors.MarkupError: closing tag '[/private/var/folders/2v/lbss3by10y51bg7c07nd23rh0000gn/                                                                               T/pytest-of-caitlyn/pytest-1404/test_init_cmd_creates_config_s0]' at position 2062119 doesn't match any open tag
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/cli/typer_adapter.py", line 909, in run_cli
+    raise typer.Exit(1)
+click.exceptions.Exit: 1

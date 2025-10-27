@@ -2,8 +2,13 @@
 
 Title: Test collection regressions — CLI progress, memory protocols, behavior assets
 Date: 2025-10-04 16:30 UTC
-Status: closed (2025-10-12)
+Status: open (regressions persist despite fixes)
 Affected Area: tests
+
+**CRITICAL UPDATE (2025-10-27)**: Issue prematurely closed. Core collection issues remain:
+- BDD imports still use `behave` instead of `pytest_bdd` (3 files)
+- F-string syntax error in `test_report_generator.py`
+- Collection times out at 300s in some runs despite fixes
 
 ## Reproduction
 - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`
