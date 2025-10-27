@@ -182,9 +182,9 @@ class QualityAssuranceTools:
         pass
 ```
 
-### 4.2 EDRR Framework Integration
+### 4.2 EDRR Methodology Integration
 
-Quality assurance integrates with the EDRR framework:
+Quality assurance integrates with the EDRR methodology:
 
 - **Expand Phase**: Identify quality improvement opportunities across the system
 - **Differentiate Phase**: Compare different quality approaches and select optimal strategies

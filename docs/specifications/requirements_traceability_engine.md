@@ -182,9 +182,9 @@ class TraceabilityTools:
         pass
 ```
 
-### 4.2 EDRR Framework Integration
+### 4.2 EDRR Methodology Integration
 
-Traceability verification integrates with the EDRR framework:
+Traceability verification integrates with the EDRR methodology:
 
 - **Expand Phase**: Identify traceability requirements and coverage gaps
 - **Differentiate Phase**: Compare different traceability approaches and select optimal strategies

@@ -75,6 +75,7 @@ _This index is automatically generated from all documentation files. Last update
 | docs/analysis/verify_test_markers_benchmark.md | Verify Test Marker Benchmarks | draft | analysis | 2025-08-04 |
 | docs/analysis/webui_consistency.md | WebUI Consistency Analysis | unknown | unknown | unknown |
 | docs/analysis/wide_sweep_analysis.md | DevSynth Project Wide Sweep Analysis | published | analysis | 2025-07-07 |
+| docs/glossary.md | DevSynth Glossary | published | reference | 2025-08-02 |
 | docs/analysis/wsde_edrr_convergence.md | WSDE/EDRR Convergence | draft | analysis | 2025-08-20 |
 | docs/analysis/wsde_voting_fairness.md | WSDE Voting Fairness | published | analysis | 2025-07-12 |
 

@@ -165,9 +165,9 @@ class SecurityValidationTools:
         pass
 ```
 
-### 4.2 EDRR Framework Integration
+### 4.2 EDRR Methodology Integration
 
-Security validation integrates with the EDRR framework:
+Security validation integrates with the EDRR methodology:
 
 - **Expand Phase**: Identify security threats and vulnerabilities across the system
 - **Differentiate Phase**: Compare security approaches and select optimal defenses

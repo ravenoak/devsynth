@@ -45,7 +45,7 @@ The project constitution (`constitution.md`) serves as the foundational governan
 ## Technology Stack
 - **Framework**: DevSynth 0.1.0a1 (Agentic Software Engineering Platform)
 - **Architecture**: Hexagonal architecture with ports and adapters
-- **Methodology**: EDRR (Expand-Differentiate-Refine-Retrospect) framework
+- **Methodology**: EDRR (Expand-Differentiate-Refine-Retrospect) methodology
 
 ## Development Workflow
 1. **Expand**: Generate multiple diverse approaches

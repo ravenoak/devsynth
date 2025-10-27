@@ -20,16 +20,32 @@ last_reviewed: "2025-08-02"
 
 This glossary provides definitions for domain-specific terminology used throughout the DevSynth project documentation. It serves as a reference for both users and developers to ensure consistent understanding of key concepts.
 
+## Terminology Management Approach
+
+This glossary follows terminology management best practices:
+
+1. **Concept-based Approach**: Each term is defined based on its underlying concept rather than just usage examples
+2. **Clarity and Precision**: Definitions are clear, concise, and avoid ambiguity
+3. **Subject Field Orientation**: Terms are organized by domain (EDRR methodology, WSDE collaboration, memory systems, etc.)
+4. **Systematic Management**: All bespoke DevSynth terms are documented here with consistent formatting
+5. **Quality Assurance**: Definitions are reviewed for accuracy and completeness
+6. **Harmonization**: Terminology is standardized across all documentation to avoid confusion
+
+For questions about specific terms or suggestions for new entries, please refer to the contribution guidelines or open an issue in the project repository.
+
 ## A
 
 ### Adaptive Project Ingestion
-The process by which DevSynth dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and the EDRR framework.
+The process by which DevSynth dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and the EDRR methodology.
 
 ### Agent
 An autonomous software component that performs specific tasks within the DevSynth system, such as code generation, analysis, or requirement refinement.
 
 ### Agent System
-The collection of modular agents and their orchestration framework within DevSynth, powered by LangGraph.
+The collection of modular agents and their orchestration framework within DevSynth, powered by LangGraph. The system implements the WSDE (Worker Self-Directed Enterprise) model for multi-agent collaboration and uses dialectical reasoning for decision-making.
+
+### Atomic MVUU Commits
+A development practice in DevSynth where each commit represents a single Minimum Viable Utility Unit (MVUU), ensuring that every change provides measurable value and maintains project integrity.
 
 ### API (Application Programming Interface)
 A set of protocols and tools for building software applications, defining how software components should interact.
@@ -62,7 +78,7 @@ A software development practice that involves automatically building, testing, a
 ## D
 
 ### Dialectical Reasoning
-A method of reasoning that examines opposing ideas (thesis and antithesis) to arrive at a synthesis that resolves contradictions. Used in DevSynth for analyzing and improving solutions.
+A structured approach to problem-solving that involves thesis, antithesis, and synthesis. In DevSynth, agents engage in dialectical reasoning by presenting initial solutions (thesis), generating critiques and counterarguments (antithesis), and synthesizing improved solutions (synthesis). This process is fundamental to multi-agent collaboration and EDRR phases.
 
 ### Documentation Harmony
 The principle that all code, tests, and documents should be kept in sync, with traceability via the Requirements Traceability Matrix.
@@ -70,11 +86,13 @@ The principle that all code, tests, and documents should be kept in sync, with t
 ## E
 
 ### EDRR (Expand, Differentiate, Refine, Retrospect)
-A framework used by DevSynth for project ingestion and adaptation, consisting of four phases:
-- **Expand**: Gather broad information about the project
-- **Differentiate**: Identify unique aspects and patterns
-- **Refine**: Develop a detailed understanding of specific components
-- **Retrospect**: Review and improve the understanding based on new information
+A comprehensive methodology and framework used throughout DevSynth for iterative problem-solving and development, consisting of four recursive phases:
+- **Expand**: Generate diverse approaches and explore multiple perspectives
+- **Differentiate**: Analyze and evaluate options against requirements and criteria
+- **Refine**: Improve and optimize selected solutions through iteration
+- **Retrospect**: Review outcomes and capture learnings for future improvement
+
+The EDRR framework operates as a recursive, fractal structure where each macro phase contains nested micro-EDRR cycles, enabling self-optimization at multiple levels of granularity. It integrates with all major DevSynth components including WSDE multi-agent collaboration and hybrid memory systems.
 
 ### EDRRCoordinator
 The component that orchestrates the EDRR process across all system components.
@@ -82,7 +100,16 @@ The component that orchestrates the EDRR process across all system components.
 ## H
 
 ### Hexagonal Architecture
-An architectural pattern used in DevSynth that separates core logic from external concerns through ports and adapters, enhancing testability and extensibility.
+An architectural pattern used in DevSynth that separates core logic from external concerns through ports and adapters, enhancing testability and extensibility. Also known as Ports and Adapters pattern.
+
+### Hybrid Memory Architecture
+DevSynth's multi-layered memory system that combines multiple storage backends for different types of information:
+- **Vector Store (ChromaDB)**: Semantic search and similarity-based retrieval
+- **Graph Store (Kuzu)**: Relational data and dependency tracking
+- **Structured Store (TinyDB/SQLite)**: Metadata and project configuration
+- **RDF Store (RDFLib)**: Knowledge representation and semantic relationships
+
+This hybrid approach enables efficient storage and retrieval of diverse information types throughout the software development lifecycle.
 
 ## J
 
@@ -111,7 +138,14 @@ A tool for running local LLM models, supported as a provider in DevSynth.
 A unified interface in DevSynth for memory operations, supporting multiple backends such as ChromaDB, TinyDB, and JSON.
 
 ### MVUU (Minimum Viable Utility Units)
-The smallest useful unit of work recorded by DevSynth for traceability and progress reporting.
+The smallest useful unit of work that provides measurable value to the project, recorded by DevSynth for traceability and progress reporting. MVUUs represent atomic changes that:
+- Are independently valuable and testable
+- Have clear acceptance criteria
+- Include all necessary documentation and tests
+- Can be tracked through the development lifecycle
+- Support requirements traceability
+
+Each MVUU is documented with a utility statement, affected files, tests, traceability ID (DSY-XXXX format), and related issue references. The MVUU engine enables granular progress tracking and quality assurance.
 
 ## N
 
@@ -137,7 +171,7 @@ A testing approach that verifies properties of functions across a range of input
 ## R
 
 ### Requirements Traceability Matrix
-A document that maps requirements to design, code, and tests for bidirectional traceability in DevSynth.
+A comprehensive tracking system in DevSynth that maps requirements to design decisions, code implementations, tests, and validation evidence. The matrix ensures bidirectional traceability, enabling teams to understand how requirements are implemented and how code changes impact requirements. It supports automated validation and maintains links between all SDLC artifacts.
 
 ## S
 
@@ -155,7 +189,7 @@ A structured data storage adapter in DevSynth for project metadata, relationship
 ## U
 
 ### UXBridge
-A shared interface in DevSynth for CLI, WebUI, and Agent API interactions, providing methods like `ask_question`, `confirm_choice`, and `display_result`.
+A shared interface abstraction in DevSynth that provides unified interaction methods (`ask_question`, `confirm_choice`, `display_result`) across different user interfaces (CLI, WebUI, and Agent API). This architectural pattern enables consistent user experience and simplifies the addition of new interface types.
 
 ## V
 
