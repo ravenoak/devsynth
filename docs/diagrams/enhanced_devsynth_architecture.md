@@ -83,6 +83,13 @@ graph TB
             IntentEntities[Intent &<br/>Rationale Entities]
             SemanticRelationships[Semantic<br/>Relationships]
         end
+
+        subgraph "Memetic Unit Layer"
+            MemeticUnits[Memetic Units<br/>Universal Container]
+            IntentDiscovery[Intent Discovery<br/>Engine]
+            SemanticEnhancement[Semantic<br/>Enhancement]
+            MetadataGovernance[Metadata<br/>Governance]
+        end
     end
 
     %% LLM Backend Layer
@@ -131,6 +138,17 @@ graph TB
     SemanticLinker --> IntentEntities
     ImpactAnalyzer --> BusinessEntities
     TraceabilityEngine --> TechnicalEntities
+
+    %% Memetic Unit Layer Connections
+    VectorStore --> MemeticUnits
+    GraphStore --> MemeticUnits
+    StructuredStore --> MemeticUnits
+    DocumentStore --> MemeticUnits
+
+    MemeticUnits --> IntentDiscovery
+    IntentDiscovery --> SemanticEnhancement
+    SemanticEnhancement --> MetadataGovernance
+    MetadataGovernance --> MemeticUnits
 
     %% LLM Integration
     ExecutionLearner --> LLMProviders
@@ -182,6 +200,7 @@ graph TB
     classDef agents fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
     classDef memory fill:#fff3e0,stroke:#e65100,stroke-width:2px
     classDef knowledgeGraph fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef memeticLayer fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     classDef llmBackend fill:#f1f8e9,stroke:#33691e,stroke-width:2px
     classDef external fill:#fafafa,stroke:#424242,stroke-width:2px,stroke-dasharray: 5 5
     classDef research fill:#ffebee,stroke:#b71c1c,stroke-width:2px,stroke-dasharray: 3 3
@@ -191,6 +210,7 @@ graph TB
     class WSDEAgents,EDRRCoordinator,ExecutionLearner,SemanticAnalyzer agents
     class CTM_L1,CTM_L2,CTM_L3,CTM_L4,CTM_L4_5,VectorStore,GraphStore,StructuredStore,DocumentStore memory
     class MultiHopEngine,SemanticLinker,ImpactAnalyzer,TraceabilityEngine,BusinessEntities,TechnicalEntities,IntentEntities,SemanticRelationships knowledgeGraph
+    class MemeticUnits,IntentDiscovery,SemanticEnhancement,MetadataGovernance memeticLayer
     class LLMProviders,ExecutionSandbox,ValidationFramework llmBackend
     class VersionControl,CI_CD,IssueTracker,Documentation external
     class Research_001,Research_002,Research_003,Research_004 research
@@ -207,7 +227,17 @@ The enhanced CTM system adds execution trajectory learning (L4.5) to address the
 - **Mutation Resistance**: Maintains understanding through semantic-preserving changes
 - **Integration**: Seamlessly integrates with existing CTM layers
 
-### 3.2 Enhanced GraphRAG with Multi-Hop Reasoning
+### 3.2 Memetic Unit Abstraction
+
+The Memetic Unit abstraction provides a universal container for all memory types:
+
+- **Universal Container**: Standardized format for all information types and modalities
+- **Rich Metadata Schema**: Comprehensive tracking of provenance, quality, and relationships
+- **Cognitive Type Awareness**: Different processing based on cognitive function (Working, Episodic, Semantic, Procedural)
+- **Temporal and Causal Tracking**: Maintains temporal sequences and causal relationships
+- **Quality Management**: Tracks information reliability and relevance over time
+
+### 3.3 Enhanced GraphRAG with Multi-Hop Reasoning
 
 The enhanced GraphRAG system adds advanced reasoning capabilities:
 
@@ -216,7 +246,7 @@ The enhanced GraphRAG system adds advanced reasoning capabilities:
 - **Impact Analysis**: Calculates comprehensive blast radius for proposed changes
 - **Meaning Barrier**: Bridges business requirements with technical implementation
 
-### 3.3 Research-Backed Validation
+### 3.4 Research-Backed Validation
 
 The validation framework ensures genuine improvements:
 
