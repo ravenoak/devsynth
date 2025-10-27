@@ -1,5 +1,7 @@
 # Coverage below threshold
-Status: COMPLETED — 92.40% coverage achieved, exceeds 90% threshold (2025-10-13)
+Status: BLOCKED — 92.40% coverage achieved but collection failures prevent reproduction (2025-10-27)
+
+**CRITICAL UPDATE**: Historical coverage achievement cannot be reproduced due to ongoing collection failures. Root causes identified: BDD import mismatches, f-string syntax error, and relative import issues. Coverage gate cannot be verified until collection issues are resolved.
 
 ## 2025-10-12 COVERAGE GATE PASS
 
