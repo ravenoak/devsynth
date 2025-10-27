@@ -916,6 +916,10 @@ def _maybe_publish_coverage_evidence(
     if not report or not success or marker_fallback:
         return None
 
+    # Only publish/write manifests when there were collected tests
+    if not collected_node_ids:
+        return "[knowledge-graph] coverage ingestion skipped: no tests collected"
+
     artifacts_ok, reason = coverage_artifacts_status()
     if not artifacts_ok:
         logger.warning("Skipping release graph publication: %s", reason)
