@@ -1,3 +1,67 @@
+## v0.1.0a1 Readiness — Updated Status (2025-10-26)
+
+Executive snapshot
+- Coverage: A prior run achieved 92.40% (2025-10-12) with full extras, but current HEAD is not reproducibly green. Today’s empirical runs show collection failures and missing coverage artifacts. Status: Yellow.
+- Strict typing: Recently green in logs, but must be reconfirmed at current HEAD after local edits. Status: Yellow/Green.
+- Smoke and behavior hygiene: Smoke run failed and skipped coverage artifacts; behavior collection failed at medium speed. Status: Red/Yellow.
+- Release prep: Needs a fresh, green, end-to-end transcript tied to current HEAD. Status: Yellow/Red.
+
+Empirical evidence (2025-10-26)
+- Collect-only: `poetry run pytest --collect-only -q` → Successfully enumerated a very large suite (stdout truncated). No error banner.
+- Smoke: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` → Injected `-p pytest_bdd.plugin` and `-p pytest_asyncio.plugin`; segmented collector used; WARNING `Coverage artifact generation skipped: data file missing`; result banner: Tests failed.
+- Fast+medium (segmented): `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel --segment --segment-size=75` → Cache hit for fast; behavior collection failed for medium; exit code 2; no coverage artifacts.
+
+Primary blockers (latest-first)
+1) Behavior-suite collection errors (medium speed) prevent execution and artifacts.
+2) Smoke run not green; `.coverage` not produced in current environment profile.
+3) Optional backend imports may still be eager in some paths under smoke; need universal resource gating.
+4) No fresh `task release:prep` evidence tied to current HEAD.
+
+Definition of Done for v0.1.0a1 (reaffirmed)
+- Green transcripts for: collect-only, smoke, fast+medium (≥90%), strict mypy, and release:prep, all at current HEAD.
+- Coverage artifacts (JSON + HTML) and knowledge-graph IDs archived under `test_reports/` and `artifacts/releases/`.
+- Behavior assets complete and validated; exactly one speed marker per test function.
+- Optional backends fully guarded by `DEVSYNTH_RESOURCE_*` and `pytest.importorskip`; smoke cannot fail due to missing extras.
+
+Remediation plan (PRs A–H) — proofs required for each
+- PR‑A: Behavior/Test Hygiene Consolidation
+  - Fix missing/incorrect feature paths and step indentation; enforce one speed marker per test.
+  - Proofs: clean `pytest --collect-only -q` transcript; 0 violations in `verify_test_markers`.
+- PR‑B: Optional Backend Guardrail Sweep
+  - Ensure lazy/eager import guards with resource flags across all optional providers.
+  - Proofs: smoke completes without collection errors/timeouts; coverage artifacts generated even with autoload-off.
+- PR‑C: Segmented Collector Finalization + Telemetry
+  - Stabilize collection with segmentation and emit cache telemetry in smoke.
+  - Proofs: smoke completes <300s with telemetry; clean collect-only transcript.
+- PR‑D: Strict Mypy Re‑validation + Runtime Protocol Safety
+  - Re-run strict typing at HEAD; add targeted tests/overrides if needed.
+  - Proofs: green `task mypy:strict`; manifests archived.
+- PR‑E: Fast+Medium Aggregate (≥90%) + Artifacts
+  - Run canonical command with extras; segment if needed.
+  - Proofs: ≥90% coverage; JSON/HTML artifacts; KG IDs recorded.
+- PR‑F: Release Prep Dry‑Run + Evidence Bundle
+  - Green `task release:prep`; logs and manifest archived.
+- PR‑G: Docs + Maintainer UX
+  - Update CLI reference and maintainer setup to reflect smoke/autoload/coverage/segmentation and resource flags.
+  - Proofs: Maintainer reproduces all runs from docs on a clean workstation.
+- PR‑H: UAT + Tag Handoff
+  - Compile UAT checklist with links to latest artifacts/IDs; prepare CI re‑enable PR for post‑tag.
+
+Authoritative commands (maintainer reproduction)
+1) Provision with full extras: `poetry install --with dev --all-extras`
+2) Collect rehearsal: `poetry run pytest --collect-only -q`
+3) Smoke: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`
+4) Coverage gate: `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` (optionally `--segment --segment-size 75`)
+5) Typing strict: `poetry run task mypy:strict`
+6) Markers check: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`
+
+Acceptance checklist (updated 2025-10-26)
+- [ ] Green collect-only, smoke, fast+medium (≥90%), strict mypy, and release-prep runs at current HEAD, with artifacts.
+- [ ] Behavior assets validated; exactly one speed marker per test.
+- [ ] Optional backends fully guarded; smoke completes without extras.
+- [ ] Docs updated and maintainer workflow reproducible.
+- [ ] UAT approved; maintainers create `v0.1.0a1` tag; CI triggers re‑enabled post‑tag.
+
 # DevSynth 0.1.0a1 Test Readiness and Coverage Improvement Plan
 
  Version: 2025-10-10
