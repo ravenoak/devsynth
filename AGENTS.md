@@ -160,7 +160,7 @@ CI runs `poetry run python scripts/verify_test_markers.py` to ensure each test c
 #### Core Rules (Always Applied)
 - **00-architecture.mdc**: Project constitution and core architectural principles - always active
 - **00-project-core.md**: Core project philosophy, setup, and development workflow - always active
-- **01-edrr-framework.mdc**: EDRR phase guidance and structured thinking methodology - always active
+- **01-edrr-framework.mdc**: EDRR methodology phase guidance and structured thinking - always active
 - **02-specification-driven.mdc**: Specification-Driven Development (SDD) + BDD integration - always active
 
 #### Context-Specific Rules (Auto-Attach)

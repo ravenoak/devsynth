@@ -116,13 +116,15 @@ Next steps
 - MVUU engine for tracking Minimum Viable Utility Units
 - Atomic-Rewrite workflow for fine-grained code updates
 - **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and a fully integrated "Expand, Differentiate, Refine, Retrospect" (EDRR) framework. The `EDRRCoordinator` orchestrates this process across all system components. See [EDRR Assessment](docs/implementation/edrr_assessment.md) for details. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
-- **Cursor IDE Integration**: Seamless integration with Cursor IDE providing structured AI assistance through Rules, Commands, and Modes that align with DevSynth's EDRR framework and SDD+BDD methodologies. See [Cursor Integration Guide](.cursor/README.md) for details.
+- **Cursor IDE Integration**: Seamless integration with Cursor IDE providing structured AI assistance through Rules, Commands, and Modes that align with DevSynth's EDRR methodology and SDD+BDD methodologies. See [Cursor Integration Guide](.cursor/README.md) for details.
 
 ## SDLC Policies and Documentation Framework
 
 DevSynth is governed by a comprehensive set of SDLC policies and documentation artifacts designed for both human and agentic contributors. These policies ensure structure, boundaries, and direction across all SDLC phases, supporting multi-agent collaboration, compliance, safety, and productivity. Key elements include:
 
-- **`.devsynth/project.yaml`**: A user-configurable file in the `.devsynth` directory, defined by `src/devsynth/schemas/project_schema.json`, detailing the project's shape and attributes (e.g., structure type, components, primary language). This configuration file is minimal but functional, featureful, and human-friendly. It is only present in projects that are managed by DevSynth, as the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. This is the cornerstone of DevSynth's "Expand, Differentiate, Refine, Retrospect" ingestion and adaptation mechanism.
+- **[Glossary](docs/glossary.md)**: Definitions for all DevSynth-specific terminology including EDRR, WSDE, MVUU, and other bespoke concepts
+
+- **`.devsynth/project.yaml`**: A user-configurable file in the `.devsynth` directory, defined by `src/devsynth/schemas/project_schema.json`, detailing the project's shape and attributes (e.g., structure type, components, primary language). This configuration file is minimal but functional, featureful, and human-friendly. It is only present in projects that are managed by DevSynth, as the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. This is the cornerstone of DevSynth's "Expand, Differentiate, Refine, Retrospect" (EDRR) methodology ingestion and adaptation mechanism.
 - **Requirements Documentation**: Product Requirements Document (PRD), domain glossary, and requirements traceability matrix ([docs/requirements_traceability.md](docs/requirements_traceability.md))
 - **Design Documentation**: Architecture specs, design principles, API/data schemas, and security design ([docs/architecture/overview.md](docs/architecture/overview.md))
 - **Development Protocols**: Contribution guide, code style, module ownership, secure coding, and peer review ([docs/developer_guides/contributing.md](docs/developer_guides/contributing.md), [docs/developer_guides/code_style.md](docs/developer_guides/code_style.md))
@@ -537,7 +539,7 @@ Replace `<percentage>` with the rounded coverage value and choose an appropriate
 ## Current Limitations
 
 DevSynth is under active development. Collaborative WSDE features, dialectical reasoning,
-and automated EDRR cycle orchestration are only partially implemented. These capabilities
+and automated EDRR methodology orchestration are only partially implemented. These capabilities
 are disabled by default via flags in `config/default.yml`. Code, test, and documentation
 generation work but often require manual review. See the
 [Implementation Status](docs/implementation/feature_status_matrix.md) for detailed progress.
