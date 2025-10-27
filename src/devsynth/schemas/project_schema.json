@@ -197,42 +197,6 @@
         "experimental_features": {"type": "boolean"}
       }
     },
-    "cursor_integration": {
-      "type": "object",
-      "description": "Cursor IDE integration configuration",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable Cursor IDE integration features",
-          "default": true
-        },
-        "rules_directory": {
-          "type": "string",
-          "description": "Path to Cursor rules directory",
-          "default": ".cursor/rules"
-        },
-        "commands_directory": {
-          "type": "string",
-          "description": "Path to Cursor commands directory",
-          "default": ".cursor/commands"
-        },
-        "modes_configured": {
-          "type": "boolean",
-          "description": "Whether custom Cursor modes are configured",
-          "default": false
-        },
-        "edrr_enhanced": {
-          "type": "boolean",
-          "description": "Enable EDRR-enhanced Cursor workflows",
-          "default": true
-        },
-        "sdd_bdd_integration": {
-          "type": "boolean",
-          "description": "Enable SDD+BDD integration with Cursor",
-          "default": true
-        }
-      }
-    },
     "development_workflow": {
       "type": "object",
       "description": "Development workflow configuration",
