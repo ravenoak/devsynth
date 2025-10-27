@@ -5,14 +5,15 @@
 **Framework**: DevSynth 0.1.0a1 (Agentic Software Engineering Platform)
 **Language**: Python 3.12 with comprehensive type annotations
 **Architecture**: Hexagonal architecture with hexagonal ports and adapters
+**Agent System**: Multi-agent collaboration with DeepAgents integration for complex task planning
 **Testing**: Behavior-Driven Development (BDD) with Gherkin scenarios
 **Methodology**: EDRR (Expand-Differentiate-Refine-Retrospect) methodology
 **Documentation**: Specification-driven with living documentation system
 
 ## Architectural Patterns
 
-**Agent System**: Multi-agent collaboration via WSDE model with dialectical reasoning
-**Memory System**: Hybrid memory with Kuzu (graph), ChromaDB (vector), and RDFLib (knowledge graph) backends
+**Agent System**: Multi-agent collaboration via WSDE model with DeepAgents integration and dialectical reasoning
+**Memory System**: Hybrid memory with Kuzu (graph), ChromaDB (vector), and RDFLib (knowledge graph) backends, integrated with DeepAgents long-term memory
 **Development Process**: Specification-first with intent as source of truth
 **Quality Gates**: Dialectical audit policy and comprehensive test coverage (>90%)
 **Configuration**: Unified YAML/TOML loader with environment variable support
