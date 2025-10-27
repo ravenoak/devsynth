@@ -298,7 +298,7 @@ class EnhancedAnalysisCommand:
     def _display_console_report(self, analysis_results: Dict[str, Any], total_time: float) -> None:
         """Display analysis results in console format."""
         self.console.print("\n[bold blue]🔍 ENHANCED ANALYSIS REPORT[/bold blue]")
-        self.console.print(f"[dim]Completed in {total_time:.".1f"[/dim]\n")
+        self.console.print(f"[dim]Completed in {total_time:.1f}[/dim]\n")
 
         # Overall status
         failed_components = [k for k, v in analysis_results.items() if v.get("status") == "failed"]
@@ -325,12 +325,11 @@ class EnhancedAnalysisCommand:
                     if "total_issues" in comp_data:
                         self.console.print(f"    🔍 Issues: {comp_data['total_issues']}")
                     if "overall_score" in comp_data:
-                        self.console.print(f"    🛡️ Score: {comp_data['overall_score']:.1".1f")
+                        self.console.print(f"    🛡️ Score: {comp_data['overall_score']:.1f}")
                     if "gaps_found" in comp_data:
                         self.console.print(f"    🔗 Gaps: {comp_data['gaps_found']}")
 
-        self.console.print("
-[dim]Use --output-format json/html/markdown for detailed reports[/dim]")
+        self.console.print("\n[dim]Use --output-format json/html/markdown for detailed reports[/dim]")
 
     def _generate_json_report(
         self,
@@ -410,7 +409,7 @@ class EnhancedAnalysisCommand:
             <div class="header">
                 <h1>DevSynth Enhanced Analysis Report</h1>
                 <p><strong>Generated:</strong> {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                <p><strong>Total Time:</strong> {total_time:.".1f"seconds</p>
+                <p><strong>Total Time:</strong> {total_time:.1f} seconds</p>
             </div>
         """
 
@@ -443,7 +442,7 @@ class EnhancedAnalysisCommand:
                     if "total_issues" in comp_data:
                         html += f"<br><span>Issues: {comp_data['total_issues']}</span>"
                     if "overall_score" in comp_data:
-                        html += f"<br><span>Score: {comp_data['overall_score']:.1".1f"</span>"
+                        html += f"<br><span>Score: {comp_data['overall_score']:.1f}</span>"
                     if "gaps_found" in comp_data:
                         html += f"<br><span>Gaps: {comp_data['gaps_found']}</span>"
 
@@ -463,7 +462,7 @@ class EnhancedAnalysisCommand:
         markdown = f"""# DevSynth Enhanced Analysis Report
 
 **Generated:** {time.strftime('%Y-%m-%d %H:%M:%S')}
-**Total Time:** {total_time:.".1f"seconds
+**Total Time:** {total_time:.1f} seconds
 
 """
 
@@ -488,7 +487,7 @@ class EnhancedAnalysisCommand:
                     if "total_issues" in comp_data:
                         markdown += f"  - Issues: {comp_data['total_issues']}\n"
                     if "overall_score" in comp_data:
-                        markdown += f"  - Score: {comp_data['overall_score']:.1".1f"\n"
+                        markdown += f"  - Score: {comp_data['overall_score']:.1f}\n"
                     if "gaps_found" in comp_data:
                         markdown += f"  - Gaps: {comp_data['gaps_found']}\n"
 
