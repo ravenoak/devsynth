@@ -9,7 +9,7 @@ and lifecycle governance.
 from __future__ import annotations
 
 import pytest
-from behave import given, when, then
+from pytest_bdd import given, when, then
 from typing import Any, Dict, List
 from uuid import uuid4
 

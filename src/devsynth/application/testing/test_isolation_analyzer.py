@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 
-from .enhanced_test_collector import IsolationIssue, IsolationReport
+from devsynth.application.testing.enhanced_test_collector import IsolationIssue, IsolationReport
 
 
 @dataclass

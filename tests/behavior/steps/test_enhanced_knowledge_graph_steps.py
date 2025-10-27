@@ -8,7 +8,7 @@ functionality including intent discovery, semantic linking, and multi-hop reason
 from __future__ import annotations
 
 import pytest
-from behave import given, when, then
+from pytest_bdd import given, when, then
 from typing import Any, Dict, List
 
 from src.devsynth.application.memory.enhanced_knowledge_graph import (
