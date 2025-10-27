@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, asdict
 
-from .enhanced_test_collector import TestCollectionResult, IsolationReport
+from devsynth.application.testing.enhanced_test_collector import TestCollectionResult, IsolationReport
 
 
 @dataclass
@@ -661,7 +661,7 @@ class TestReportGenerator:
         rows = []
         for operation, time_value in performance_data.items():
             if isinstance(time_value, (int, float)):
-                rows.append(f'<tr><td>{operation.replace("_", " ").title()}</td><td>{time_value".2f"}</td></tr>')
+                rows.append(f'<tr><td>{operation.replace("_", " ").title()}</td><td>{time_value:.2f}</td></tr>')
         return "\n".join(rows)
 
     def _format_severity_markdown(self, severity_data: Dict[str, int]) -> str:
@@ -684,5 +684,5 @@ class TestReportGenerator:
         rows = []
         for operation, time_value in performance_data.items():
             if isinstance(time_value, (int, float)):
-                rows.append(f"| {operation.replace('_', ' ').title()} | {time_value".2f"} |")
+                rows.append(f"| {operation.replace('_', ' ').title()} | {time_value:.2f} |")
         return "\n".join(rows)

@@ -3,16 +3,16 @@
 import os
 import pytest
 from pathlib import Path
-from behave import given, when, then
-from devsynth.application.config import get_config
-from devsynth.core.workflows import EDRRWorkflow
-from devsynth.interface.cli import DevSynthCLI
+from pytest_bdd import given, when, then
+from devsynth.config import get_project_config
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.interface.cli import CLIUXBridge
 
 
 @given('DevSynth is properly configured')
 def step_devsynth_configured(context):
     """Verify DevSynth configuration is valid."""
-    config = get_config()
+    config = get_project_config()
     assert config is not None
     assert config.application.name == "DevSynth"
 
