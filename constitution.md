@@ -6,7 +6,7 @@
 **Language**: Python 3.12 with comprehensive type annotations
 **Architecture**: Hexagonal architecture with hexagonal ports and adapters
 **Testing**: Behavior-Driven Development (BDD) with Gherkin scenarios
-**Methodology**: EDRR (Expand-Differentiate-Refine-Retrospect) framework
+**Methodology**: EDRR (Expand-Differentiate-Refine-Retrospect) methodology
 **Documentation**: Specification-driven with living documentation system
 
 ## Architectural Patterns
@@ -27,7 +27,7 @@
 
 ## Development Workflow
 
-### EDRR Framework Integration
+### EDRR Methodology Integration
 1. **Expand**: Generate multiple diverse approaches, explore alternatives, gather context
 2. **Differentiate**: Compare options, evaluate against requirements, identify trade-offs
 3. **Refine**: Implement chosen solution, optimize for quality, add comprehensive tests
