@@ -49,6 +49,20 @@ def test_memory_type_members_complete():
         "TASK_HISTORY",
         "KNOWLEDGE",
         "ERROR_LOG",
+        "COLLABORATION_TASK",
+        "COLLABORATION_MESSAGE",
+        "COLLABORATION_TEAM",
+        "PEER_REVIEW",
+        "EXPAND_RESULTS",
+        "DIFFERENTIATE_RESULTS",
+        "REFINE_RESULTS",
+        "RETROSPECT_RESULTS",
+        "FINAL_REPORT",
+        "EDRR_CYCLE_RESULTS",
+        "INGEST_EXPAND_RESULTS",
+        "INGEST_DIFFERENTIATE_RESULTS",
+        "INGEST_REFINE_RESULTS",
+        "INGEST_RETROSPECT_RESULTS",
     ]
     assert [member.name for member in MemoryType] == expected
 
