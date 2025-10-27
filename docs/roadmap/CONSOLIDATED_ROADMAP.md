@@ -102,6 +102,8 @@ The development workflow for each sprint follows these steps:
    - Implement Semantic-Anchor Compression (SAC) for high-fidelity context compression
    - Develop hierarchical context stacks (global/dynamic/episodic layers)
    - Add agentic memory management with compaction and structured note-taking
+   - **Implement Dynamic Tool Management**: Extend ToolRAG for cognitive load optimization, hierarchical tool organization, and architectural decoupling to prevent scaling degradation
+   - **Implement Context Window Management**: Dynamically discover and track provider context limits, optimizing routing based on query complexity and tool requirements
    - Enhance context utility metrics and attention budget management
 
 3. **Repository Analysis and Code Organization**:
