@@ -97,22 +97,29 @@ The development workflow for each sprint follows these steps:
    - Ensure consistent behavior between CLI and WebUI through UXBridge
    - Implement responsive design for different screen sizes
 
-2. **Repository Analysis and Code Organization**:
+2. **Context Engineering Framework Implementation**:
+   - Integrate RAG+ with dual corpus architecture for reasoning-aware retrieval
+   - Implement Semantic-Anchor Compression (SAC) for high-fidelity context compression
+   - Develop hierarchical context stacks (global/dynamic/episodic layers)
+   - Add agentic memory management with compaction and structured note-taking
+   - Enhance context utility metrics and attention budget management
+
+3. **Repository Analysis and Code Organization**:
    - Implement code structure analysis tools
    - Create visualization tools for code dependencies
    - Develop refactoring recommendations based on analysis
 
-3. **Automated Testing and CI/CD Expansion**:
+4. **Automated Testing and CI/CD Expansion**:
    - Enhance CI/CD pipelines for multi-language support
    - Implement automated performance testing
    - Create comprehensive test coverage reports
 
-4. **Multi-language Code Generation**:
+5. **Multi-language Code Generation**:
    - Develop language-specific templates and generators
    - Implement language detection and selection logic
    - Add tests for multi-language code generation
 
-5. **AST Mutation Tooling**:
+6. **AST Mutation Tooling**:
    - Develop AST-based code transformation tools
    - Implement language-specific AST mutation strategies
    - Create testing framework for AST mutations
