@@ -164,9 +164,9 @@ class TestAnalysisTools:
         pass
 ```
 
-### 4.2 EDRR Framework Integration
+### 4.2 EDRR Methodology Integration
 
-The enhanced test infrastructure integrates with the EDRR framework:
+The enhanced test infrastructure integrates with the EDRR methodology:
 
 - **Expand Phase**: Analyze existing test infrastructure and identify enhancement opportunities
 - **Differentiate Phase**: Compare different testing approaches and select optimal strategies

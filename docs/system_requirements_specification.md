@@ -163,8 +163,8 @@ Primary users are individual software developers who:
 - [FR-31] The system shall track agent status (idle, working, waiting, error)
 - [FR-32] The system shall support agent capabilities for different development tasks
 - [FR-33] The system shall provide error handling and recovery for agent tasks
-- [FR-40] The system shall implement the EDRR (Expand, Differentiate, Refine, Retrospect) framework for iterative development as a recursive, fractal structure where each macro phase contains its own nested micro-EDRR cycles
-- [FR-41] The system shall implement the WSDE (WSDE) model for agent organization
+- [FR-40] The system shall implement the EDRR framework for iterative development as a recursive, fractal structure where each macro phase contains its own nested micro-EDRR cycles
+- [FR-41] The system shall implement the WSDE (Worker Self-Directed Enterprise) model for agent organization
 - [FR-42] The system shall support role management in multi-agent collaboration
 - [FR-43] The system shall implement dialectical reasoning in agent collaboration
 - [FR-44a] The system shall implement micro-EDRR cycles within the Expand macro phase

@@ -25,8 +25,8 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Dialectical Reasoning Persists Results to Memory](dialectical_reasoning_memory_persistence.md)**: Dialectical reasoning results stored with EDRR phases.
 - **[Dialectical Reasoner Evaluation Hooks](dialectical_reasoning.md)**: Callbacks observe reasoning outcomes.
 - **[Impact Assessment Persists Results to Memory](dialectical_reasoning_impact_memory_persistence.md)**: Impact assessments stored with EDRR phases.
-- **[EDRR Specification](edrr_cycle_specification.md)**: Specification for the EDRR cycle.
-- **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
+- **[EDRR Specification](edrr_cycle_specification.md)**: Comprehensive specification for the EDRR methodology.
+- **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Worker Self-Directed Enterprise multi-agent collaboration model.
 - **[WSDE-EDRR Collaboration Specification](wsde_edrr_collaboration.md)**: Expected phase progression, memory flush behavior, and peer-review mapping.
 - **[WSDE Role Progression and Memory Semantics](wsde_role_progression_memory.md)**: Identifier-based role mapping and queue flush guarantees.
 - **[WSDE Voting Mechanisms for Critical Decisions](wsde_voting_mechanisms.md)**: Weighted voting with consensus fallback for tied decisions.

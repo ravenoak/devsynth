@@ -21,7 +21,7 @@ last_reviewed: "2025-07-11"
 
 # WSDE Model Validation
 
-This document provides a comprehensive validation of the current implementation status of the WSDE (WSDE) model within DevSynth. It is a key deliverable of the WSDE Model Validation conducted as part of Phase 1: Foundation Stabilization.
+This document provides a comprehensive validation of the current implementation status of the WSDE (Worker Self-Directed Enterprise) model within DevSynth. It is a key deliverable of the WSDE Model Validation conducted as part of Phase 1: Foundation Stabilization.
 
 ## Model Overview
 

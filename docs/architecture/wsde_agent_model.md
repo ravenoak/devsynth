@@ -8,19 +8,19 @@ tags:
 - WSDE
 - agents
 - collaboration
-title: 'WSDE Agent Model: WSDE'
+title: 'WSDE Agent Model'
 version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; 'WSDE Agent Model: WSDE'
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WSDE Agent Model
 </div>
 
-# WSDE Agent Model: WSDE
+# WSDE Agent Model
 
 ## Overview
 
-The WSDE (WSDE) model is a collaborative multi-agent framework used in DevSynth that enables autonomous agents to work together in a democratic, self-organizing manner. Inspired by real-world worker cooperatives, the WSDE model distributes authority and responsibility among specialized agents, each contributing their expertise while collectively making decisions.
+The WSDE (Worker Self-Directed Enterprise) model is a collaborative multi-agent framework used in DevSynth that enables autonomous agents to work together in a democratic, self-organizing manner. Inspired by real-world worker cooperatives, the WSDE model distributes authority and responsibility among specialized agents, each contributing their expertise while collectively making decisions.
 
 ```mermaid
 graph TD

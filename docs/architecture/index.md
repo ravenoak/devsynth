@@ -39,9 +39,9 @@ This section provides detailed information about the architecture of DevSynth, i
 ## Methodologies and Frameworks
 
 - **[Dialectical Reasoning](dialectical_reasoning.md)**: Information about the dialectical reasoning approach used in DevSynth.
-- **[EDRR Framework](edrr_framework.md)**: Documentation on the EDRR framework.
+- **[EDRR Framework](edrr_framework.md)**: Documentation on the EDRR methodology and architecture.
 - **[Recursive EDRR Architecture](recursive_edrr_architecture.md)**: Details on nesting EDRR cycles and termination logic.
-- **[WSDE Agent Model](wsde_agent_model.md)**: Details on the Wide Sweep, Deep Exploration agent model.
+- **[WSDE Agent Model](wsde_agent_model.md)**: Details on the Worker Self-Directed Enterprise multi-agent collaboration model.
 
 ## Overview
 
@@ -58,8 +58,8 @@ The system is composed of several key components:
 DevSynth also employs several methodologies and frameworks:
 
 - **Dialectical Reasoning**: A structured approach to problem-solving that involves thesis, antithesis, and synthesis.
-- **EDRR Framework**: A methodology for expanding, differentiating, refining, and retrospecting on ideas and solutions.
-- **WSDE Agent Model**: A model for agent behavior that combines wide exploration with deep analysis.
+- **EDRR Methodology**: A comprehensive approach for iterative problem-solving through expanding, differentiating, refining, and retrospecting on ideas and solutions.
+- **WSDE Agent Model**: A multi-agent collaboration model based on Worker Self-Directed Enterprise principles.
 
 ## Getting Started
 

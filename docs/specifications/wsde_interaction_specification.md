@@ -18,7 +18,7 @@ last_reviewed: "2025-07-10"
 
 ## 1. Overview
 
-The WSDE (WSDE) model in DevSynth provides a framework for organizing and coordinating multiple AI agents in collaborative software development tasks. This specification defines the interaction patterns, role responsibilities, and coordination mechanisms for the WSDE multi-agent system.
+The WSDE (Worker Self-Directed Enterprise) model in DevSynth provides a framework for organizing and coordinating multiple AI agents in collaborative software development tasks. This specification defines the interaction patterns, role responsibilities, and coordination mechanisms for the WSDE multi-agent system.
 
 ## 2. Purpose and Goals
 
@@ -432,7 +432,7 @@ The WSDE multi-agent system uses the Promise system for capability management:
 ### 7.1 Agent Registry
 
 ```python
-class WSDATeam:
+class WSDETeam:
     """Manages a team of agents using the WSDE model."""
 
     def __init__(self, available_agents=None):
@@ -483,8 +483,8 @@ class WSDATeam:
 class AgentInteractionManager:
     """Manages interactions between agents in the WSDE model."""
 
-    def __init__(self, wsda_team, memory_manager):
-        self.team = wsda_team
+    def __init__(self, wsde_team, memory_manager):
+        self.team = wsde_team
         self.memory_manager = memory_manager
         self.active_interactions = {}
 
