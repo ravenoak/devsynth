@@ -23,21 +23,42 @@ version: "0.1.0-alpha.1"
 
 ## Overview
 
-The DevSynth agent system leverages LangGraph to create modular, stateful, and resilient AI agents. This architecture allows for the construction of complex workflows where agents can perform tasks, make decisions, and interact with other DevSynth components like the memory system and provider system.
+The DevSynth agent system leverages LangGraph and DeepAgents to create modular, stateful, and resilient AI agents capable of handling complex, multi-step tasks. This architecture allows for the construction of sophisticated workflows where agents can perform systematic planning, spawn subagents, manage context through file systems, and interact with other DevSynth components like the memory system and provider system.
 
-**Implementation Status:** Core agent orchestration is implemented, but advanced WSDE collaboration features remain in progress.
+**Implementation Status:** Core agent orchestration is implemented with LangGraph, DeepAgents integration planned for enhanced planning and subagent capabilities.
 
-The agent system is organized according to the WSDE (WSDE) model, which provides a non-hierarchical, collaborative framework for agent interaction. This model ensures that agents work together as peers with complementary capabilities, with leadership (Primus role) rotating based on task expertise.
+The agent system is organized according to the WSDE (WSDE) model, which provides a non-hierarchical, collaborative framework for agent interaction. This model ensures that agents work together as peers with complementary capabilities, with leadership (Primus role) rotating based on task expertise. DeepAgents integration enhances this with structured planning tools and hierarchical subagent coordination.
 
 This document outlines the foundational components of the agent system, including the WSDE model, `AgentState`, and the `base_agent_graph`.
 
 ## Core Concepts
 
 - **LangGraph**: A library for building stateful, multi-actor applications with LLMs. It allows defining agentic workflows as graphs where nodes represent actions or computations and edges represent the flow of control.
-- **WSDE Model**: WSDE model that provides a framework for agent collaboration with rotating leadership.
+- **DeepAgents**: A library providing structured planning tools, file system context management, and subagent spawning capabilities for complex task handling.
+- **WSDE Model**: WSDE model that provides a framework for agent collaboration with rotating leadership, enhanced by DeepAgents subagent coordination.
 - **AgentState**: A `TypedDict` that defines the structure of the data passed between nodes in a LangGraph. It maintains the current context and results of the agent's operations.
 - **Nodes**: Functions that perform specific tasks within the agent workflow (e.g., processing input, calling an LLM, parsing output).
 - **Edges**: Define the sequence of operations, connecting nodes to form a directed graph.
+
+## DeepAgents Integration
+
+### Planning and Task Decomposition
+DeepAgents' `write_todos` tool enables systematic task breakdown, allowing agents to:
+- Break complex development tasks into discrete, manageable steps
+- Track progress and adapt plans as new information emerges
+- Integrate planning capabilities into EDRR Expand phases
+
+### Context Management via File System
+File system tools (`ls`, `read_file`, `write_file`, `edit_file`) provide:
+- Context offloading to prevent window overflow in long sessions
+- External storage for variable-length tool outputs
+- Persistent context continuity across agent conversations
+
+### Subagent Architecture
+The subagent spawning capability enables:
+- Context isolation for specialized development tasks
+- Hierarchical coordination following WSDE role assignments
+- Focused problem-solving with uncontaminated contexts
 
 
 ### UXBridge Interaction Layer
