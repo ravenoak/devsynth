@@ -234,9 +234,9 @@ class MetacognitiveTrainingSystem:
                 complexity_insight = MetacognitiveInsight(
                     insight_id=f"complexity_{session.session_id}",
                     insight_type="cognitive_load",
-                    description=f"High cognitive complexity detected (score: {avg_complexity".2f"})",
+                    description=f"High cognitive complexity detected (score: {avg_complexity:.2f})",
                     confidence=0.8,
-                    evidence=[f"Average complexity: {avg_complexity".2f"}"],
+                    evidence=[f"Average complexity: {avg_complexity:.2f}"],
                     applicability_score=0.7
                 )
                 insights.append(complexity_insight)

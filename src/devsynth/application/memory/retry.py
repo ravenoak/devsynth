@@ -83,6 +83,7 @@ def _create_counter(
     prometheus_counter_cls: type[object] | None
     try:  # pragma: no cover - import guarded for optional dependency
         from prometheus_client import Counter as PrometheusCounter
+        from prometheus_client import REGISTRY
 
         prometheus_counter_cls = PrometheusCounter
     except Exception:  # pragma: no cover - fallback for minimal environments
@@ -90,7 +91,21 @@ def _create_counter(
 
     if prometheus_counter_cls is None:  # pragma: no cover - runtime fallback
         return _NoOpCounter()
-    counter = prometheus_counter_cls(name, documentation, list(labelnames))
+
+    # Try to create the counter, but if it already exists, return the existing one
+    try:
+        counter = prometheus_counter_cls(name, documentation, list(labelnames))
+    except ValueError as e:
+        if "Duplicated timeseries" in str(e):
+            # Counter already exists, try to retrieve it from the registry
+            try:
+                counter = REGISTRY._names_to_collectors[name]
+            except KeyError:
+                # If we can't retrieve it, fall back to no-op
+                return _NoOpCounter()
+        else:
+            raise
+
     return _CounterWrapper(counter)
 
 

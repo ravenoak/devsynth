@@ -655,8 +655,8 @@ class EnhancedGraphRAGQueryEngine:
 
         explanation_parts = [
             f"Analysis completed with {reasoning_path.total_hops} reasoning steps.",
-            f"Overall confidence: {reasoning_path.overall_confidence".2f"}",
-            f"Path validation score: {validation_results.get('path_accuracy', 0)".2f"}"
+            f"Overall confidence: {reasoning_path.overall_confidence:.2f}",
+            f"Path validation score: {validation_results.get('path_accuracy', 0):.2f}"
         ]
 
         # Add step-by-step explanation
@@ -664,7 +664,7 @@ class EnhancedGraphRAGQueryEngine:
             explanation_parts.append(
                 f"Step {i+1}: Traversed {step.relationship_traversed} relationship "
                 f"from {len(step.from_entities)} entities to {len(step.to_entities)} entities "
-                f"(confidence: {step.confidence_score".2f"})"
+                f"(confidence: {step.confidence_score:.2f})"
             )
 
         # Add final results
