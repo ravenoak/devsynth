@@ -263,7 +263,7 @@ class CognitiveTypeClassifier:
         if len(self.classification_history) > 1000:
             self.classification_history = self.classification_history[-500:]
 
-        logger.debug(f"Classified unit {unit.metadata.unit_id} as {cog_type.value} via {method} (confidence: {confidence".2f"})")
+        logger.debug(f"Classified unit {unit.metadata.unit_id} as {cog_type.value} via {method} (confidence: {confidence:.2f})")
 
     def get_classification_accuracy(self) -> Dict[str, float]:
         """Get classification accuracy statistics."""

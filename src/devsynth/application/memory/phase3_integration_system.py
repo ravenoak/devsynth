@@ -239,7 +239,7 @@ class Phase3IntegrationSystem:
             # Record key insights from hybrid processing
             self.metacognitive_training.record_verbalization(
                 session_id,
-                f"Hybrid processing completed with confidence {hybrid_results.get('result', {}).get('confidence', 0)".2f"}",
+                f"Hybrid processing completed with confidence {hybrid_results.get('result', {}).get('confidence', 0):.2f}",
                 {"processing_confidence": hybrid_results.get("result", {}).get("confidence", 0.0)}
             )
 
@@ -375,7 +375,7 @@ class Phase3IntegrationSystem:
             alignment["benchmark_compliance"][benchmark] = met_benchmark
 
             if not met_benchmark:
-                alignment["improvement_areas"].append(f"{benchmark}: needs {threshold - confidence".2f"} improvement")
+                alignment["improvement_areas"].append(f"{benchmark}: needs {threshold - confidence:.2f} improvement")
 
         return alignment
 
@@ -460,7 +460,7 @@ class Phase3IntegrationSystem:
             "detailed_results": results
         }
 
-        logger.info(f"Benchmark complete: {benchmark_report['success_rate']".1%"} success rate, {benchmark_report['research_alignment']".1%"} research alignment")
+        logger.info(f"Benchmark complete: {benchmark_report['success_rate']:.1%} success rate, {benchmark_report['research_alignment']:.1%} research alignment")
         return benchmark_report
 
     def export_system_state(self) -> Dict[str, Any]:
