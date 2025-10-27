@@ -18,7 +18,7 @@ from functools import lru_cache
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
-from devsynth.exceptions import ConfigurationError, DevSynthError
+from devsynth.exceptions import ConfigurationError, ProviderError
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
@@ -99,12 +99,6 @@ class ProviderType(Enum):
     ANTHROPIC = "anthropic"
     OPENROUTER = "openrouter"
     STUB = "stub"
-
-
-class ProviderError(DevSynthError):
-    """Exception raised for provider-related errors."""
-
-    pass
 
 
 def get_env_or_default(env_var: str, default: str = None) -> str | None:
@@ -1185,7 +1179,8 @@ class LMStudioProvider(BaseProvider):
         except Exception as exc:
             if _is_network_guard_error(exc):
                 logger.info(
-                    "Skipping LM Studio health check because network access is disabled: %s",
+                    "Skipping LM Studio health check because network access is "
+                    "disabled: %s",
                     exc,
                 )
             else:
@@ -1785,7 +1780,7 @@ class OpenRouterProvider(BaseProvider):
             )(_api_call)()
         except requests.exceptions.RequestException as e:
             msg = (
-                f"OpenRouter API is unreachable. "
+                "OpenRouter API is unreachable. "
                 "Check your API key and internet connection."
             )
             logger.error("%s: %s", msg, e)
@@ -1912,7 +1907,7 @@ class OpenRouterProvider(BaseProvider):
 
         except httpx.HTTPError as e:
             msg = (
-                f"OpenRouter API is unreachable. "
+                "OpenRouter API is unreachable. "
                 "Check your API key and internet connection."
             )
             logger.error("%s: %s", msg, e)
@@ -1961,8 +1956,9 @@ class OpenRouterProvider(BaseProvider):
             else:
                 text_list = text
 
+            # Use OpenAI-compatible embedding model
             payload = {
-                "model": "text-embedding-ada-002",  # Use OpenAI-compatible embedding model
+                "model": "text-embedding-ada-002",
                 "input": text_list,
             }
 
@@ -2001,7 +1997,7 @@ class OpenRouterProvider(BaseProvider):
             )(_api_call)()
         except requests.exceptions.RequestException as e:
             msg = (
-                f"OpenRouter API is unreachable. "
+                "OpenRouter API is unreachable. "
                 "Check your API key and internet connection."
             )
             logger.error("%s: %s", msg, e)
@@ -2019,8 +2015,9 @@ class OpenRouterProvider(BaseProvider):
             else:
                 text_list = text
 
+            # Use OpenAI-compatible embedding model
             payload = {
-                "model": "text-embedding-ada-002",  # Use OpenAI-compatible embedding model
+                "model": "text-embedding-ada-002",
                 "input": text_list,
             }
 
@@ -2086,7 +2083,7 @@ class OpenRouterProvider(BaseProvider):
 
         except httpx.HTTPError as e:
             msg = (
-                f"OpenRouter API is unreachable. "
+                "OpenRouter API is unreachable. "
                 "Check your API key and internet connection."
             )
             logger.error("%s: %s", msg, e)
@@ -2425,10 +2422,11 @@ def embed(
             f"Embeddings not supported by provider {provider.__class__.__name__}"
         ) from exc
     except ProviderError:
+        # Already the canonical ProviderError; propagate intact
         raise
     except Exception as exc:  # pragma: no cover - unexpected
-        # Be robust to class identity mismatches across import contexts
-        if exc.__class__.__name__ == "ProviderError":
+        # If downstream raised a ProviderError from another context, treat it as such
+        if isinstance(exc, ProviderError):
             raise exc
         raise ProviderError(f"Embedding call failed: {exc}") from exc
 
@@ -2467,8 +2465,9 @@ async def aembed(
             f"Embeddings not supported by provider {provider.__class__.__name__}"
         ) from exc
     except ProviderError:
+        # Already the canonical ProviderError; propagate intact
         raise
     except Exception as exc:  # pragma: no cover - unexpected
-        if exc.__class__.__name__ == "ProviderError":
+        if isinstance(exc, ProviderError):
             raise exc
         raise ProviderError(f"Embedding call failed: {exc}") from exc
