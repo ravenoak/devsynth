@@ -106,7 +106,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def collect_all_test_modules() -> List[str]:
+def collect_all_test_modules() -> list[str]:
     """
     Collect all test modules in the project.
 
@@ -210,7 +210,7 @@ def count_categorized_tests_in_module(module_path: str) -> int:
             continue
 
         # Check if the file contains speed markers for this test
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
             # Extract the test name from the test path
@@ -239,7 +239,7 @@ def count_categorized_tests_in_module(module_path: str) -> int:
     return categorized_count
 
 
-def generate_schedule(args) -> Dict[str, Any]:
+def generate_schedule(args) -> dict[str, Any]:
     """
     Generate a schedule for categorizing remaining tests.
 
@@ -352,7 +352,7 @@ def generate_schedule(args) -> Dict[str, Any]:
     return schedule
 
 
-def save_schedule(schedule: Dict[str, Any], dry_run: bool = False) -> None:
+def save_schedule(schedule: dict[str, Any], dry_run: bool = False) -> None:
     """
     Save the schedule to a file.
 
@@ -370,7 +370,7 @@ def save_schedule(schedule: Dict[str, Any], dry_run: bool = False) -> None:
     print(f"Schedule saved to {SCHEDULE_FILE}")
 
 
-def load_schedule() -> Dict[str, Any]:
+def load_schedule() -> dict[str, Any]:
     """
     Load the schedule from a file.
 
@@ -381,7 +381,7 @@ def load_schedule() -> Dict[str, Any]:
         print(f"Schedule file {SCHEDULE_FILE} not found")
         return {}
 
-    with open(SCHEDULE_FILE, "r") as f:
+    with open(SCHEDULE_FILE) as f:
         schedule = json.load(f)
 
     return schedule

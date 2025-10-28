@@ -11,13 +11,12 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from typing import Sequence
+from collections.abc import Sequence
 
 
 def run_cmd(cmd: Sequence[str]) -> int:
     proc = subprocess.run(
-        cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+        cmd, text=True, capture_output=True)
     if proc.returncode != 0:
         print(proc.stdout)
         print(proc.stderr, file=sys.stderr)

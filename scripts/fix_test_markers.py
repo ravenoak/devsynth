@@ -77,7 +77,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_test_files(directory: str) -> List[Path]:
+def find_test_files(directory: str) -> list[Path]:
     """Find all test files in the given directory."""
     test_files = []
     for root, _, files in os.walk(directory):
@@ -87,7 +87,7 @@ def find_test_files(directory: str) -> List[Path]:
     return test_files
 
 
-def analyze_test_file_structure(file_path: Path) -> Dict[str, Any]:
+def analyze_test_file_structure(file_path: Path) -> dict[str, Any]:
     """
     Analyze a test file to extract its structure, including imports, classes, functions,
     decorators, docstrings, and comments.
@@ -95,7 +95,7 @@ def analyze_test_file_structure(file_path: Path) -> Dict[str, Any]:
     Returns:
         Dictionary containing the file structure
     """
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     structure = {
@@ -185,8 +185,8 @@ def analyze_test_file_structure(file_path: Path) -> Dict[str, Any]:
 
 
 def identify_marker_issues(
-    file_path: Path, structure: Dict[str, Any]
-) -> Dict[str, Any]:
+    file_path: Path, structure: dict[str, Any]
+) -> dict[str, Any]:
     """
     Identify marker issues in a test file.
 
@@ -327,11 +327,11 @@ def identify_marker_issues(
     # Check for inconsistent markers within groups
     for group_name, funcs in function_groups.items():
         if len(funcs) > 1:
-            markers = set(
+            markers = {
                 function_markers.get(func, None)
                 for func in funcs
                 if func in function_markers
-            )
+            }
             if len(markers) > 1 and None not in markers:
                 issues["inconsistent_markers"].append(
                     {"group": group_name, "functions": funcs, "markers": list(markers)}
@@ -342,11 +342,11 @@ def identify_marker_issues(
 
 def fix_misaligned_markers(
     file_path: Path,
-    structure: Dict[str, Any],
-    issues: Dict[str, Any],
+    structure: dict[str, Any],
+    issues: dict[str, Any],
     dry_run: bool = False,
     verbose: bool = False,
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """
     Fix misaligned markers in a test file.
 
@@ -448,11 +448,11 @@ def fix_misaligned_markers(
 
 def fix_all_marker_issues(
     file_path: Path,
-    structure: Dict[str, Any],
-    issues: Dict[str, Any],
+    structure: dict[str, Any],
+    issues: dict[str, Any],
     dry_run: bool = False,
     verbose: bool = False,
-) -> Tuple[int, int, int, int]:
+) -> tuple[int, int, int, int]:
     """
     Fix all marker issues in a test file.
 
@@ -542,7 +542,7 @@ def fix_all_marker_issues(
 
 
 def generate_report(
-    issues_by_file: Dict[str, Dict[str, Any]],
+    issues_by_file: dict[str, dict[str, Any]],
     output_file: str = "test_marker_issues_report.json",
 ):
     """

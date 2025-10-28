@@ -97,7 +97,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_behavior_test_files() -> Dict[str, Path]:
+def find_behavior_test_files() -> dict[str, Path]:
     """Find all behavior test files."""
     test_files = {}
     for root, _, files in os.walk("tests/behavior"):
@@ -112,7 +112,7 @@ def find_behavior_test_files() -> Dict[str, Path]:
     return test_files
 
 
-def find_feature_files() -> Dict[str, Path]:
+def find_feature_files() -> dict[str, Path]:
     """Find all feature files."""
     feature_files = {}
     for root, _, files in os.walk("tests/behavior/features"):
@@ -123,7 +123,7 @@ def find_feature_files() -> Dict[str, Path]:
     return feature_files
 
 
-def find_step_files() -> Dict[str, Path]:
+def find_step_files() -> dict[str, Path]:
     """Find all step definition files."""
     step_files = {}
     for root, _, files in os.walk("tests/behavior/steps"):
@@ -134,7 +134,7 @@ def find_step_files() -> Dict[str, Path]:
     return step_files
 
 
-def collect_behavior_tests() -> List[str]:
+def collect_behavior_tests() -> list[str]:
     """Collect all behavior tests."""
     print("Collecting behavior tests...")
 
@@ -146,7 +146,7 @@ def collect_behavior_tests() -> List[str]:
 
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
 
             # Use cache if it's less than 1 hour old
@@ -196,7 +196,7 @@ def collect_behavior_tests() -> List[str]:
         return []
 
 
-def run_test_with_timing(test_path: str, timeout: int = 60) -> Tuple[float, bool, bool]:
+def run_test_with_timing(test_path: str, timeout: int = 60) -> tuple[float, bool, bool]:
     """
     Run a single test and measure its execution time.
 
@@ -213,7 +213,7 @@ def run_test_with_timing(test_path: str, timeout: int = 60) -> Tuple[float, bool
 
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
 
             # Use cache if it's less than 24 hours old
@@ -284,11 +284,11 @@ def run_test_with_timing(test_path: str, timeout: int = 60) -> Tuple[float, bool
 
 
 def measure_test_times(
-    test_list: List[str],
+    test_list: list[str],
     batch_size: int = 20,
-    max_tests: Optional[int] = None,
+    max_tests: int | None = None,
     timeout: int = 60,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """
     Measure execution times for a list of tests.
 
@@ -349,7 +349,7 @@ def measure_test_times(
     return test_times
 
 
-def extract_test_info(test_path: str) -> Dict[str, Any]:
+def extract_test_info(test_path: str) -> dict[str, Any]:
     """
     Extract information about a behavior test.
 
@@ -365,7 +365,7 @@ def extract_test_info(test_path: str) -> Dict[str, Any]:
     test_name = parts[-1] if len(parts) > 1 else None
 
     # Read the file content
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Extract feature file references
@@ -388,8 +388,8 @@ def extract_test_info(test_path: str) -> Dict[str, Any]:
 
 
 def update_test_file(
-    file_path: str, test_markers: Dict[str, str], dry_run: bool = False
-) -> Tuple[int, int, int]:
+    file_path: str, test_markers: dict[str, str], dry_run: bool = False
+) -> tuple[int, int, int]:
     """
     Update a test file with appropriate markers.
 
@@ -405,7 +405,7 @@ def update_test_file(
     updated = 0
     unchanged = 0
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Find test functions and their line numbers

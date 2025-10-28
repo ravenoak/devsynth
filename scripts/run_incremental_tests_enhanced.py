@@ -283,7 +283,7 @@ def log_run(cmd, preset_name, preset_description):
     history = []
     if os.path.exists(history_file):
         try:
-            with open(history_file, "r") as f:
+            with open(history_file) as f:
                 history = json.load(f)
         except json.JSONDecodeError:
             # Invalid file, start with empty history

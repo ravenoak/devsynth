@@ -68,7 +68,7 @@ def parse_args():
 
 def update_schedule_from_progress(
     dry_run: bool = False, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Update the schedule file based on the progress file.
 
@@ -211,7 +211,7 @@ def update_schedule_from_progress(
 
 def update_progress_from_code(
     dry_run: bool = False, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Update the progress file based on actual markers in code.
 
@@ -341,7 +341,7 @@ def update_progress_from_code(
     return {"success": True, "changes": changes}
 
 
-def verify_consistency(verbose: bool = False) -> Dict[str, Any]:
+def verify_consistency(verbose: bool = False) -> dict[str, Any]:
     """
     Verify consistency between progress file, schedule file, and actual markers in code.
 
@@ -519,7 +519,7 @@ def verify_consistency(verbose: bool = False) -> Dict[str, Any]:
     }
 
 
-def generate_report(results: Dict[str, Any], report_file: str) -> None:
+def generate_report(results: dict[str, Any], report_file: str) -> None:
     """
     Generate a report of discrepancies.
 

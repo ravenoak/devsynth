@@ -54,10 +54,10 @@ class SafeRemovalAnalyzer:
             "multiprocessing",  # Process-level operations
         }
 
-    def analyze_test_safety(self, file_path: Path) -> Dict[str, Any]:
+    def analyze_test_safety(self, file_path: Path) -> dict[str, Any]:
         """Analyze if a test file is safe for parallel execution."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content, filename=str(file_path))
@@ -179,13 +179,13 @@ class SafeRemovalAnalyzer:
         return node.attr
 
 
-def remove_isolation_marker(file_path: Path, dry_run: bool = True) -> Dict[str, Any]:
+def remove_isolation_marker(file_path: Path, dry_run: bool = True) -> dict[str, Any]:
     """Remove isolation marker from a file."""
     if dry_run:
         return {"dry_run": True, "would_modify": str(file_path)}
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         lines = content.split("\n")

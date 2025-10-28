@@ -23,7 +23,7 @@ def fix_list_formatting(file_path):
     """Fix list formatting in a Markdown file."""
     changes = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Split content into lines

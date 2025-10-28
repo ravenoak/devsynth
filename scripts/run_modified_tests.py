@@ -77,7 +77,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_modified_files(base_commit: str) -> List[str]:
+def get_modified_files(base_commit: str) -> list[str]:
     """
     Get list of modified files compared to the base commit.
 
@@ -107,7 +107,7 @@ def get_modified_files(base_commit: str) -> List[str]:
         return []
 
 
-def find_imports_in_file(file_path: str) -> Set[str]:
+def find_imports_in_file(file_path: str) -> set[str]:
     """
     Find all import statements in a Python file.
 
@@ -124,7 +124,7 @@ def find_imports_in_file(file_path: str) -> Set[str]:
     import_pattern = re.compile(r"^\s*(?:from|import)\s+([.\w]+)")
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             for line in f:
                 match = import_pattern.match(line)
                 if match:
@@ -152,7 +152,7 @@ def find_imports_in_file(file_path: str) -> Set[str]:
         return set()
 
 
-def build_dependency_map(src_dir: str, test_dir: str) -> Dict[str, Set[str]]:
+def build_dependency_map(src_dir: str, test_dir: str) -> dict[str, set[str]]:
     """
     Build a map of source files to test files based on imports.
 
@@ -184,7 +184,7 @@ def build_dependency_map(src_dir: str, test_dir: str) -> Dict[str, Set[str]]:
         if cache_mtime > src_mtime and cache_mtime > test_mtime:
             # Cache is still valid, load it
             dependency_map = {}
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 for line in f:
                     parts = line.strip().split(" -> ")
                     if len(parts) == 2:
@@ -240,10 +240,10 @@ def build_dependency_map(src_dir: str, test_dir: str) -> Dict[str, Set[str]]:
 
 
 def find_affected_tests(
-    modified_files: List[str],
-    dependency_map: Dict[str, Set[str]],
+    modified_files: list[str],
+    dependency_map: dict[str, set[str]],
     all_tests: bool = False,
-) -> Set[str]:
+) -> set[str]:
     """
     Find tests affected by modified files.
 
@@ -289,7 +289,7 @@ def find_affected_tests(
     return affected_tests
 
 
-def run_tests(affected_tests: Set[str], args) -> int:
+def run_tests(affected_tests: set[str], args) -> int:
     """
     Run the affected tests.
 

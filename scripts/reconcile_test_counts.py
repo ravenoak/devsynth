@@ -99,7 +99,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_actual_test_counts(use_cache: bool = True) -> Dict[str, Any]:
+def get_actual_test_counts(use_cache: bool = True) -> dict[str, Any]:
     """
     Get actual test counts from the test files.
 
@@ -138,7 +138,7 @@ def get_actual_test_counts(use_cache: bool = True) -> Dict[str, Any]:
     return result
 
 
-def get_doc_test_counts() -> Dict[str, Dict[str, Any]]:
+def get_doc_test_counts() -> dict[str, dict[str, Any]]:
     """
     Get test counts from documentation files.
 
@@ -151,7 +151,7 @@ def get_doc_test_counts() -> Dict[str, Dict[str, Any]]:
 
     # Parse test_suite_overview.md
     if TEST_SUITE_OVERVIEW.exists():
-        with open(TEST_SUITE_OVERVIEW, "r") as f:
+        with open(TEST_SUITE_OVERVIEW) as f:
             content = f.read()
 
         # Extract total test count
@@ -210,7 +210,7 @@ def get_doc_test_counts() -> Dict[str, Dict[str, Any]]:
 
     # Parse test_categorization_guide.md
     if TEST_CATEGORIZATION_GUIDE.exists():
-        with open(TEST_CATEGORIZATION_GUIDE, "r") as f:
+        with open(TEST_CATEGORIZATION_GUIDE) as f:
             content = f.read()
 
         # Extract total test count
@@ -242,7 +242,7 @@ def get_doc_test_counts() -> Dict[str, Dict[str, Any]]:
 
     # Parse PROJECT_STATUS.md
     if PROJECT_STATUS.exists():
-        with open(PROJECT_STATUS, "r") as f:
+        with open(PROJECT_STATUS) as f:
             content = f.read()
 
         # Extract test counts
@@ -259,7 +259,7 @@ def get_doc_test_counts() -> Dict[str, Dict[str, Any]]:
     return result
 
 
-def get_tracking_file_counts() -> Dict[str, Dict[str, Any]]:
+def get_tracking_file_counts() -> dict[str, dict[str, Any]]:
     """
     Get test counts from tracking files.
 
@@ -273,7 +273,7 @@ def get_tracking_file_counts() -> Dict[str, Dict[str, Any]]:
     # Parse progress file
     if PROGRESS_FILE.exists():
         try:
-            with open(PROGRESS_FILE, "r") as f:
+            with open(PROGRESS_FILE) as f:
                 progress_data = json.load(f)
 
             # Extract counts
@@ -288,13 +288,13 @@ def get_tracking_file_counts() -> Dict[str, Dict[str, Any]]:
                 "categorized_counts": categorized_counts,
                 "total_categorized": sum(categorized_counts.values()),
             }
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error reading progress file: {e}")
 
     # Parse schedule file
     if SCHEDULE_FILE.exists():
         try:
-            with open(SCHEDULE_FILE, "r") as f:
+            with open(SCHEDULE_FILE) as f:
                 schedule_data = json.load(f)
 
             # Extract counts
@@ -307,18 +307,18 @@ def get_tracking_file_counts() -> Dict[str, Dict[str, Any]]:
                 "categorized": categorized_tests,
                 "remaining": remaining_tests,
             }
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error reading schedule file: {e}")
 
     return result
 
 
 def analyze_discrepancies(
-    actual_counts: Dict[str, Any],
-    doc_counts: Dict[str, Dict[str, Any]],
-    tracking_counts: Dict[str, Dict[str, Any]],
+    actual_counts: dict[str, Any],
+    doc_counts: dict[str, dict[str, Any]],
+    tracking_counts: dict[str, dict[str, Any]],
     verbose: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Analyze discrepancies between different sources of test counts.
 
@@ -496,7 +496,7 @@ def analyze_discrepancies(
 
 
 def update_documentation(
-    actual_counts: Dict[str, Any], discrepancies: Dict[str, Any], verbose: bool = False
+    actual_counts: dict[str, Any], discrepancies: dict[str, Any], verbose: bool = False
 ) -> bool:
     """
     Update documentation files with accurate test counts.
@@ -527,7 +527,7 @@ def update_documentation(
 
     # Update test_suite_overview.md
     if TEST_SUITE_OVERVIEW.exists():
-        with open(TEST_SUITE_OVERVIEW, "r") as f:
+        with open(TEST_SUITE_OVERVIEW) as f:
             content = f.read()
 
         # Update total test count
@@ -605,7 +605,7 @@ def update_documentation(
 
     # Update test_categorization_guide.md
     if TEST_CATEGORIZATION_GUIDE.exists():
-        with open(TEST_CATEGORIZATION_GUIDE, "r") as f:
+        with open(TEST_CATEGORIZATION_GUIDE) as f:
             content = f.read()
 
         # Update total test count
@@ -679,7 +679,7 @@ def update_documentation(
 
     # Update PROJECT_STATUS.md
     if PROJECT_STATUS.exists():
-        with open(PROJECT_STATUS, "r") as f:
+        with open(PROJECT_STATUS) as f:
             content = f.read()
 
         # Update test counts
@@ -700,7 +700,7 @@ def update_documentation(
 
 
 def update_tracking_files(
-    actual_counts: Dict[str, Any], discrepancies: Dict[str, Any], verbose: bool = False
+    actual_counts: dict[str, Any], discrepancies: dict[str, Any], verbose: bool = False
 ) -> bool:
     """
     Update tracking files with accurate test counts.
@@ -729,7 +729,7 @@ def update_tracking_files(
     # Update schedule file
     if SCHEDULE_FILE.exists():
         try:
-            with open(SCHEDULE_FILE, "r") as f:
+            with open(SCHEDULE_FILE) as f:
                 schedule_data = json.load(f)
 
             # Update counts
@@ -745,13 +745,13 @@ def update_tracking_files(
 
             updated = True
             print(f"Updated {SCHEDULE_FILE}")
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error updating schedule file: {e}")
 
     return updated
 
 
-def print_discrepancies(discrepancies: Dict[str, Any], verbose: bool = False):
+def print_discrepancies(discrepancies: dict[str, Any], verbose: bool = False):
     """
     Print discrepancies between different sources of test counts.
 

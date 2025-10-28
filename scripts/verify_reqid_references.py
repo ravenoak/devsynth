@@ -52,7 +52,7 @@ def file_has_opt_out(src: str, func_name: str) -> bool:
     return False
 
 
-def scan_file(path: pathlib.Path) -> List[Tuple[str, str]]:
+def scan_file(path: pathlib.Path) -> list[tuple[str, str]]:
     """Return a list of (function_name, reason) for missing ReqID docstrings."""
     try:
         src = path.read_text(encoding="utf-8")
@@ -60,7 +60,7 @@ def scan_file(path: pathlib.Path) -> List[Tuple[str, str]]:
     except Exception as e:
         return [("<file-parse>", f"Failed to parse {path}: {e}")]
 
-    missing: List[Tuple[str, str]] = []
+    missing: list[tuple[str, str]] = []
     for node in tree.body:
         if is_test_function(node):
             if file_has_opt_out(src, node.name):
@@ -71,7 +71,7 @@ def scan_file(path: pathlib.Path) -> List[Tuple[str, str]]:
     return missing
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify that tests include ReqID in docstrings"
     )
@@ -83,7 +83,7 @@ def main(argv: List[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    results: Dict[str, List[Tuple[str, str]]] = {}
+    results: dict[str, list[tuple[str, str]]] = {}
     total_missing = 0
 
     if not TEST_DIR.exists():

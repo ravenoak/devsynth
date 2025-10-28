@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-TESTS: List[str] = [
+TESTS: list[str] = [
     "tests/unit/adapters/test_chromadb_memory_store_unit.py",
     "tests/unit/application/memory/test_memory_system_adapter_unit.py",
 ]
@@ -21,7 +21,7 @@ COVERAGE_SOURCES = ",".join(
 REPORT_PATH = Path("test_reports/chromadb_coverage.txt")
 
 
-def _run(cmd: List[str]) -> subprocess.CompletedProcess[str]:
+def _run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         stdout = result.stdout.strip()

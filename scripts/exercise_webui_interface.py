@@ -66,12 +66,12 @@ class FakeStreamlit:
     def code(self, text: str, **kwargs: object) -> None:
         self.code_calls.append((text, kwargs))
 
-    def empty(self) -> "_Placeholder":
+    def empty(self) -> _Placeholder:
         placeholder = _Placeholder()
         self.empty_placeholders.append(placeholder)
         return placeholder
 
-    def progress(self, value: float) -> "_ProgressBar":
+    def progress(self, value: float) -> _ProgressBar:
         bar = _ProgressBar(value)
         self.progress_bars.append(bar)
         return bar

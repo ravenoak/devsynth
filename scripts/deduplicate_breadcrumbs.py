@@ -17,13 +17,13 @@ from typing import List, Tuple
 
 def find_and_remove_duplicate_breadcrumbs(
     file_path: Path, dry_run: bool = True
-) -> Tuple[bool, int]:
+) -> tuple[bool, int]:
     """
     Find and remove duplicate breadcrumb sections from a file.
     Returns (changed, duplicates_removed)
     """
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
@@ -83,7 +83,7 @@ def find_and_remove_duplicate_breadcrumbs(
 
 def process_documentation_files(
     docs_dir: Path, dry_run: bool = True
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """
     Process all markdown files in the documentation directory.
     Returns (files_processed, files_changed, total_duplicates_removed)

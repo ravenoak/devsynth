@@ -76,7 +76,7 @@ def fix_terminology(file_path):
     """Fix inconsistent terminology usage in a Markdown file."""
     changes = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Skip the glossary itself

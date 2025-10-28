@@ -75,11 +75,11 @@ if HAS_CODE_ANALYSIS:
         HAS_CODE_ANALYSIS = False
 
 
-def load_cache() -> Dict[str, Any]:
+def load_cache() -> dict[str, Any]:
     """Load the test collection cache."""
     if os.path.exists(TEST_CACHE_FILE):
         try:
-            with open(TEST_CACHE_FILE, "r") as f:
+            with open(TEST_CACHE_FILE) as f:
                 cache = json.load(f)
                 # Add cache metadata if not present
                 if "metadata" not in cache:
@@ -88,7 +88,7 @@ def load_cache() -> Dict[str, Any]:
                         "file_timestamps": {},
                     }
                 return cache
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, OSError):
             return {
                 "metadata": {
                     "last_updated": datetime.datetime.now().isoformat(),
@@ -103,30 +103,30 @@ def load_cache() -> Dict[str, Any]:
     }
 
 
-def save_cache(cache: Dict[str, Any]) -> None:
+def save_cache(cache: dict[str, Any]) -> None:
     """Save the test collection cache."""
     with open(TEST_CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
 
 
-def load_complexity_cache() -> Dict[str, Any]:
+def load_complexity_cache() -> dict[str, Any]:
     """Load the test complexity cache."""
     if os.path.exists(COMPLEXITY_CACHE_FILE):
         try:
-            with open(COMPLEXITY_CACHE_FILE, "r") as f:
+            with open(COMPLEXITY_CACHE_FILE) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, OSError):
             return {}
     return {}
 
 
-def save_complexity_cache(cache: Dict[str, Any]) -> None:
+def save_complexity_cache(cache: dict[str, Any]) -> None:
     """Save the test complexity cache."""
     with open(COMPLEXITY_CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
 
 
-def load_failure_history() -> Dict[str, Any]:
+def load_failure_history() -> dict[str, Any]:
     """
     Load the test failure history.
 
@@ -135,14 +135,14 @@ def load_failure_history() -> Dict[str, Any]:
     """
     if os.path.exists(FAILURE_HISTORY_FILE):
         try:
-            with open(FAILURE_HISTORY_FILE, "r") as f:
+            with open(FAILURE_HISTORY_FILE) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, OSError):
             return {"tests": {}, "runs": []}
     return {"tests": {}, "runs": []}
 
 
-def save_failure_history(history: Dict[str, Any]) -> None:
+def save_failure_history(history: dict[str, Any]) -> None:
     """
     Save the test failure history.
 
@@ -153,7 +153,7 @@ def save_failure_history(history: Dict[str, Any]) -> None:
         json.dump(history, f, indent=2)
 
 
-def record_test_run(test_results: Dict[str, bool], run_id: Optional[str] = None) -> str:
+def record_test_run(test_results: dict[str, bool], run_id: str | None = None) -> str:
     """
     Record the results of a test run.
 
@@ -208,7 +208,7 @@ def record_test_run(test_results: Dict[str, bool], run_id: Optional[str] = None)
     return run_id
 
 
-def get_test_failure_rates(use_cache: bool = True) -> Dict[str, float]:
+def get_test_failure_rates(use_cache: bool = True) -> dict[str, float]:
     """
     Get failure rates for all tests.
 
@@ -236,7 +236,7 @@ def get_test_failure_rates(use_cache: bool = True) -> Dict[str, float]:
 
 def get_frequently_failing_tests(
     threshold: float = 0.1, min_runs: int = 3, use_cache: bool = True
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get tests that fail frequently.
 
@@ -320,7 +320,7 @@ def clear_cache(selective: bool = False) -> None:
             os.remove(FAILURE_HISTORY_FILE)
 
 
-def invalidate_cache_for_files(file_paths: List[str], verbose: bool = False) -> None:
+def invalidate_cache_for_files(file_paths: list[str], verbose: bool = False) -> None:
     """
     Invalidate cache for specific files.
 
@@ -374,7 +374,7 @@ def invalidate_cache_for_files(file_paths: List[str], verbose: bool = False) -> 
         print("Cache file does not exist, nothing to invalidate")
 
 
-def calculate_test_complexity(test_path: str, use_cache: bool = True) -> Dict[str, Any]:
+def calculate_test_complexity(test_path: str, use_cache: bool = True) -> dict[str, Any]:
     """
     Calculate complexity metrics for a test file or specific test.
 
@@ -434,7 +434,7 @@ def calculate_test_complexity(test_path: str, use_cache: bool = True) -> Dict[st
 
             # Use ast_workflow to calculate more advanced metrics
             # We need to read the function code to do this
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 code = f.read()
 
             # This is a simplified approach - in a real implementation,
@@ -499,7 +499,7 @@ def calculate_test_complexity(test_path: str, use_cache: bool = True) -> Dict[st
         return {"error": f"Error calculating complexity: {str(e)}"}
 
 
-def collect_tests_with_pytest(directory: str, use_cache: bool = True) -> List[str]:
+def collect_tests_with_pytest(directory: str, use_cache: bool = True) -> list[str]:
     """
     Collect tests from a directory using pytest.
 
@@ -537,7 +537,7 @@ def collect_tests_with_pytest(directory: str, use_cache: bool = True) -> List[st
         return []
 
 
-def collect_behavior_tests(directory: str, use_cache: bool = True) -> List[str]:
+def collect_behavior_tests(directory: str, use_cache: bool = True) -> list[str]:
     """
     Collect behavior tests from a directory.
 
@@ -594,7 +594,7 @@ def collect_behavior_tests(directory: str, use_cache: bool = True) -> List[str]:
         # Extract scenarios from feature files
         scenarios = []
         for feature_file in feature_files:
-            with open(feature_file, "r") as f:
+            with open(feature_file) as f:
                 content = f.read()
 
                 # Extract regular scenarios
@@ -621,7 +621,7 @@ def collect_behavior_tests(directory: str, use_cache: bool = True) -> List[str]:
 
 
 @lru_cache(maxsize=None)
-def collect_tests_by_category(category: str, use_cache: bool = True) -> List[str]:
+def collect_tests_by_category(category: str, use_cache: bool = True) -> list[str]:
     """
     Collect tests for a specific category.
 
@@ -643,7 +643,7 @@ def collect_tests_by_category(category: str, use_cache: bool = True) -> List[str
         return collect_tests_with_pytest(directory, use_cache)
 
 
-def collect_tests(use_cache: bool = True) -> List[str]:
+def collect_tests(use_cache: bool = True) -> list[str]:
     """
     Collect all tests across all categories.
 
@@ -660,8 +660,8 @@ def collect_tests(use_cache: bool = True) -> List[str]:
 
 
 def get_tests_with_complexity(
-    tests: List[str], use_cache: bool = True
-) -> List[Dict[str, Any]]:
+    tests: list[str], use_cache: bool = True
+) -> list[dict[str, Any]]:
     """
     Get tests with their complexity metrics.
 
@@ -680,8 +680,8 @@ def get_tests_with_complexity(
 
 
 def get_high_risk_tests(
-    tests: List[str], threshold: float = 0.5, use_cache: bool = True
-) -> List[Dict[str, Any]]:
+    tests: list[str], threshold: float = 0.5, use_cache: bool = True
+) -> list[dict[str, Any]]:
     """
     Get tests with risk score above the threshold.
 
@@ -710,8 +710,8 @@ def get_high_risk_tests(
 
 
 def analyze_test_dependencies(
-    test_paths: List[str], use_cache: bool = True
-) -> Dict[str, List[str]]:
+    test_paths: list[str], use_cache: bool = True
+) -> dict[str, list[str]]:
     """
     Analyze dependencies between tests.
 
@@ -807,8 +807,8 @@ def analyze_test_dependencies(
 
 
 def get_dependent_tests(
-    test_path: str, dependencies: Dict[str, List[str]]
-) -> List[str]:
+    test_path: str, dependencies: dict[str, list[str]]
+) -> list[str]:
     """
     Get tests that depend on the given test.
 
@@ -824,7 +824,7 @@ def get_dependent_tests(
     return []
 
 
-def filter_tests_by_pattern(tests: List[str], pattern: str) -> List[str]:
+def filter_tests_by_pattern(tests: list[str], pattern: str) -> list[str]:
     """
     Filter tests by name pattern.
 
@@ -853,7 +853,7 @@ def filter_tests_by_pattern(tests: List[str], pattern: str) -> List[str]:
     return matched_tests
 
 
-def filter_tests_by_module(tests: List[str], module: str) -> List[str]:
+def filter_tests_by_module(tests: list[str], module: str) -> list[str]:
     """
     Filter tests by module name.
 
@@ -880,7 +880,7 @@ def filter_tests_by_module(tests: List[str], module: str) -> List[str]:
     return matched_tests
 
 
-def apply_filters(tests: List[str], args) -> List[str]:
+def apply_filters(tests: list[str], args) -> list[str]:
     """
     Apply all filters to the list of tests.
 
@@ -913,8 +913,8 @@ def apply_filters(tests: List[str], args) -> List[str]:
 
 
 def generate_junit_xml_report(
-    tests: List[str],
-    test_results: Optional[Dict[str, bool]] = None,
+    tests: list[str],
+    test_results: dict[str, bool] | None = None,
     output_file: str = "test_report.xml",
 ) -> None:
     """
@@ -980,11 +980,11 @@ def generate_junit_xml_report(
 
 
 def generate_json_report(
-    tests: List[str],
-    test_results: Optional[Dict[str, bool]] = None,
-    complexity_metrics: Optional[Dict[str, Dict[str, Any]]] = None,
-    dependencies: Optional[Dict[str, List[str]]] = None,
-    failure_rates: Optional[Dict[str, float]] = None,
+    tests: list[str],
+    test_results: dict[str, bool] | None = None,
+    complexity_metrics: dict[str, dict[str, Any]] | None = None,
+    dependencies: dict[str, list[str]] | None = None,
+    failure_rates: dict[str, float] | None = None,
     output_file: str = "test_report.json",
 ) -> None:
     """
@@ -1044,7 +1044,7 @@ def generate_json_report(
     print(f"JSON report written to {output_file}")
 
 
-def get_test_counts(use_cache: bool = True) -> Dict[str, int]:
+def get_test_counts(use_cache: bool = True) -> dict[str, int]:
     """
     Get counts of tests by category.
 
@@ -1065,9 +1065,9 @@ def get_test_counts(use_cache: bool = True) -> Dict[str, int]:
 
 def check_test_has_marker(
     test_path: str,
-    marker_types: List[str] = ["fast", "medium", "slow"],
+    marker_types: list[str] = ["fast", "medium", "slow"],
     record_timestamp: bool = True,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Check if a test has a speed marker.
 
@@ -1109,7 +1109,7 @@ def check_test_has_marker(
 
     # Read the file content
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
@@ -1228,8 +1228,8 @@ def check_test_has_marker(
 
 
 def get_tests_with_markers(
-    marker_types: List[str] = ["fast", "medium", "slow"], use_cache: bool = True
-) -> Dict[str, Dict[str, List[str]]]:
+    marker_types: list[str] = ["fast", "medium", "slow"], use_cache: bool = True
+) -> dict[str, dict[str, list[str]]]:
     """
     Get tests with specific markers across all categories.
 
@@ -1338,7 +1338,7 @@ def get_tests_with_markers(
     return result
 
 
-def get_marker_counts(use_cache: bool = True) -> Dict[str, Dict[str, int]]:
+def get_marker_counts(use_cache: bool = True) -> dict[str, dict[str, int]]:
     """
     Get counts of tests with specific markers across all categories.
 
@@ -1578,7 +1578,7 @@ if __name__ == "__main__":
                         file_path = test_path.split("::")[0]
                         if os.path.exists(file_path):
                             # Print the first 5 lines of the file
-                            with open(file_path, "r") as f:
+                            with open(file_path) as f:
                                 first_lines = "".join(f.readlines()[:5])
                                 print(
                                     f"      First 5 lines: {first_lines.strip().replace('\n', ' | ')}"
@@ -1588,7 +1588,7 @@ if __name__ == "__main__":
     if args.record_results:
         if os.path.exists(args.record_results):
             try:
-                with open(args.record_results, "r") as f:
+                with open(args.record_results) as f:
                     test_results = json.load(f)
 
                 # Validate test results format
@@ -1612,7 +1612,7 @@ if __name__ == "__main__":
                 print(
                     f"Pass rate: {sum(1 for result in test_results.values() if result) / len(test_results) * 100:.1f}%"
                 )
-            except (json.JSONDecodeError, IOError) as e:
+            except (json.JSONDecodeError, OSError) as e:
                 print(f"Error reading results file: {e}")
                 sys.exit(1)
         else:
@@ -1636,7 +1636,7 @@ if __name__ == "__main__":
         if args.use_test_results:
             if os.path.exists(args.use_test_results):
                 try:
-                    with open(args.use_test_results, "r") as f:
+                    with open(args.use_test_results) as f:
                         test_results = json.load(f)
 
                     # Validate test results format
@@ -1648,7 +1648,7 @@ if __name__ == "__main__":
 
                     # Convert all values to boolean
                     test_results = {k: bool(v) for k, v in test_results.items()}
-                except (json.JSONDecodeError, IOError) as e:
+                except (json.JSONDecodeError, OSError) as e:
                     print(f"Error reading results file: {e}")
                     sys.exit(1)
             else:

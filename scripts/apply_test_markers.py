@@ -76,7 +76,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_progress(progress_file: str) -> Dict[str, Any]:
+def load_progress(progress_file: str) -> dict[str, Any]:
     """
     Load the test categorization progress from a file.
 
@@ -94,7 +94,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
         }
 
     try:
-        with open(progress_file, "r") as f:
+        with open(progress_file) as f:
             progress = json.load(f)
 
         # Ensure the progress file has the expected structure
@@ -110,7 +110,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
             }
 
         return progress
-    except (json.JSONDecodeError, IOError) as e:
+    except (json.JSONDecodeError, OSError) as e:
         print(f"Error loading progress file: {e}")
         return {
             "categorized_tests": {},
@@ -118,7 +118,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
         }
 
 
-def find_test_files(directory: str) -> List[Path]:
+def find_test_files(directory: str) -> list[Path]:
     """
     Find all test files in a directory.
 
@@ -138,8 +138,8 @@ def find_test_files(directory: str) -> List[Path]:
 
 def analyze_test_file(
     file_path: Path,
-) -> Tuple[
-    Dict[str, List[str]], Dict[int, str], Dict[int, List[int]], List[Tuple[int, int]]
+) -> tuple[
+    dict[str, list[str]], dict[int, str], dict[int, list[int]], list[tuple[int, int]]
 ]:
     """
     Analyze a test file to find existing markers and test line numbers.
@@ -159,7 +159,7 @@ def analyze_test_file(
     misplaced_markers = {}
     blank_line_ranges = []
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Find all test functions and their markers
@@ -292,11 +292,11 @@ def analyze_test_file(
 
 def update_test_file(
     file_path: Path,
-    test_markers: Dict[str, str],
+    test_markers: dict[str, str],
     dry_run: bool = False,
     verbose: bool = False,
     force: bool = False,
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """
     Update a test file with appropriate markers.
 
@@ -339,7 +339,7 @@ def update_test_file(
             print("No test functions/methods found in file")
         return added, updated, unchanged
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Check if pytest is imported

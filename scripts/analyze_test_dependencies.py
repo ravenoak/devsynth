@@ -42,12 +42,12 @@ class TestDependencyAnalyzer(ast.NodeVisitor):
     """AST visitor to analyze test dependencies."""
 
     def __init__(self) -> None:
-        self.file_operations: Set[str] = set()
-        self.network_calls: Set[str] = set()
-        self.global_state_modifications: Set[str] = set()
-        self.imports: Set[str] = set()
-        self.fixture_usage: Set[str] = set()
-        self.function_calls: Set[str] = set()
+        self.file_operations: set[str] = set()
+        self.network_calls: set[str] = set()
+        self.global_state_modifications: set[str] = set()
+        self.imports: set[str] = set()
+        self.fixture_usage: set[str] = set()
+        self.function_calls: set[str] = set()
 
         # Known patterns for different dependency types
         self.fs_patterns = {
@@ -142,7 +142,7 @@ class TestDependencyAnalyzer(ast.NodeVisitor):
                     self.file_operations.add(f"fixture:{arg.arg}")
         self.generic_visit(node)
 
-    def _get_call_name(self, node: ast.Call) -> Optional[str]:
+    def _get_call_name(self, node: ast.Call) -> str | None:
         """Extract the name of a function call."""
         if isinstance(node.func, ast.Name):
             return node.func.id
@@ -163,12 +163,12 @@ class TestFileAnalyzer:
     """Analyzes individual test files for dependencies."""
 
     def __init__(self) -> None:
-        self.results: Dict[str, Any] = {}
+        self.results: dict[str, Any] = {}
 
-    def analyze_file(self, file_path: Path) -> Dict[str, Any]:
+    def analyze_file(self, file_path: Path) -> dict[str, Any]:
         """Analyze a single test file."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Parse AST
@@ -245,7 +245,7 @@ class TestFileAnalyzer:
         )
 
 
-def find_test_files(test_dir: Path) -> List[Path]:
+def find_test_files(test_dir: Path) -> list[Path]:
     """Find all test files in the test directory."""
     test_files = []
     for pattern in ["test_*.py", "*_test.py"]:
@@ -253,18 +253,18 @@ def find_test_files(test_dir: Path) -> List[Path]:
     return sorted(test_files)
 
 
-def load_existing_analysis(output_file: Path) -> Dict[str, Any]:
+def load_existing_analysis(output_file: Path) -> dict[str, Any]:
     """Load existing analysis if available."""
     if output_file.exists():
         try:
-            with open(output_file, "r") as f:
+            with open(output_file) as f:
                 return json.load(f)
         except Exception:
             pass
     return {}
 
 
-def generate_recommendations(analysis_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+def generate_recommendations(analysis_results: list[dict[str, Any]]) -> dict[str, Any]:
     """Generate recommendations based on analysis results."""
     total_files = len(analysis_results)
     files_with_isolation = sum(
@@ -330,8 +330,8 @@ def generate_recommendations(analysis_results: List[Dict[str, Any]]) -> Dict[str
 
 
 def apply_recommendations(
-    recommendations: Dict[str, Any], dry_run: bool = True
-) -> Dict[str, Any]:
+    recommendations: dict[str, Any], dry_run: bool = True
+) -> dict[str, Any]:
     """Apply isolation marker removal recommendations."""
     if dry_run:
         print("DRY RUN: Would remove isolation markers from the following files:")
@@ -346,7 +346,7 @@ def apply_recommendations(
             if not full_path.exists():
                 continue
 
-            with open(full_path, "r", encoding="utf-8") as f:
+            with open(full_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Remove isolation markers

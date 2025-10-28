@@ -84,9 +84,9 @@ def parse_args():
 def load_schedule(schedule_file):
     """Load the test categorization schedule."""
     try:
-        with open(schedule_file, "r") as f:
+        with open(schedule_file) as f:
             return json.load(f)
-    except (json.JSONDecodeError, IOError) as e:
+    except (json.JSONDecodeError, OSError) as e:
         print(f"Error loading schedule file: {e}")
         sys.exit(1)
 
@@ -95,9 +95,9 @@ def load_progress(progress_file):
     """Load the test categorization progress."""
     if os.path.exists(progress_file):
         try:
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error loading progress file: {e}")
             return {"categorized_tests": {}, "last_date": None}
     return {"categorized_tests": {}, "last_date": None}
@@ -180,7 +180,7 @@ def apply_speed_marker(test, speed_category, dry_run=False):
 
     try:
         # Read the file content
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Find the test function or class

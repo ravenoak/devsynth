@@ -17,10 +17,10 @@ from typing import Dict, List, Optional, Tuple
 import yaml
 
 
-def extract_frontmatter(file_path: Path) -> Tuple[Optional[Dict], str]:
+def extract_frontmatter(file_path: Path) -> tuple[dict | None, str]:
     """Extract YAML frontmatter and content from a markdown file."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
@@ -44,7 +44,7 @@ def extract_frontmatter(file_path: Path) -> Tuple[Optional[Dict], str]:
     return None, content
 
 
-def extract_title_from_content(content: str) -> Optional[str]:
+def extract_title_from_content(content: str) -> str | None:
     """Extract title from markdown content (first H1 heading)."""
     lines = content.split("\n")
     for line in lines:
@@ -54,7 +54,7 @@ def extract_title_from_content(content: str) -> Optional[str]:
     return None
 
 
-def analyze_documentation_files(docs_dir: Path) -> List[Dict]:
+def analyze_documentation_files(docs_dir: Path) -> list[dict]:
     """Analyze all markdown files in the documentation directory."""
     doc_files = []
 
@@ -116,7 +116,7 @@ def analyze_documentation_files(docs_dir: Path) -> List[Dict]:
     return doc_files
 
 
-def generate_index_content(doc_files: List[Dict]) -> str:
+def generate_index_content(doc_files: list[dict]) -> str:
     """Generate the markdown content for the documentation index."""
 
     # Group by top-level directory

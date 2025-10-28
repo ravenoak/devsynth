@@ -25,9 +25,9 @@ DEFAULT_INPUT = "test_reports/coverage.json"
 DEFAULT_OUTPUT = "diagnostics/coverage_summary.txt"
 
 
-def load_coverage(path: str) -> Dict[str, Any]:
+def load_coverage(path: str) -> dict[str, Any]:
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"[summarize_coverage] coverage file not found: {path}", file=sys.stderr)
@@ -37,7 +37,7 @@ def load_coverage(path: str) -> Dict[str, Any]:
         sys.exit(2)
 
 
-def collect_files(data: Dict[str, Any]) -> List[Tuple[str, float, int]]:
+def collect_files(data: dict[str, Any]) -> list[tuple[str, float, int]]:
     files = []
     for filename, metrics in data.get("files", {}).items():
         # Only consider project source files
@@ -52,7 +52,7 @@ def collect_files(data: Dict[str, Any]) -> List[Tuple[str, float, int]]:
     return files
 
 
-def format_table(rows: List[Tuple[str, float, int]], limit: int | None = None) -> str:
+def format_table(rows: list[tuple[str, float, int]], limit: int | None = None) -> str:
     header = "Rank  %Cov   Missing  File"
     lines = [header, "-" * len(header)]
     take = rows if limit is None else rows[:limit]
@@ -67,7 +67,7 @@ def ensure_dir(path: str) -> None:
         os.makedirs(d, exist_ok=True)
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Summarize coverage.json into a ranked table"
     )

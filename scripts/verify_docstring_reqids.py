@@ -31,8 +31,8 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def find_tests_missing_reqid_in_file(path: Path) -> List[Dict[str, str]]:
-    findings: List[Dict[str, str]] = []
+def find_tests_missing_reqid_in_file(path: Path) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
     try:
         text = path.read_text(encoding="utf-8")
     except Exception as e:
@@ -65,14 +65,14 @@ def find_tests_missing_reqid_in_file(path: Path) -> List[Dict[str, str]]:
     return findings
 
 
-def find_tests_missing_reqid(root: Path) -> List[Dict[str, str]]:
-    findings: List[Dict[str, str]] = []
+def find_tests_missing_reqid(root: Path) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
     for path in root.rglob("test_*.py"):
         findings.extend(find_tests_missing_reqid_in_file(path))
     return findings
 
 
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", action="store_true", help="Write JSON report")
     parser.add_argument("--report-file", default=None, help="Report file path")
@@ -82,8 +82,8 @@ def main(argv: List[str]) -> int:
     )
     args = parser.parse_args(argv)
 
-    findings: List[Dict[str, str]]
-    scanned: List[str]
+    findings: list[dict[str, str]]
+    scanned: list[str]
 
     if args.files:
         file_paths = [Path(p) for p in args.files if p.endswith(".py")]

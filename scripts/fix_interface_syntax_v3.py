@@ -67,7 +67,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def collect_test_files(module: str, file: str = None) -> List[str]:
+def collect_test_files(module: str, file: str = None) -> list[str]:
     """Collect test files from the specified module.
 
     Args:
@@ -101,7 +101,7 @@ def collect_test_files(module: str, file: str = None) -> List[str]:
     return sorted(test_files)
 
 
-def check_syntax(file_path: str) -> Optional[str]:
+def check_syntax(file_path: str) -> str | None:
     """Check if a file has syntax errors.
 
     Args:
@@ -111,7 +111,7 @@ def check_syntax(file_path: str) -> Optional[str]:
         Error message if there are syntax errors, None otherwise
     """
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
         ast.parse(content)
         return None
@@ -826,7 +826,7 @@ def fix_multi_line_indentation(content: str, verbose: bool = False) -> str:
 
 def fix_file(
     file_path: str, dry_run: bool = True, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fix syntax errors in a file.
 
     Args:
@@ -851,7 +851,7 @@ def fix_file(
         print(f"  Found syntax error: {error}")
 
     # Read the file content
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Apply fixes
@@ -927,7 +927,7 @@ def fix_file(
 
 
 def generate_report(
-    results: Dict[str, Dict[str, Any]],
+    results: dict[str, dict[str, Any]],
     output_file: str = "interface_syntax_report_v3.json",
 ) -> None:
     """Generate a report of the results.

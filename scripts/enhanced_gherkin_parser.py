@@ -28,7 +28,7 @@ class GherkinParser:
         """
         self.verbose = verbose
 
-    def parse_feature_file(self, file_path: str) -> Dict[str, Any]:
+    def parse_feature_file(self, file_path: str) -> dict[str, Any]:
         """
         Parse a Gherkin feature file.
 
@@ -42,7 +42,7 @@ class GherkinParser:
             print(f"Parsing feature file: {file_path}")
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Extract feature name
@@ -148,7 +148,7 @@ class GherkinParser:
                 "error": str(e),
             }
 
-    def parse_feature_directory(self, directory: str) -> List[Dict[str, Any]]:
+    def parse_feature_directory(self, directory: str) -> list[dict[str, Any]]:
         """
         Parse all feature files in a directory.
 
@@ -172,7 +172,7 @@ class GherkinParser:
 
         return features
 
-    def count_tests(self, features: List[Dict[str, Any]]) -> int:
+    def count_tests(self, features: list[dict[str, Any]]) -> int:
         """
         Count the number of tests that would be generated from the features.
 
@@ -200,7 +200,7 @@ class GherkinParser:
 
         return count
 
-    def generate_test_paths(self, features: List[Dict[str, Any]]) -> List[str]:
+    def generate_test_paths(self, features: list[dict[str, Any]]) -> list[str]:
         """
         Generate test paths for all scenarios and examples.
 
@@ -246,7 +246,7 @@ class GherkinParser:
         return test_paths
 
 
-def parse_feature_file(file_path: str, verbose: bool = False) -> Dict[str, Any]:
+def parse_feature_file(file_path: str, verbose: bool = False) -> dict[str, Any]:
     """
     Parse a Gherkin feature file.
 
@@ -263,7 +263,7 @@ def parse_feature_file(file_path: str, verbose: bool = False) -> Dict[str, Any]:
 
 def parse_feature_directory(
     directory: str, verbose: bool = False
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Parse all feature files in a directory.
 
@@ -278,7 +278,7 @@ def parse_feature_directory(
     return parser.parse_feature_directory(directory)
 
 
-def count_tests(features: List[Dict[str, Any]]) -> int:
+def count_tests(features: list[dict[str, Any]]) -> int:
     """
     Count the number of tests that would be generated from the features.
 
@@ -292,7 +292,7 @@ def count_tests(features: List[Dict[str, Any]]) -> int:
     return parser.count_tests(features)
 
 
-def generate_test_paths(features: List[Dict[str, Any]]) -> List[str]:
+def generate_test_paths(features: list[dict[str, Any]]) -> list[str]:
     """
     Generate test paths for all scenarios and examples.
 

@@ -81,7 +81,7 @@ def fix_type_annotations(content):
 
 def process_file(file_path, dry_run=False):
     """Process a single Python file to fix type annotations."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Skip files that don't have pipe operator in type annotations

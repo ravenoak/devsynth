@@ -145,7 +145,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_test_history(history_file: str) -> Dict[str, Any]:
+def load_test_history(history_file: str) -> dict[str, Any]:
     """
     Load test execution history from a file.
 
@@ -157,7 +157,7 @@ def load_test_history(history_file: str) -> Dict[str, Any]:
     """
     if os.path.exists(history_file):
         try:
-            with open(history_file, "r") as f:
+            with open(history_file) as f:
                 history = json.load(f)
             return history
         except json.JSONDecodeError:
@@ -172,7 +172,7 @@ def load_test_history(history_file: str) -> Dict[str, Any]:
     return history
 
 
-def update_test_history(history: Dict[str, Any], results_file: str) -> Dict[str, Any]:
+def update_test_history(history: dict[str, Any], results_file: str) -> dict[str, Any]:
     """
     Update test execution history with latest results.
 
@@ -188,7 +188,7 @@ def update_test_history(history: Dict[str, Any], results_file: str) -> Dict[str,
         return history
 
     try:
-        with open(results_file, "r") as f:
+        with open(results_file) as f:
             results = json.load(f)
     except json.JSONDecodeError:
         print(f"Error: {results_file} is not a valid JSON file")
@@ -248,7 +248,7 @@ def update_test_history(history: Dict[str, Any], results_file: str) -> Dict[str,
     return history
 
 
-def save_test_history(history: Dict[str, Any], history_file: str):
+def save_test_history(history: dict[str, Any], history_file: str):
     """
     Save test execution history to a file.
 
@@ -261,7 +261,7 @@ def save_test_history(history: Dict[str, Any], history_file: str):
     print(f"Test execution history saved to {history_file}")
 
 
-def calculate_failure_risk(test_record: Dict[str, Any], consider_recent: int) -> float:
+def calculate_failure_risk(test_record: dict[str, Any], consider_recent: int) -> float:
     """
     Calculate the failure risk for a test based on its execution history.
 
@@ -297,7 +297,7 @@ def calculate_failure_risk(test_record: Dict[str, Any], consider_recent: int) ->
     return failure_risk
 
 
-def collect_all_tests(use_cache: bool = False) -> List[str]:
+def collect_all_tests(use_cache: bool = False) -> list[str]:
     """
     Collect all tests in the project.
 
@@ -382,7 +382,7 @@ def get_test_complexity(test_path: str, use_markers: bool = False) -> float:
 
     try:
         # Count lines of code
-        with open(test_file, "r") as f:
+        with open(test_file) as f:
             lines = f.readlines()
 
         code_lines = len(
@@ -472,7 +472,7 @@ def get_git_churn(test_path: str) -> float:
         return 0.0
 
 
-def get_test_dependencies(test_path: str) -> List[str]:
+def get_test_dependencies(test_path: str) -> list[str]:
     """
     Identify dependencies for a test.
 
@@ -516,7 +516,7 @@ def get_test_dependencies(test_path: str) -> List[str]:
         return []
 
 
-def calculate_dependency_risk(test_path: str, high_risk_tests: Set[str]) -> float:
+def calculate_dependency_risk(test_path: str, high_risk_tests: set[str]) -> float:
     """
     Calculate the risk based on dependencies.
 
@@ -542,7 +542,7 @@ def calculate_dependency_risk(test_path: str, high_risk_tests: Set[str]) -> floa
 
 
 def identify_high_risk_tests(
-    history: Dict[str, Any],
+    history: dict[str, Any],
     risk_threshold: float,
     max_tests: int,
     consider_recent: int,
@@ -550,7 +550,7 @@ def identify_high_risk_tests(
     use_complexity: bool,
     use_dependencies: bool,
     verbose: bool,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Identify high-risk tests based on execution history and other factors.
 
@@ -633,7 +633,7 @@ def identify_high_risk_tests(
     return high_risk_tests
 
 
-def save_high_risk_tests(high_risk_tests: List[Dict[str, Any]], output_file: str):
+def save_high_risk_tests(high_risk_tests: list[dict[str, Any]], output_file: str):
     """
     Save high-risk tests to a file.
 
@@ -651,7 +651,7 @@ def save_high_risk_tests(high_risk_tests: List[Dict[str, Any]], output_file: str
     print(f"High-risk tests saved to {output_file}")
 
 
-def generate_html_report(high_risk_tests: List[Dict[str, Any]], html_file: str):
+def generate_html_report(high_risk_tests: list[dict[str, Any]], html_file: str):
     """
     Generate an HTML report for high-risk tests.
 
@@ -748,7 +748,7 @@ def generate_html_report(high_risk_tests: List[Dict[str, Any]], html_file: str):
     print(f"HTML report saved to {html_file}")
 
 
-def print_high_risk_tests(high_risk_tests: List[Dict[str, Any]]):
+def print_high_risk_tests(high_risk_tests: list[dict[str, Any]]):
     """
     Print high-risk tests to the console.
 

@@ -56,7 +56,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_test_times(tests: List[str], use_cache: bool = True) -> Dict[str, float]:
+def get_test_times(tests: list[str], use_cache: bool = True) -> dict[str, float]:
     """
     Get execution times for a list of tests.
 
@@ -82,8 +82,8 @@ def get_test_times(tests: List[str], use_cache: bool = True) -> Dict[str, float]
 
 
 def distribute_tests(
-    tests: List[str], test_times: Dict[str, float], num_processes: int
-) -> List[List[str]]:
+    tests: list[str], test_times: dict[str, float], num_processes: int
+) -> list[list[str]]:
     """
     Distribute tests across processes using a bin packing algorithm.
 
@@ -119,7 +119,7 @@ def distribute_tests(
     return bins
 
 
-def run_tests_in_parallel(test_bins: List[List[str]], args) -> int:
+def run_tests_in_parallel(test_bins: list[list[str]], args) -> int:
     """
     Run tests in parallel using multiple processes.
 

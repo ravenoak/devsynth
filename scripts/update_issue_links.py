@@ -48,7 +48,7 @@ def get_commit_message(commit: str) -> str:
     ).stdout
 
 
-def extract_issue_numbers(message: str) -> Set[int]:
+def extract_issue_numbers(message: str) -> set[int]:
     """Extract issue numbers from ``message`` in ``#123`` format."""
     return {int(num) for num in re.findall(r"#(\d+)", message)}
 

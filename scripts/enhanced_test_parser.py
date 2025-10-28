@@ -162,7 +162,7 @@ class TestVisitor(ast.NodeVisitor):
 
         if is_test:
             # Extract markers from decorators
-            markers: List[str] = []
+            markers: list[str] = []
             for decorator in node.decorator_list:
                 marker = self._extract_marker_from_decorator(decorator)
                 if marker:
@@ -212,7 +212,7 @@ class TestVisitor(ast.NodeVisitor):
         # Continue visiting the function body
         self.generic_visit(node)
 
-    def _extract_marker_from_decorator(self, decorator: ast.expr) -> Optional[str]:
+    def _extract_marker_from_decorator(self, decorator: ast.expr) -> str | None:
         """Extract marker type from a decorator node."""
         # Handle @pytest.mark.fast, @pytest.mark.medium, @pytest.mark.slow
         if isinstance(decorator, ast.Attribute) and isinstance(
@@ -291,7 +291,7 @@ class TestVisitor(ast.NodeVisitor):
 
     def _collect_parametrize_speed_markers_from_node(
         self, node: ast.FunctionDef
-    ) -> List[str]:
+    ) -> list[str]:
         """Return a single speed marker from parametrize marks if all params agree.
 
         Mirrors behavior in scripts/verify_test_markers.py::_collect_parametrize_speed_markers.
@@ -313,12 +313,12 @@ class TestVisitor(ast.NodeVisitor):
                     break
             if argvalues is None:
                 continue
-            elements: List[ast.AST] = []
+            elements: list[ast.AST] = []
             if isinstance(argvalues, (ast.List, ast.Tuple)):
                 elements = list(argvalues.elts)
             else:
                 continue
-            all_param_markers: List[str] = []
+            all_param_markers: list[str] = []
             for el in elements:
                 if not isinstance(el, ast.Call):
                     all_param_markers = []
@@ -346,7 +346,7 @@ class TestVisitor(ast.NodeVisitor):
                     all_param_markers = []
                     break
                 # marks may be a single marker or list
-                markers_here: List[str] = []
+                markers_here: list[str] = []
                 if isinstance(mark_value, (ast.List, ast.Tuple)):
                     for v in mark_value.elts:
                         name = None
@@ -378,7 +378,7 @@ class TestVisitor(ast.NodeVisitor):
 
     def _extract_parameterized_tests(
         self, node: ast.FunctionDef, base_test_path: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Extract individual test cases from a parameterized test."""
         param_tests = []
 
@@ -476,7 +476,7 @@ class TestVisitor(ast.NodeVisitor):
 
         return param_tests
 
-    def _get_param_value_str(self, node: ast.expr) -> Optional[str]:
+    def _get_param_value_str(self, node: ast.expr) -> str | None:
         """Convert an AST node to a string representation for parameter values."""
         if isinstance(node, ast.Constant):
             # For Python 3.8+
@@ -501,7 +501,7 @@ class TestVisitor(ast.NodeVisitor):
         return None
 
 
-def parse_test_file(file_path: str, use_cache: bool = True) -> List[Dict[str, Any]]:
+def parse_test_file(file_path: str, use_cache: bool = True) -> list[dict[str, Any]]:
     """
     Parse a test file to find test functions and methods using AST.
 
@@ -522,7 +522,7 @@ def parse_test_file(file_path: str, use_cache: bool = True) -> List[Dict[str, An
 
     try:
         # Read the file content
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Parse the file using AST
@@ -548,7 +548,7 @@ def parse_test_file(file_path: str, use_cache: bool = True) -> List[Dict[str, An
 
 def collect_tests_from_directory(
     directory: str, use_cache: bool = True
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Collect tests from a directory by parsing Python files.
 
@@ -576,7 +576,7 @@ def collect_tests_from_directory(
 
 def get_test_paths_from_directory(
     directory: str, use_cache: bool = True, include_file_only: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Get test paths from a directory (compatible with common_test_collector format).
 
@@ -610,9 +610,9 @@ def get_test_paths_from_directory(
 
 def get_tests_with_markers(
     directory: str,
-    marker_types: List[str] = ["fast", "medium", "slow"],
+    marker_types: list[str] = ["fast", "medium", "slow"],
     use_cache: bool = True,
-) -> Dict[str, List[str]]:
+) -> dict[str, list[str]]:
     """
     Get tests with specific markers from a directory.
 
@@ -637,7 +637,7 @@ def get_tests_with_markers(
     return tests_by_marker
 
 
-def get_marker_counts(directory: str, use_cache: bool = True) -> Dict[str, int]:
+def get_marker_counts(directory: str, use_cache: bool = True) -> dict[str, int]:
     """
     Get counts of tests with specific markers from a directory.
 
@@ -658,7 +658,7 @@ def clear_cache():
     _file_cache = {}
 
 
-def compare_with_pytest(directory: str) -> Dict[str, Any]:
+def compare_with_pytest(directory: str) -> dict[str, Any]:
     """
     Compare test collection between this parser and pytest.
 
@@ -743,7 +743,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    def _collect_marker_counts_text(dir_path: str) -> Dict[str, int]:
+    def _collect_marker_counts_text(dir_path: str) -> dict[str, int]:
         from collections import Counter
 
         counts: Counter[str] = Counter()

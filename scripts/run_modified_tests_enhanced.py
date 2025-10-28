@@ -106,7 +106,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_modified_files(base_commit: str) -> List[str]:
+def get_modified_files(base_commit: str) -> list[str]:
     """
     Get list of modified files compared to the base commit.
 
@@ -138,7 +138,7 @@ def get_modified_files(base_commit: str) -> List[str]:
 
 def build_dependency_map(
     src_dir: str, test_dir: str, use_cache: bool = True
-) -> Dict[str, Set[str]]:
+) -> dict[str, set[str]]:
     """
     Build a map of source files to test files based on imports and AST analysis.
 
@@ -156,7 +156,7 @@ def build_dependency_map(
     if use_cache and os.path.exists(cache_file):
         # Check if the cache is still valid
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cache_data = json.load(f)
 
             # Use cache if it's less than 1 hour old
@@ -239,7 +239,7 @@ def build_dependency_map(
             import_pattern = re.compile(r"^\s*(?:from|import)\s+([.\w]+)")
 
             try:
-                with open(test_file, "r") as f:
+                with open(test_file) as f:
                     for line in f:
                         match = import_pattern.match(line)
                         if match:
@@ -271,10 +271,10 @@ def build_dependency_map(
 
 
 def find_affected_tests(
-    modified_files: List[str],
-    dependency_map: Dict[str, Set[str]],
+    modified_files: list[str],
+    dependency_map: dict[str, set[str]],
     all_tests: bool = False,
-) -> Set[str]:
+) -> set[str]:
     """
     Find tests affected by modified files.
 
@@ -320,7 +320,7 @@ def find_affected_tests(
     return affected_tests
 
 
-def prioritize_tests(tests: Set[str], args) -> List[str]:
+def prioritize_tests(tests: set[str], args) -> list[str]:
     """
     Prioritize tests based on various criteria.
 
@@ -392,7 +392,7 @@ def prioritize_tests(tests: Set[str], args) -> List[str]:
     return test_list
 
 
-def run_tests(affected_tests: List[str], args) -> int:
+def run_tests(affected_tests: list[str], args) -> int:
     """
     Run the affected tests.
 

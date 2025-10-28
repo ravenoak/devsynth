@@ -46,7 +46,7 @@ def _timeout_env(name: str, default: float) -> float:
         return default
 
 
-def _validate_url(url: str) -> Tuple[bool, str]:
+def _validate_url(url: str) -> tuple[bool, str]:
     try:
         parsed = urlparse(url)
         if parsed.scheme not in {"http", "https"}:

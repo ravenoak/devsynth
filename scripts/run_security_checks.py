@@ -12,7 +12,7 @@ import subprocess
 from typing import List
 
 
-def run(cmd: List[str]) -> int:
+def run(cmd: list[str]) -> int:
     print("$", " ".join(cmd))
     return subprocess.call(cmd)
 

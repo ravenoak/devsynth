@@ -210,7 +210,7 @@ def parse_args():
 
 def collect_test_files(
     category: str = "all", module: str = None, use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect test files to process.
 
@@ -254,7 +254,7 @@ def collect_test_files(
     return list(test_files)
 
 
-def prioritize_files(files: List[str], priority_modules: List[str]) -> List[str]:
+def prioritize_files(files: list[str], priority_modules: list[str]) -> list[str]:
     """
     Prioritize files based on module priority.
 
@@ -278,8 +278,8 @@ def prioritize_files(files: List[str], priority_modules: List[str]) -> List[str]
 
 
 def analyze_file(
-    file_path: str, patterns: Dict[str, List[Dict[str, str]]], verbose: bool = False
-) -> Dict[str, List[Dict[str, Any]]]:
+    file_path: str, patterns: dict[str, list[dict[str, str]]], verbose: bool = False
+) -> dict[str, list[dict[str, Any]]]:
     """
     Analyze a file for flaky test patterns.
 
@@ -295,7 +295,7 @@ def analyze_file(
         print(f"Analyzing {file_path}...")
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         issues = {"mocking": [], "isolation": [], "state": []}
@@ -337,7 +337,7 @@ def analyze_file(
 
 def fix_file(
     file_path: str,
-    issues: Dict[str, List[Dict[str, Any]]],
+    issues: dict[str, list[dict[str, Any]]],
     dry_run: bool = True,
     verbose: bool = False,
 ) -> bool:
@@ -357,7 +357,7 @@ def fix_file(
         print(f"Fixing {file_path}...")
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         modified = False
@@ -541,7 +541,7 @@ def fix_file(
 
 
 def generate_report(
-    results: Dict[str, Dict[str, List[Dict[str, Any]]]],
+    results: dict[str, dict[str, list[dict[str, Any]]]],
     output_file: str = "flaky_test_report.json",
 ):
     """
@@ -588,7 +588,7 @@ def generate_report(
 
 
 def run_tests_until_stable(
-    paths: List[str], speed: str = "medium", retries: int = 3
+    paths: list[str], speed: str = "medium", retries: int = 3
 ) -> bool:
     """Run the given test paths repeatedly until they pass or retries are exhausted.
 

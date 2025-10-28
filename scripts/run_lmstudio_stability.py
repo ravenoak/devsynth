@@ -31,8 +31,8 @@ from pathlib import Path
 from typing import List
 
 
-def build_command(args: argparse.Namespace) -> List[str]:
-    cmd: List[str] = [
+def build_command(args: argparse.Namespace) -> list[str]:
+    cmd: list[str] = [
         "poetry",
         "run",
         "devsynth",
@@ -59,7 +59,7 @@ def build_command(args: argparse.Namespace) -> List[str]:
     return cmd
 
 
-def run_once(i: int, base_cmd: List[str], diagnostics_dir: Path) -> int:
+def run_once(i: int, base_cmd: list[str], diagnostics_dir: Path) -> int:
     ts = datetime.now().strftime("%Y%m%dT%H%M%S")
     out_file = diagnostics_dir / f"lmstudio_stability_run{i}_{ts}.txt"
     diagnostics_dir.mkdir(parents=True, exist_ok=True)

@@ -69,7 +69,7 @@ class Provider(str, Enum):
     LMSTUDIO = "lmstudio"
 
 
-def get_provider_config() -> tuple[Provider, str, Optional[str], float, bool]:
+def get_provider_config() -> tuple[Provider, str, str | None, float, bool]:
     """
     Get the LLM provider configuration from environment variables.
 
@@ -142,11 +142,11 @@ def run_search_agent(query: str) -> str:
 
     # Check required environment variables
     if not serper_api_key:
-        raise EnvironmentError("Missing SERPER_API_KEY.")
+        raise OSError("Missing SERPER_API_KEY.")
 
     # OpenAI API key is only required when using OpenAI provider
     if provider == Provider.OPENAI and not openai_api_key:
-        raise EnvironmentError(
+        raise OSError(
             "Missing OPENAI_API_KEY. Required when using OpenAI provider."
         )
 
@@ -293,7 +293,7 @@ def main():
     try:
         result = run_search_agent(query)
         print("===BEGIN_RESULTS===\n" + result.strip() + "\n===END_RESULTS===")
-    except EnvironmentError as e:
+    except OSError as e:
         print(
             f"===BEGIN_RESULTS===\nConfiguration Error: {str(e)}\nPlease ensure you have a .env file in the project root with SERPER_API_KEY and OPENAI_API_KEY variables set.\n===END_RESULTS==="
         )

@@ -83,10 +83,10 @@ class ScriptAnalyzer:
             },
         }
 
-    def analyze_script(self, script_path: Path) -> Dict[str, Any]:
+    def analyze_script(self, script_path: Path) -> dict[str, Any]:
         """Analyze a single script file."""
         try:
-            with open(script_path, "r", encoding="utf-8") as f:
+            with open(script_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Basic file info
@@ -193,9 +193,9 @@ class ScriptAuditor:
     def __init__(self, scripts_dir: Path) -> None:
         self.scripts_dir = scripts_dir
         self.analyzer = ScriptAnalyzer()
-        self.scripts: List[Dict[str, Any]] = []
+        self.scripts: list[dict[str, Any]] = []
 
-    def find_testing_scripts(self) -> List[Path]:
+    def find_testing_scripts(self) -> list[Path]:
         """Find all testing-related scripts."""
         testing_patterns = [
             "test*",
@@ -222,7 +222,7 @@ class ScriptAuditor:
         for script_path in self.scripts_dir.rglob("*.py"):
             if script_path.is_file():
                 try:
-                    with open(script_path, "r", encoding="utf-8") as f:
+                    with open(script_path, encoding="utf-8") as f:
                         content = f.read()
                     if any(
                         keyword in content.lower()
@@ -240,7 +240,7 @@ class ScriptAuditor:
 
         return sorted(found_scripts)
 
-    def get_git_usage_frequency(self, script_path: Path) -> Dict[str, Any]:
+    def get_git_usage_frequency(self, script_path: Path) -> dict[str, Any]:
         """Get git usage statistics for a script."""
         try:
             # Get commit count
@@ -312,7 +312,7 @@ class ScriptAuditor:
                 "error": str(e),
             }
 
-    def analyze_overlaps(self) -> Dict[str, Any]:
+    def analyze_overlaps(self) -> dict[str, Any]:
         """Analyze overlapping functionality between scripts."""
         overlaps = defaultdict(list)
         category_groups = defaultdict(list)
@@ -357,7 +357,7 @@ class ScriptAuditor:
             },
         }
 
-    def generate_consolidation_recommendations(self) -> Dict[str, Any]:
+    def generate_consolidation_recommendations(self) -> dict[str, Any]:
         """Generate recommendations for script consolidation."""
         recommendations = {
             "immediate_candidates": [],
@@ -434,7 +434,7 @@ class ScriptAuditor:
 
         return recommendations
 
-    def audit(self, include_git_history: bool = False) -> Dict[str, Any]:
+    def audit(self, include_git_history: bool = False) -> dict[str, Any]:
         """Perform complete audit of testing scripts."""
         print("Finding testing-related scripts...")
         script_paths = self.find_testing_scripts()
@@ -483,7 +483,7 @@ class ScriptAuditor:
         }
 
 
-def generate_markdown_report(audit_data: Dict[str, Any]) -> str:
+def generate_markdown_report(audit_data: dict[str, Any]) -> str:
     """Generate a markdown report from audit data."""
     md_lines = [
         "# Testing Scripts Audit Report",

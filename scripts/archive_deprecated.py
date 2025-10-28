@@ -19,8 +19,8 @@ import yaml
 
 
 def create_archival_metadata(
-    original_path: Path, reason: str, superseded_by: Optional[str] = None
-) -> Dict:
+    original_path: Path, reason: str, superseded_by: str | None = None
+) -> dict:
     """Create metadata for archived documents."""
     return {
         "archived_date": datetime.now().strftime("%Y-%m-%d"),
@@ -35,7 +35,7 @@ def archive_file(
     source_path: Path,
     archive_dir: Path,
     reason: str,
-    superseded_by: Optional[str] = None,
+    superseded_by: str | None = None,
 ) -> bool:
     """Archive a single file with proper metadata."""
     try:
@@ -48,7 +48,7 @@ def archive_file(
         archived_path = archive_dir / archived_name
 
         # Read original content
-        with open(source_path, "r", encoding="utf-8") as f:
+        with open(source_path, encoding="utf-8") as f:
             content = f.read()
 
         # Create archival header
@@ -87,7 +87,7 @@ def create_archive_index(archive_dir: Path) -> None:
 
         # Extract metadata from archived file
         try:
-            with open(archived_file, "r", encoding="utf-8") as f:
+            with open(archived_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Extract archival metadata

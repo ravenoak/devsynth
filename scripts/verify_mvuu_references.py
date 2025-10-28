@@ -31,13 +31,13 @@ def _parse_json_block(text: str) -> dict | None:
         return None
 
 
-def verify_mvuu_affected_files(message: str, changed_files: List[str]) -> List[str]:
+def verify_mvuu_affected_files(message: str, changed_files: list[str]) -> list[str]:
     """Validate that the MVUU JSON block references changed files and fields.
 
     Returns a list of error strings; empty list means OK.
     Required fields: issue (string), mvuu (true boolean).
     """
-    errors: List[str] = []
+    errors: list[str] = []
     meta = _parse_json_block(message) or {}
 
     affected = set(meta.get("affected_files") or [])

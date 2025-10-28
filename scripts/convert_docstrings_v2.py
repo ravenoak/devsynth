@@ -146,7 +146,7 @@ class DocstringConverter(ast.NodeVisitor):
 
 
 def convert_file(
-    file_path: str, output_path: Optional[str] = None, backup: bool = True
+    file_path: str, output_path: str | None = None, backup: bool = True
 ) -> bool:
     """
     Convert docstrings in a Python file to NumPy format.
@@ -167,7 +167,7 @@ def convert_file(
     """
     try:
         # Read the file
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             source_code = f.read()
 
         # Parse the source code into an AST
@@ -212,7 +212,7 @@ def convert_file(
         return False
 
 
-def find_python_files(directory: str) -> List[str]:
+def find_python_files(directory: str) -> list[str]:
     """
     Find all Python files in a directory and its subdirectories.
 

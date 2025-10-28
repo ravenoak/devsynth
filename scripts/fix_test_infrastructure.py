@@ -96,7 +96,7 @@ def parse_args():
 
 def verify_test_counts(
     category: str = "all", module: str = None, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Verify test counts between different collection methods.
 
@@ -170,7 +170,7 @@ def verify_test_counts(
     return results
 
 
-def collect_tests_with_pytest(directory: str) -> List[str]:
+def collect_tests_with_pytest(directory: str) -> list[str]:
     """
     Collect tests from a directory using pytest.
 
@@ -205,7 +205,7 @@ def collect_tests_with_pytest(directory: str) -> List[str]:
         return []
 
 
-def collect_tests_from_files(directory: str) -> List[str]:
+def collect_tests_from_files(directory: str) -> list[str]:
     """
     Collect tests by parsing Python files.
 
@@ -230,7 +230,7 @@ def collect_tests_from_files(directory: str) -> List[str]:
     return tests
 
 
-def parse_test_file(file_path: str) -> List[str]:
+def parse_test_file(file_path: str) -> list[str]:
     """
     Parse a test file to find test functions and methods using AST.
 
@@ -243,7 +243,7 @@ def parse_test_file(file_path: str) -> List[str]:
     tests = []
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Parse the file using AST
@@ -270,7 +270,7 @@ def parse_test_file(file_path: str) -> List[str]:
 
 def verify_marker_detection(
     category: str = "all", module: str = None, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Verify marker detection between files and pytest.
 
@@ -358,7 +358,7 @@ def verify_marker_detection(
     return results
 
 
-def get_markers_from_files(directory: str) -> Dict[str, List[str]]:
+def get_markers_from_files(directory: str) -> dict[str, list[str]]:
     """
     Get markers from files using AST parsing.
 
@@ -386,7 +386,7 @@ def get_markers_from_files(directory: str) -> Dict[str, List[str]]:
     return markers
 
 
-def parse_markers_from_file(file_path: str) -> Dict[str, List[str]]:
+def parse_markers_from_file(file_path: str) -> dict[str, list[str]]:
     """
     Parse markers from a test file using AST.
 
@@ -399,7 +399,7 @@ def parse_markers_from_file(file_path: str) -> Dict[str, List[str]]:
     markers = {"fast": [], "medium": [], "slow": []}
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Parse the file using AST
@@ -454,7 +454,7 @@ def parse_markers_from_file(file_path: str) -> Dict[str, List[str]]:
     return markers
 
 
-def get_marker_type_from_decorator(decorator: ast.expr) -> Optional[str]:
+def get_marker_type_from_decorator(decorator: ast.expr) -> str | None:
     """
     Get marker type from a decorator node.
 
@@ -490,7 +490,7 @@ def get_marker_type_from_decorator(decorator: ast.expr) -> Optional[str]:
     return None
 
 
-def get_markers_from_pytest(directory: str) -> Dict[str, List[str]]:
+def get_markers_from_pytest(directory: str) -> dict[str, list[str]]:
     """
     Get markers from pytest.
 
@@ -537,8 +537,8 @@ def get_markers_from_pytest(directory: str) -> Dict[str, List[str]]:
 
 
 def add_markers_to_tests(
-    tests: List[str], marker: str, dry_run: bool = True, verbose: bool = False
-) -> Dict[str, Any]:
+    tests: list[str], marker: str, dry_run: bool = True, verbose: bool = False
+) -> dict[str, Any]:
     """
     Add markers to tests without running them.
 
@@ -587,7 +587,7 @@ def add_markers_to_tests(
 
         try:
             # Read the file
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
 
             # Parse the file using AST
@@ -764,8 +764,8 @@ def add_markers_to_tests(
 
 
 def add_markers_to_behavior_tests(
-    tests: List[str], marker: str, dry_run: bool = True, verbose: bool = False
-) -> Dict[str, Any]:
+    tests: list[str], marker: str, dry_run: bool = True, verbose: bool = False
+) -> dict[str, Any]:
     """
     Add markers to pytest-bdd generated tests.
 
@@ -824,7 +824,7 @@ def add_markers_to_behavior_tests(
 
             try:
                 # Read the file
-                with open(test_file, "r") as f:
+                with open(test_file) as f:
                     content = f.read()
 
                 # Check if the file already has the marker
@@ -918,8 +918,8 @@ def add_markers_to_behavior_tests(
 
 
 def find_test_files_for_features(
-    feature_paths: List[str], verbose: bool = False
-) -> Dict[str, List[str]]:
+    feature_paths: list[str], verbose: bool = False
+) -> dict[str, list[str]]:
     """
     Find test files that import scenarios from feature files.
 
@@ -949,7 +949,7 @@ def find_test_files_for_features(
     # Check each Python file for scenarios imports
     for python_file in python_files:
         try:
-            with open(python_file, "r") as f:
+            with open(python_file) as f:
                 content = f.read()
 
             # Check for scenarios function calls
@@ -1093,7 +1093,7 @@ def main():
                         if "::" in test:
                             file_path = test.split("::")[0]
                             try:
-                                with open(file_path, "r") as f:
+                                with open(file_path) as f:
                                     content = f.read()
 
                                 # Check if the file contains the marker but in an incorrect format
@@ -1242,7 +1242,7 @@ def main():
 
                 # Check if the test has a marker
                 try:
-                    with open(file_path, "r") as f:
+                    with open(file_path) as f:
                         content = f.read()
 
                     # Parse the file using AST

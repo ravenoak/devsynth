@@ -14,11 +14,11 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def find_breadcrumb_patterns(file_path: Path) -> List[Tuple[int, str]]:
+def find_breadcrumb_patterns(file_path: Path) -> list[tuple[int, str]]:
     """Find breadcrumb patterns in a file and return line numbers and content."""
     breadcrumbs = []
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
@@ -45,7 +45,7 @@ def find_breadcrumb_patterns(file_path: Path) -> List[Tuple[int, str]]:
 
 def analyze_documentation_breadcrumbs(
     docs_dir: Path,
-) -> Dict[str, List[Tuple[int, str]]]:
+) -> dict[str, list[tuple[int, str]]]:
     """Analyze all markdown files in docs directory for breadcrumb patterns."""
     breadcrumb_data = {}
 
@@ -60,7 +60,7 @@ def analyze_documentation_breadcrumbs(
 
 
 def generate_report(
-    breadcrumb_data: Dict[str, List[Tuple[int, str]]], validate: bool = False
+    breadcrumb_data: dict[str, list[tuple[int, str]]], validate: bool = False
 ) -> None:
     """Generate analysis report of breadcrumb patterns."""
     total_files = len(breadcrumb_data)

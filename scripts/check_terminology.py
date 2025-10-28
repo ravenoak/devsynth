@@ -75,7 +75,7 @@ def extract_terms_from_glossary(glossary_path):
     """Extract terms and their definitions from the glossary."""
     terms = {}
 
-    with open(glossary_path, "r", encoding="utf-8") as f:
+    with open(glossary_path, encoding="utf-8") as f:
         content = f.read()
 
     # Extract term headings (### Term)
@@ -91,7 +91,7 @@ def check_terminology(file_path, terminology_mapping, glossary_terms):
     """Check for inconsistent terminology usage in a Markdown file."""
     inconsistencies = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Skip the glossary itself

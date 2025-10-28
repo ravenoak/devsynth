@@ -71,7 +71,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    kwargs: dict[str, Optional[str]] = {}
+    kwargs: dict[str, str | None] = {}
     if args.manifest:
         kwargs["manifest_path"] = args.manifest
     if args.schema:

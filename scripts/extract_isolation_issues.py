@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-def extract_issues(report_path: str) -> Dict[str, List[Dict[str, Any]]]:
+def extract_issues(report_path: str) -> dict[str, list[dict[str, Any]]]:
     """
     Extract shared resource and missing teardown issues from an isolation report.
 
@@ -22,7 +22,7 @@ def extract_issues(report_path: str) -> Dict[str, List[Dict[str, Any]]]:
         Dictionary with shared resource and missing teardown issues
     """
     # Read the report file
-    with open(report_path, "r") as f:
+    with open(report_path) as f:
         report = json.load(f)
 
     # Initialize result

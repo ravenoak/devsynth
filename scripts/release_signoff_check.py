@@ -60,7 +60,7 @@ def main() -> int:
     files_with_issues = None
     try:
         if report_path.exists():
-            with open(report_path, "r", encoding="utf-8") as f:
+            with open(report_path, encoding="utf-8") as f:
                 data = json.load(f)
             files_with_issues = int(data.get("files_with_issues", -1))
     except Exception as e:  # best-effort; surface but don't crash

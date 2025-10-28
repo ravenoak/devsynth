@@ -73,7 +73,7 @@ def run_search_agent(query: str) -> str:
     openai_api_key = os.getenv("OPENAI_API_KEY")
 
     if not serper_api_key or not openai_api_key:
-        raise EnvironmentError("Missing SERPER_API_KEY or OPENAI_API_KEY.")
+        raise OSError("Missing SERPER_API_KEY or OPENAI_API_KEY.")
 
     # Initialize tools
     search_tool = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
@@ -196,7 +196,7 @@ def main():
     try:
         result = run_search_agent(query)
         print("===BEGIN_RESULTS===\n" + result.strip() + "\n===END_RESULTS===")
-    except EnvironmentError as e:
+    except OSError as e:
         print(
             f"===BEGIN_RESULTS===\nConfiguration Error: {str(e)}\nPlease ensure you have a .env file in the project root with SERPER_API_KEY and OPENAI_API_KEY variables set.\n===END_RESULTS==="
         )

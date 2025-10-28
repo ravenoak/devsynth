@@ -13,7 +13,7 @@ def run_simulation(
     iterations: int = 100,
     eta: float = 0.2,
     seed: int | None = None,
-) -> List[List[float]]:
+) -> list[list[float]]:
     """Run a simple WSDE/EDRR consensus simulation.
 
     Args:

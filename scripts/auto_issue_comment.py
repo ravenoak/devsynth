@@ -28,14 +28,15 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Iterable
 
 ISSUE_RE = re.compile(r"#(?P<num>\d+)")
 
 
 def get_commit_message(
-    explicit_sha: Optional[str] = None, explicit_msg: Optional[str] = None
-) -> Tuple[str, str]:
+    explicit_sha: str | None = None, explicit_msg: str | None = None
+) -> tuple[str, str]:
     """Return (sha, message) for the target commit.
 
     Prefers the explicitly provided message/sha; falls back to GITHUB_SHA and
@@ -68,13 +69,13 @@ def get_commit_message(
     return sha, msg
 
 
-def parse_issue_numbers(message: str) -> List[int]:
+def parse_issue_numbers(message: str) -> list[int]:
     return [int(m.group("num")) for m in ISSUE_RE.finditer(message)]
 
 
 def post_comment(
-    repo: str, issue_number: int, body: str, token: Optional[str]
-) -> Tuple[int, str, dict]:
+    repo: str, issue_number: int, body: str, token: str | None
+) -> tuple[int, str, dict]:
     url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
     data = json.dumps({"body": body}).encode("utf-8")
 
@@ -94,7 +95,7 @@ def post_comment(
         return 0, str(e), {}
 
 
-def main(argv: Optional[Iterable[str]] = None) -> int:
+def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Annotate issues referenced by commit messages"
     )

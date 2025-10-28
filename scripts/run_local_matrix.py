@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-def _run_cmd(cmd: List[str], log_path: Path) -> Tuple[int, str]:
+def _run_cmd(cmd: list[str], log_path: Path) -> tuple[int, str]:
     env = os.environ.copy()
     # Hint inner subprocesses to minimize plugin surface and be deterministic
     env.setdefault("DEVSYNTH_INNER_TEST", "1")
@@ -65,7 +65,7 @@ def main() -> int:
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     diag_dir = Path("diagnostics") / f"local_matrix_{ts}"
 
-    lanes: List[Tuple[str, List[str]]] = []
+    lanes: list[tuple[str, list[str]]] = []
 
     # Section 8.2 fast lanes
     lanes.append(
@@ -163,7 +163,7 @@ def main() -> int:
         # Optionally extend to integration/behavior segmented lanes as guidance suggests (repeat as needed)
 
     overall_rc = 0
-    summary_lines: List[str] = []
+    summary_lines: list[str] = []
     for name, cmd in lanes:
         log_path = diag_dir / f"{name}.txt"
         rc, _ = _run_cmd(cmd, log_path)

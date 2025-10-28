@@ -15,7 +15,7 @@ from typing import Dict, List, Set, Tuple
 from urllib.parse import unquote, urlparse
 
 
-def find_markdown_links(content: str) -> List[Tuple[str, str]]:
+def find_markdown_links(content: str) -> list[tuple[str, str]]:
     """Find all markdown links in content. Returns list of (text, url) tuples."""
     # Pattern for markdown links: [text](url)
     link_pattern = r"\[([^\]]*)\]\(([^)]+)\)"
@@ -23,7 +23,7 @@ def find_markdown_links(content: str) -> List[Tuple[str, str]]:
     return matches
 
 
-def find_html_links(content: str) -> List[str]:
+def find_html_links(content: str) -> list[str]:
     """Find all HTML href links in content."""
     # Pattern for HTML links: href="url"
     href_pattern = r'href=["\']([^"\']+)["\']'
@@ -54,7 +54,7 @@ def resolve_link_path(source_file: Path, link_url: str) -> Path:
     return resolved
 
 
-def validate_documentation_links(docs_dir: Path) -> Dict[str, List[Dict]]:
+def validate_documentation_links(docs_dir: Path) -> dict[str, list[dict]]:
     """Validate all internal links in documentation files."""
     results = {
         "valid_links": [],
@@ -72,7 +72,7 @@ def validate_documentation_links(docs_dir: Path) -> Dict[str, List[Dict]]:
         results["files_processed"] += 1
 
         try:
-            with open(md_file, "r", encoding="utf-8") as f:
+            with open(md_file, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             results["broken_links"].append(
@@ -152,7 +152,7 @@ def validate_documentation_links(docs_dir: Path) -> Dict[str, List[Dict]]:
     return results
 
 
-def generate_validation_report(results: Dict) -> str:
+def generate_validation_report(results: dict) -> str:
     """Generate a validation report from results."""
     total_links = results["total_links_checked"]
     valid_links = len(results["valid_links"])

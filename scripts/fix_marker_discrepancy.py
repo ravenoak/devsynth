@@ -56,7 +56,7 @@ def parse_args():
 
 def run_standardize_markers(
     dry_run: bool = False, verbose: bool = False
-) -> Tuple[bool, Dict[str, Any]]:
+) -> tuple[bool, dict[str, Any]]:
     """
     Run standardize_marker_placement.py to ensure consistent marker placement.
 
@@ -119,7 +119,7 @@ def run_verify_markers(
     fix: bool = False,
     verbose: bool = False,
     report_file: str = "marker_detection_report.json",
-) -> Tuple[bool, Dict[str, Any]]:
+) -> tuple[bool, dict[str, Any]]:
     """
     Run verify_marker_detection.py to check if the discrepancy is resolved.
 
@@ -154,9 +154,9 @@ def run_verify_markers(
         verification_report = {}
         if os.path.exists(report_file):
             try:
-                with open(report_file, "r") as f:
+                with open(report_file) as f:
                     verification_report = json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
+            except (json.JSONDecodeError, OSError) as e:
                 print(f"Error loading verification report: {e}")
 
         # Extract discrepancy information
@@ -183,7 +183,7 @@ def run_verify_markers(
 
 def run_apply_speed_markers(
     dry_run: bool = True, verbose: bool = False
-) -> Tuple[bool, Dict[str, Any]]:
+) -> tuple[bool, dict[str, Any]]:
     """
     Run apply_speed_markers.py to generate a fresh marker report.
 
@@ -214,9 +214,9 @@ def run_apply_speed_markers(
         report_path = "test_markers_report.json"
         if os.path.exists(report_path):
             try:
-                with open(report_path, "r") as f:
+                with open(report_path) as f:
                     marker_report = json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
+            except (json.JSONDecodeError, OSError) as e:
                 print(f"Error loading marker report: {e}")
 
         return True, {

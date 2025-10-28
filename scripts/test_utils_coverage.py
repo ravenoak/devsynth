@@ -100,7 +100,7 @@ def run_utils_coverage():
         try:
             import json
 
-            with open("utils_isolated_coverage.json", "r") as f:
+            with open("utils_isolated_coverage.json") as f:
                 coverage_data = json.load(f)
 
             print("\n=== Detailed Utils Coverage Analysis ===")

@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 try:
     from importlib.metadata import PackageNotFoundError, version

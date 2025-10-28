@@ -44,7 +44,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_files_to_process(module: str, specific_file: Optional[str] = None) -> List[str]:
+def get_files_to_process(module: str, specific_file: str | None = None) -> list[str]:
     """Get list of files to process."""
     if specific_file:
         return [specific_file]
@@ -209,7 +209,7 @@ def fix_syntax_errors(content: str) -> str:
 def fix_file(file_path: str, dry_run: bool = False, verbose: bool = False) -> bool:
     """Fix syntax errors in a file."""
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Apply fixes

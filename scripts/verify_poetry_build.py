@@ -31,8 +31,7 @@ def run(
         text=True,
         cwd=str(cwd) if cwd else None,
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
 
