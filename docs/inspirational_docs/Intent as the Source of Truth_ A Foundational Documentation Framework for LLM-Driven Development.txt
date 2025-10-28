@@ -61,7 +61,7 @@ Methodology
 	Uses a formal specification as an executable blueprint to guide an AI agent in generating, testing, and validating code.1
 	constitution.md, technical plans, task breakdowns, generated code.
 	The "back-end" of the framework. SDD provides the structured, multi-phase process that translates the BDD-defined intent into production-ready code, ensuring quality and adherence to constraints.3
-	
+
 
 II. The Minimum Foundational Document Set
 
@@ -89,7 +89,7 @@ Document Name
 	Provides the unambiguous structure of the data entities the application will manage, including fields, types, and relationships.
 	SQL Data Definition Language (DDL) or JSON Schema
 	A critical input for the Plan and Implement phases. It defines the data landscape, preventing the LLM from hallucinating database tables, columns, or document structures.21
-	
+
 
 The Project Constitution (constitution.md): Defining the Rules of Engagement
 
@@ -363,7 +363,7 @@ NFR Category
 	"The app shouldn't crash on Black Friday."
 	"The application must be able to handle 5,000 concurrent user sessions while maintaining all defined performance NFRs."
 	"The application must be containerized using Docker and designed to run in a Kubernetes cluster. Ensure that all services are stateless so that they can be scaled horizontally by increasing the number of pods. Use a distributed database connection pool to manage connections efficiently under high load."
-	
+
 
 The Iterative Documentation Lifecycle
 
