@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from devsynth.application.testing.test_isolation_analyzer import TestIsolationAnalyzer
+from tests.unit.application.testing.test_isolation_analyzer import TestIsolationAnalyzer
 
 
 @dataclass
