@@ -1,0 +1,103 @@
+                                                                                
+ Usage: devsynth [OPTIONS] COMMAND [ARGS]...                                    
+                                                                                
+ DevSynth CLI - automate iterative &#x27;Expand, Differentiate, Refine,         
+ Retrace&#x27; workflows.                                                       
+                                                                                
+ DevSynth is a tool for automating software development workflows using the     
+ EDRR (Expand, Differentiate, Refine, Retrace) methodology. It helps you        
+ generate specifications from requirements, tests from specifications, and code 
+ from tests, all while maintaining traceability and alignment.                  
+ Examples:   $ devsynth init       Initialize a new project in the current      
+ directory   $ devsynth spec --requirements-file requirements.md       Generate 
+ specifications from requirements   $ devsynth test --spec-file specs.md        
+ Generate tests from specifications   $ devsynth code       Generate code from  
+ tests   $ devsynth tui       Launch the Textual TUI for guided wizards   $     
+ devsynth run-pipeline --target unit-tests       Execute the generated code     
+ Notes:   • Only the embedded ChromaDB backend is currently supported.   • Use  
+ &#x27;devsynth &lt;command&gt; --help&#x27; for more information on a specific 
+ command.   • Configuration can be managed with &#x27;devsynth config&#x27;     
+ commands.   • Shell completion is available via                                
+ &#x27;--install-completion&#x27; or the &#x27;completion&#x27; command.   •    
+ Long-running commands display progress indicators for better feedback.   •     
+ Dashboard metric hooks can be registered with &#x27;--dashboard-hook           
+ module:function&#x27;.   • Enable the colorblind-friendly palette with         
+ &#x27;--colorblind&#x27; or the DEVSYNTH_CLI_COLORBLIND environment variable.  
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --dashboard-hook                             TEXT  Python path to function   │
+│                                                    receiving dashboard       │
+│                                                    metric events             │
+│ --version                                          Show DevSynth version and │
+│                                                    exit                      │
+│ --debug                                            Enable debug logging      │
+│                                                    (equivalent to            │
+│                                                    --log-level DEBUG)        │
+│ --log-level                                  TEXT  Set log level: DEBUG,     │
+│                                                    INFO, WARNING, ERROR,     │
+│                                                    CRITICAL                  │
+│ --colorblind              --no-colorblind          Use the                   │
+│                                                    colorblind-friendly theme │
+│                                                    across CLI and TUI        │
+│                                                    output.                   │
+│                                                    [env var:                 │
+│                                                    DEVSYNTH_CLI_COLORBLIND]  │
+│                                                    [default: no-colorblind]  │
+│ --install-completion                               Install completion for    │
+│                                                    the current shell.        │
+│ --show-completion                                  Show completion for the   │
+│                                                    current shell, to copy it │
+│                                                    or customize the          │
+│                                                    installation.             │
+│ --help                -h                           Show this message and     │
+│                                                    exit.                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ doctor                Validate environment configuration files and provide   │
+│                       hints.                                                 │
+│ check                 Alias for :func:`doctor_cmd` to maintain backward      │
+│                       compatibility.                                         │
+│ generate-docs         Generate API reference documentation for a project.    │
+│ ingest                Ingest a project into DevSynth.                        │
+│ run-tests             Run DevSynth test suites.                              │
+│ align                 Check alignment between SDLC artifacts.                │
+│ completion            Show or install shell completion scripts (see          │
+│                       scripts/completions).                                  │
+│ init                  Dispatch the init command, optionally routing through  │
+│                       the Textual TUI.                                       │
+│ edrr-cycle            Run an enhanced EDRR cycle from a manifest file or a   │
+│                       prompt.                                                │
+│ security-audit        Execute security audits and monitoring checks.         │
+│ reprioritize-issues   Recalculate priority fields for open issues.           │
+│ atomic-rewrite        Run minimal Atomic‑Rewrite flow.                       │
+│ mvuu-dashboard        Launch the MVUU traceability dashboard.                │
+│ spec                                                                         │
+│ test                                                                         │
+│ code                                                                         │
+│ webapp                Generate a web application with the specified          │
+│                       framework.                                             │
+│ serve                 Run the DevSynth API server.                           │
+│ dbschema              Generate a database schema for the specified database  │
+│                       type.                                                  │
+│ webui                 Launch the Streamlit WebUI.                            │
+│ dpg                   Launch the Dear PyGUI interface.                       │
+│ alignment-metrics     Collect and report on alignment metrics.               │
+│ test-metrics          Analyze test-first development metrics.                │
+│ run-pipeline                                                                 │
+│ run                   Run the generated code or a specific target.           │
+│ gather                Interactively gather project goals, constraints and    │
+│                       priority.                                              │
+│ refactor              Execute a refactor workflow based on the current       │
+│                       project state.                                         │
+│ inspect               Inspect requirements from a file or interactively.     │
+│ inspect-config                                                               │
+│ validate-manifest     Validate the project configuration file against its    │
+│                       schema.                                                │
+│ validate-metadata     Validate metadata in Markdown files.                   │
+│ tui                   Launch the Textual interface for DevSynth wizards.     │
+│ requirements          Requirements management commands                       │
+│ mvu                   MVU utilities                                          │
+│ vcs                   Git / VCS utilities                                    │
+│ config                Manage configuration settings                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

@@ -1,0 +1,8 @@
+Sample specification-to-feature mapping check:
+
+Specifications found:      234
+BDD features found:      549
+
+This is a complex mapping that would require detailed analysis of each specification
+to determine exact BDD coverage. The current numbers show 234 specs vs 549 features,
+suggesting extensive BDD coverage with multiple scenarios per specification.
