@@ -357,13 +357,15 @@ def run_tests_cmd(
         # Ensure xdist is disabled
         if "-p" not in tokens or "no:xdist" not in " ".join(tokens):
             addopts_value = ("-p no:xdist " + addopts_value).strip()
-        # When plugin autoloading is disabled, explicitly load pytest-cov so
-        # coverage artifacts can be produced
-        if os.environ.get(
-            "PYTEST_DISABLE_PLUGIN_AUTOLOAD"
-        ) == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
-            addopts_value = ("-p pytest_cov " + addopts_value).strip()
-            tokens = _parse_pytest_addopts(addopts_value)
+        # When plugin autoloading is disabled, explicitly load required plugins
+        # so smoke mode can still collect and run tests
+        if os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1":
+            if not _addopts_has_plugin(tokens, "pytest_cov"):
+                addopts_value = ("-p pytest_cov " + addopts_value).strip()
+                tokens = _parse_pytest_addopts(addopts_value)
+            if not _addopts_has_plugin(tokens, "pytest_bdd"):
+                addopts_value = ("-p pytest_bdd.plugin " + addopts_value).strip()
+                tokens = _parse_pytest_addopts(addopts_value)
         # Ensure the coverage gate doesn't fail smoke runs while still
         # producing artifacts
         if "--cov-fail-under" not in addopts_value:
@@ -456,8 +458,7 @@ def run_tests_cmd(
         run_tests_module.ensure_coverage_output_directory()
     except OSError as exc:
         ux_bridge.print(
-            "[red]Unable to prepare coverage artifact directory: "
-            f"{exc}[/red]"
+            "[red]Unable to prepare coverage artifact directory: " f"{exc}[/red]"
         )
         raise typer.Exit(code=1)
 
@@ -522,7 +523,26 @@ def run_tests_cmd(
         raise typer.Exit(code=1)
 
     if output:
-        ux_bridge.print(output)
+        try:
+            ux_bridge.print(output)
+        except Exception as exc:
+            # If printing fails (e.g., Rich markup parsing error), try again with markup disabled
+            if "MarkupError" in str(type(exc)) or "markup" in str(exc).lower():
+                logger.warning(
+                    "Rich markup parsing failed, retrying with markup disabled: %s", exc
+                )
+                # Print with markup disabled by using the console directly
+                from devsynth.interface.cli import CLIUXBridge
+
+                if isinstance(ux_bridge, CLIUXBridge):
+                    ux_bridge.console.print(output, markup=False)
+                else:
+                    # Fallback: print to stderr directly
+                    import sys
+
+                    print(output, file=sys.stderr)
+            else:
+                raise
 
     if dry_run:
         if success:

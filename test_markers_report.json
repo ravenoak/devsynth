@@ -1,10 +1,10 @@
 {
   "markers": {
-    "fast": 2000,
+    "fast": 2023,
     "no_network": 15,
-    "medium": 1617,
+    "medium": 1620,
     "parametrize": 85,
-    "slow": 222,
+    "slow": 224,
     "requires_resource": 77,
     "integration": 4,
     "gui": 1,
@@ -17,13 +17,13 @@
     "skipif": 3,
     "property": 32,
     "anyio": 3,
-    "unit": 11,
+    "unit": 14,
     "xfail": 5,
     "smoke": 4,
     "skip": 5,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1296,
+  "files_scanned": 1316,
   "files_with_issues": 0,
   "undocumented_markers": []
 }

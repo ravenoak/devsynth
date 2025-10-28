@@ -615,13 +615,8 @@ def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     if env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") != "1":
         return False
 
-    # Skip coverage injection in smoke mode
-    if env.get("DEVSYNTH_SMOKE_MODE") == "1":
-        logger.debug(
-            "pytest-cov injection skipped in smoke mode",
-            extra={"pytest_addopts": env.get("PYTEST_ADDOPTS", "")},
-        )
-        return False
+    # Smoke mode still needs coverage for diagnostics, just don't enforce threshold
+    # Coverage injection is allowed in smoke mode
 
     addopts_value = env.get("PYTEST_ADDOPTS", "")
     tokens = _parse_pytest_addopts(addopts_value)
@@ -1336,8 +1331,8 @@ def _collect_via_pytest(
     env = os.environ.copy()
     env["PYTHONPATH"] = str(project_root / "src")
     env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
-    env["PYTEST_PLUGINS"] = "pytest_bdd.plugin"
-    env["PYTEST_ADDOPTS"] = "-p pytest_bdd.plugin"
+    env["PYTEST_PLUGINS"] = "pytest_bdd.plugin,pytest_cov.plugin"
+    env["PYTEST_ADDOPTS"] = "-p pytest_bdd.plugin -p pytest_cov.plugin"
 
     result = subprocess.run(
         collect_cmd,
@@ -1656,14 +1651,10 @@ def run_tests(
         _reset_coverage_artifacts()
 
     # Ensure coverage plugins are available
-    # Skip coverage injection in smoke mode (detected by DEVSYNTH_SMOKE_MODE)
-    if env.get("DEVSYNTH_SMOKE_MODE") != "1":
-        ensure_pytest_cov_plugin_env(env)
-
-    # Skip BDD and asyncio plugin injection in smoke mode to avoid collection timeouts
-    if env.get("DEVSYNTH_SMOKE_MODE") != "1":
-        ensure_pytest_bdd_plugin_env(env)
-        ensure_pytest_asyncio_plugin_env(env)
+    # Ensure required plugins are available even in smoke mode
+    ensure_pytest_cov_plugin_env(env)
+    ensure_pytest_bdd_plugin_env(env)
+    ensure_pytest_asyncio_plugin_env(env)
 
     # Pre-initialize pytest-bdd to avoid CONFIG_STACK issues when plugin
     # autoloading is disabled
