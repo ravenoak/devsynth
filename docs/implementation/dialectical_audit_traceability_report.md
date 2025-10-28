@@ -183,4 +183,3 @@ that prove the audited features are documented and implemented.
   while the authentication utilities enforce Argon2 password hashing and raise
   security exceptions for invalid credentials.
   【F:tests/behavior/features/user_authentication.feature†L1-L9】【F:src/devsynth/security/authentication.py†L1-L92】
-

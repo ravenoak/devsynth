@@ -154,4 +154,3 @@ modules exercising the feature.
 | Feature | Specification | Tests | Implementation Evidence |
 | --- | --- | --- | --- |
 | User Authentication | [user-authentication.md](docs/specifications/user-authentication.md) | [user_authentication.feature](tests/behavior/features/general/user_authentication.feature), [user_authentication.feature](tests/behavior/features/user_authentication.feature) | [See report](../implementation/dialectical_audit_traceability_report.md#security-and-authentication) |
-
