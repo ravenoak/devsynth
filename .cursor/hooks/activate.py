@@ -15,24 +15,24 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('.cursor/logs/self_improvement.log')
-    ]
+        logging.FileHandler(".cursor/logs/self_improvement.log"),
+    ],
 )
 
 logger = logging.getLogger(__name__)
 
 
-def load_config() -> Dict[str, Any]:
+def load_config() -> dict[str, Any]:
     """Load self-improvement configuration."""
-    config_file = Path('.cursor/hooks/config.json')
+    config_file = Path(".cursor/hooks/config.json")
     if config_file.exists():
         with open(config_file) as f:
             return json.load(f)
@@ -40,8 +40,10 @@ def load_config() -> Dict[str, Any]:
         # Default configuration
         return {
             "self_improvement": {"enabled": True},
-            "hooks": {"enabled_events": ["rule_loaded", "rule_applied", "command_executed"]},
-            "analytics": {"collection_enabled": True}
+            "hooks": {
+                "enabled_events": ["rule_loaded", "rule_applied", "command_executed"]
+            },
+            "analytics": {"collection_enabled": True},
         }
 
 
@@ -52,17 +54,17 @@ def check_prerequisites() -> bool:
     issues = []
 
     # Check if .cursor directory exists
-    cursor_dir = Path('.cursor')
+    cursor_dir = Path(".cursor")
     if not cursor_dir.exists():
         issues.append(".cursor directory not found")
 
     # Check if rules directory exists
-    rules_dir = cursor_dir / 'rules'
+    rules_dir = cursor_dir / "rules"
     if not rules_dir.exists():
         issues.append("Rules directory not found")
 
     # Check if hooks directory exists
-    hooks_dir = cursor_dir / 'hooks'
+    hooks_dir = cursor_dir / "hooks"
     if not hooks_dir.exists():
         issues.append("Hooks directory not found")
 
@@ -85,12 +87,12 @@ def setup_directories():
     logger.info("📁 Setting up directories...")
 
     dirs_to_create = [
-        '.cursor/hooks',
-        '.cursor/analytics',
-        '.cursor/patterns',
-        '.cursor/learning',
-        '.cursor/suggestions',
-        '.cursor/logs'
+        ".cursor/hooks",
+        ".cursor/analytics",
+        ".cursor/patterns",
+        ".cursor/learning",
+        ".cursor/suggestions",
+        ".cursor/logs",
     ]
 
     for dir_path in dirs_to_create:
@@ -104,8 +106,8 @@ def install_hook_integrations():
 
     try:
         # Import and set up the main hook manager
-        from hook_manager import get_hook_manager
         from analytics_monitor import integrate_analytics_hooks
+        from hook_manager import get_hook_manager
 
         hook_manager = get_hook_manager()
         analytics = integrate_analytics_hooks(hook_manager)
@@ -114,15 +116,21 @@ def install_hook_integrations():
         logger.info("   ✅ Analytics integration active")
 
         # Save integration status
-        status_file = Path('.cursor/learning/integration_status.json')
+        status_file = Path(".cursor/learning/integration_status.json")
         status = {
             "hooks_integrated": True,
             "analytics_enabled": True,
-            "integration_timestamp": Path('.cursor').stat().st_mtime if Path('.cursor').exists() else 0,
-            "last_check": Path('.cursor/hooks').stat().st_mtime if Path('.cursor/hooks').exists() else 0
+            "integration_timestamp": (
+                Path(".cursor").stat().st_mtime if Path(".cursor").exists() else 0
+            ),
+            "last_check": (
+                Path(".cursor/hooks").stat().st_mtime
+                if Path(".cursor/hooks").exists()
+                else 0
+            ),
         }
 
-        with open(status_file, 'w') as f:
+        with open(status_file, "w") as f:
             json.dump(status, f, indent=2)
 
         return True
@@ -142,7 +150,9 @@ def run_initial_analysis():
         results = run_full_improvement_analysis()
 
         logger.info("   ✅ Initial analysis complete")
-        logger.info(f"   📊 System Health: {results['system_health'].get('system_health', 'unknown')}")
+        logger.info(
+            f"   📊 System Health: {results['system_health'].get('system_health', 'unknown')}"
+        )
         logger.info(f"   🔧 Rule Improvements: {len(results['rule_improvements'])}")
         logger.info(f"   💡 New Rules: {len(results['new_rule_suggestions'])}")
 
@@ -179,23 +189,23 @@ if __name__ == "__main__":
         time.sleep(3600)  # Check every hour
 """
 
-        monitor_file = Path('.cursor/hooks/continuous_monitor.py')
-        with open(monitor_file, 'w') as f:
+        monitor_file = Path(".cursor/hooks/continuous_monitor.py")
+        with open(monitor_file, "w") as f:
             f.write(monitor_script)
 
         logger.info("   ✅ Continuous monitoring script created")
 
         # Create activation status
-        status_file = Path('.cursor/learning/activation_status.json')
+        status_file = Path(".cursor/learning/activation_status.json")
         status = {
             "activated": True,
-            "activation_timestamp": Path('.cursor/hooks').stat().st_mtime,
+            "activation_timestamp": Path(".cursor/hooks").stat().st_mtime,
             "continuous_monitoring": True,
             "auto_improvement": True,
-            "version": "1.0.0"
+            "version": "1.0.0",
         }
 
-        with open(status_file, 'w') as f:
+        with open(status_file, "w") as f:
             json.dump(status, f, indent=2)
 
         return True
@@ -250,8 +260,12 @@ def quick_analysis():
 
         logger.info("📊 Quick Analysis Results:")
         logger.info(f"   System Health: {dashboard['system_status']['system_health']}")
-        logger.info(f"   Improvements Applied: {dashboard['system_status']['improvements_applied']}")
-        logger.info(f"   Rules Generated: {dashboard['system_status']['rules_generated']}")
+        logger.info(
+            f"   Improvements Applied: {dashboard['system_status']['improvements_applied']}"
+        )
+        logger.info(
+            f"   Rules Generated: {dashboard['system_status']['rules_generated']}"
+        )
         logger.info(f"   Learning Insights: {len(dashboard['learning_insights'])}")
 
         return True
@@ -263,7 +277,7 @@ def quick_analysis():
 
 def get_status():
     """Get current activation status."""
-    status_file = Path('.cursor/learning/activation_status.json')
+    status_file = Path(".cursor/learning/activation_status.json")
 
     if status_file.exists():
         with open(status_file) as f:
@@ -272,10 +286,14 @@ def get_status():
         logger.info("🔍 Current Status:")
         logger.info(f"   Activated: {status.get('activated', False)}")
         logger.info(f"   Version: {status.get('version', 'unknown')}")
-        logger.info(f"   Continuous Monitoring: {status.get('continuous_monitoring', False)}")
-        logger.info(f"   Last Activation: {status.get('activation_timestamp', 'unknown')}")
+        logger.info(
+            f"   Continuous Monitoring: {status.get('continuous_monitoring', False)}"
+        )
+        logger.info(
+            f"   Last Activation: {status.get('activation_timestamp', 'unknown')}"
+        )
 
-        return status.get('activated', False)
+        return status.get("activated", False)
 
     else:
         logger.info("ℹ️  Self-improvement system not yet activated")
@@ -287,10 +305,16 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Cursor Self-Improvement System")
-    parser.add_argument("--full-setup", action="store_true", help="Complete setup and activation")
-    parser.add_argument("--quick-analysis", action="store_true", help="Quick status analysis")
+    parser.add_argument(
+        "--full-setup", action="store_true", help="Complete setup and activation"
+    )
+    parser.add_argument(
+        "--quick-analysis", action="store_true", help="Quick status analysis"
+    )
     parser.add_argument("--status", action="store_true", help="Show activation status")
-    parser.add_argument("--validate", action="store_true", help="Validate current setup")
+    parser.add_argument(
+        "--validate", action="store_true", help="Validate current setup"
+    )
 
     args = parser.parse_args()
 

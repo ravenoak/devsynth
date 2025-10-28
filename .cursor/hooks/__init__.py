@@ -24,51 +24,71 @@ Usage:
     results = run_full_improvement_analysis()
 """
 
-from hook_manager import (
-    HookManager, HookEvent, HookContext, ImprovementSuggestion,
-    get_hook_manager, trigger_hook, create_hook_context
-)
-
-from auto_rule_generator import (
-    analyze_and_suggest_rules, CodebaseAnalyzer, RuleGenerator
-)
-
-from pattern_learner import (
-    LearningEngine, trigger_learning_event, get_learning_insights
-)
-
-from rule_validator import (
-    generate_health_report, validate_all_rules, RuleValidationResult
-)
-
 from analytics_monitor import (
-    get_system_analytics, record_rule_usage, record_command_usage
+    get_system_analytics,
+    record_command_usage,
+    record_rule_usage,
 )
-
+from auto_rule_generator import (
+    CodebaseAnalyzer,
+    RuleGenerator,
+    analyze_and_suggest_rules,
+)
+from hook_manager import (
+    HookContext,
+    HookEvent,
+    HookManager,
+    ImprovementSuggestion,
+    create_hook_context,
+    get_hook_manager,
+    trigger_hook,
+)
+from pattern_learner import (
+    LearningEngine,
+    get_learning_insights,
+    trigger_learning_event,
+)
+from rule_validator import (
+    RuleValidationResult,
+    generate_health_report,
+    validate_all_rules,
+)
 from self_improvement_orchestrator import (
-    SelfImprovementOrchestrator, run_full_improvement_analysis,
-    get_improvement_dashboard, trigger_continuous_improvement
+    SelfImprovementOrchestrator,
+    get_improvement_dashboard,
+    run_full_improvement_analysis,
+    trigger_continuous_improvement,
 )
 
 __version__ = "1.0.0"
 __all__ = [
     # Hook management
-    "HookManager", "HookEvent", "HookContext", "ImprovementSuggestion",
-    "get_hook_manager", "trigger_hook", "create_hook_context",
-
+    "HookManager",
+    "HookEvent",
+    "HookContext",
+    "ImprovementSuggestion",
+    "get_hook_manager",
+    "trigger_hook",
+    "create_hook_context",
     # Rule generation
-    "analyze_and_suggest_rules", "CodebaseAnalyzer", "RuleGenerator",
-
+    "analyze_and_suggest_rules",
+    "CodebaseAnalyzer",
+    "RuleGenerator",
     # Learning
-    "LearningEngine", "trigger_learning_event", "get_learning_insights",
-
+    "LearningEngine",
+    "trigger_learning_event",
+    "get_learning_insights",
     # Validation
-    "generate_health_report", "validate_all_rules", "RuleValidationResult",
-
+    "generate_health_report",
+    "validate_all_rules",
+    "RuleValidationResult",
     # Analytics
-    "get_system_analytics", "record_rule_usage", "record_command_usage",
-
+    "get_system_analytics",
+    "record_rule_usage",
+    "record_command_usage",
     # Orchestration
-    "SelfImprovementOrchestrator", "run_full_improvement_analysis",
-    "get_improvement_dashboard", "trigger_continuous_improvement"
+    "SelfImprovementOrchestrator",
+    "run_full_improvement_analysis",
+    "get_improvement_dashboard",
+    "trigger_continuous_improvement",
 ]

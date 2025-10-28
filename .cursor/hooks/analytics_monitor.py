@@ -8,50 +8,53 @@ data-driven improvements to the rule system.
 
 import json
 import logging
+import threading
 import time
 from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Deque
-from dataclasses import dataclass, asdict
-import threading
+from typing import Any, Deque, Dict, List, Optional
 
 
 @dataclass
 class RuleUsageEvent:
     """Represents a rule usage event."""
+
     rule_name: str
     event_type: str  # "applied", "loaded", "error", "ignored"
     timestamp: datetime
-    context: Dict[str, Any]
+    context: dict[str, Any]
     success: bool
     confidence: float
     response_time: float  # milliseconds
-    file_path: Optional[str] = None
-    error_message: Optional[str] = None
+    file_path: str | None = None
+    error_message: str | None = None
 
 
 @dataclass
 class CommandUsageEvent:
     """Represents a command usage event."""
+
     command_name: str
     timestamp: datetime
-    context: Dict[str, Any]
+    context: dict[str, Any]
     success: bool
     execution_time: float
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 @dataclass
 class SessionAnalytics:
     """Analytics for a development session."""
+
     session_id: str
     start_time: datetime
-    end_time: Optional[datetime]
-    rules_used: List[str]
-    commands_used: List[str]
-    files_modified: List[str]
-    errors_encountered: List[str]
+    end_time: datetime | None
+    rules_used: list[str]
+    commands_used: list[str]
+    files_modified: list[str]
+    errors_encountered: list[str]
     productivity_score: float
     context_switches: int
 
@@ -75,7 +78,7 @@ class RealTimeMetrics:
         with self.lock:
             self.command_usage.append(event)
 
-    def get_recent_activity(self, minutes: int = 60) -> Dict[str, Any]:
+    def get_recent_activity(self, minutes: int = 60) -> dict[str, Any]:
         """Get recent activity metrics."""
         cutoff = datetime.now() - timedelta(minutes=minutes)
 
@@ -86,17 +89,19 @@ class RealTimeMetrics:
             "time_window": f"{minutes} minutes",
             "rule_events": len(recent_rules),
             "command_events": len(recent_commands),
-            "unique_rules": len(set(e.rule_name for e in recent_rules)),
-            "unique_commands": len(set(e.command_name for e in recent_commands)),
-            "success_rate": self._calculate_success_rate(recent_rules + recent_commands)
+            "unique_rules": len({e.rule_name for e in recent_rules}),
+            "unique_commands": len({e.command_name for e in recent_commands}),
+            "success_rate": self._calculate_success_rate(
+                recent_rules + recent_commands
+            ),
         }
 
-    def _calculate_success_rate(self, events: List) -> float:
+    def _calculate_success_rate(self, events: list) -> float:
         """Calculate success rate for events."""
         if not events:
             return 0.0
 
-        successful = sum(1 for e in events if getattr(e, 'success', False))
+        successful = sum(1 for e in events if getattr(e, "success", False))
         return successful / len(events)
 
 
@@ -108,9 +113,16 @@ class RuleAnalyticsCollector:
         self.analytics_dir.mkdir(parents=True, exist_ok=True)
         self.metrics = RealTimeMetrics()
 
-    def record_rule_event(self, rule_name: str, event_type: str, context: Dict[str, Any],
-                         success: bool = True, confidence: float = 1.0,
-                         response_time: float = 0.0, **kwargs):
+    def record_rule_event(
+        self,
+        rule_name: str,
+        event_type: str,
+        context: dict[str, Any],
+        success: bool = True,
+        confidence: float = 1.0,
+        response_time: float = 0.0,
+        **kwargs,
+    ):
         """Record a rule usage event."""
         event = RuleUsageEvent(
             rule_name=rule_name,
@@ -120,14 +132,20 @@ class RuleAnalyticsCollector:
             success=success,
             confidence=confidence,
             response_time=response_time,
-            **kwargs
+            **kwargs,
         )
 
         self.metrics.record_rule_usage(event)
         self._persist_rule_event(event)
 
-    def record_command_event(self, command_name: str, context: Dict[str, Any],
-                           success: bool = True, execution_time: float = 0.0, **kwargs):
+    def record_command_event(
+        self,
+        command_name: str,
+        context: dict[str, Any],
+        success: bool = True,
+        execution_time: float = 0.0,
+        **kwargs,
+    ):
         """Record a command usage event."""
         event = CommandUsageEvent(
             command_name=command_name,
@@ -135,7 +153,7 @@ class RuleAnalyticsCollector:
             context=context,
             success=success,
             execution_time=execution_time,
-            **kwargs
+            **kwargs,
         )
 
         self.metrics.record_command_usage(event)
@@ -156,7 +174,7 @@ class RuleAnalyticsCollector:
         events.append(asdict(event))
 
         # Save back to file
-        with open(event_file, 'w') as f:
+        with open(event_file, "w") as f:
             json.dump(events, f, indent=2, default=str)
 
     def _persist_command_event(self, event: CommandUsageEvent):
@@ -174,10 +192,10 @@ class RuleAnalyticsCollector:
         events.append(asdict(event))
 
         # Save back to file
-        with open(event_file, 'w') as f:
+        with open(event_file, "w") as f:
             json.dump(events, f, indent=2, default=str)
 
-    def generate_rule_analytics(self, rule_name: str, days: int = 7) -> Dict[str, Any]:
+    def generate_rule_analytics(self, rule_name: str, days: int = 7) -> dict[str, Any]:
         """Generate comprehensive analytics for a specific rule."""
         analytics = {
             "rule_name": rule_name,
@@ -191,7 +209,7 @@ class RuleAnalyticsCollector:
             "peak_usage_hours": [],
             "common_contexts": [],
             "error_patterns": [],
-            "improvement_suggestions": []
+            "improvement_suggestions": [],
         }
 
         # Collect data from recent days
@@ -222,7 +240,9 @@ class RuleAnalyticsCollector:
                         analytics["error_count"] += 1
 
                     analytics["average_confidence"] += event.get("confidence", 1.0)
-                    analytics["average_response_time"] += event.get("response_time", 0.0)
+                    analytics["average_response_time"] += event.get(
+                        "response_time", 0.0
+                    )
 
         analytics["usage_count"] = total_usage
 
@@ -234,11 +254,13 @@ class RuleAnalyticsCollector:
         analytics["usage_trend"] = self._calculate_trend(daily_usage)
 
         # Generate improvement suggestions
-        analytics["improvement_suggestions"] = self._generate_improvement_suggestions(analytics)
+        analytics["improvement_suggestions"] = self._generate_improvement_suggestions(
+            analytics
+        )
 
         return analytics
 
-    def _calculate_trend(self, daily_usage: List[int]) -> str:
+    def _calculate_trend(self, daily_usage: list[int]) -> str:
         """Calculate usage trend from daily data."""
         if len(daily_usage) < 3:
             return "insufficient_data"
@@ -255,7 +277,7 @@ class RuleAnalyticsCollector:
         else:
             return "stable"
 
-    def _generate_improvement_suggestions(self, analytics: Dict[str, Any]) -> List[str]:
+    def _generate_improvement_suggestions(self, analytics: dict[str, Any]) -> list[str]:
         """Generate improvement suggestions based on analytics."""
         suggestions = []
 
@@ -263,17 +285,21 @@ class RuleAnalyticsCollector:
             suggestions.append("High error rate - consider clarifying rule language")
 
         if analytics["average_response_time"] > 1000:  # 1 second
-            suggestions.append("Slow response time - consider optimizing rule complexity")
+            suggestions.append(
+                "Slow response time - consider optimizing rule complexity"
+            )
 
         if analytics["average_confidence"] < 0.7:
-            suggestions.append("Low confidence scores - consider adding more specific guidance")
+            suggestions.append(
+                "Low confidence scores - consider adding more specific guidance"
+            )
 
         if analytics["usage_trend"] == "decreasing":
             suggestions.append("Decreasing usage - consider if rule is still relevant")
 
         return suggestions
 
-    def get_system_overview(self, hours: int = 24) -> Dict[str, Any]:
+    def get_system_overview(self, hours: int = 24) -> dict[str, Any]:
         """Get system overview metrics."""
         recent_activity = self.metrics.get_recent_activity(hours)
 
@@ -292,9 +318,13 @@ class RuleAnalyticsCollector:
         return {
             "time_window": f"{hours} hours",
             "recent_activity": recent_activity,
-            "top_rules": sorted(rule_usage_count.items(), key=lambda x: x[1], reverse=True)[:10],
-            "top_commands": sorted(command_usage_count.items(), key=lambda x: x[1], reverse=True)[:10],
-            "system_health": self._assess_system_health()
+            "top_rules": sorted(
+                rule_usage_count.items(), key=lambda x: x[1], reverse=True
+            )[:10],
+            "top_commands": sorted(
+                command_usage_count.items(), key=lambda x: x[1], reverse=True
+            )[:10],
+            "system_health": self._assess_system_health(),
         }
 
     def _assess_system_health(self) -> str:
@@ -317,55 +347,66 @@ class HookIntegration:
     def __init__(self, analytics_dir: Path):
         self.collector = RuleAnalyticsCollector(analytics_dir)
 
-    def on_rule_applied(self, rule_name: str, context: Dict[str, Any], success: bool = True):
+    def on_rule_applied(
+        self, rule_name: str, context: dict[str, Any], success: bool = True
+    ):
         """Hook called when a rule is applied."""
         self.collector.record_rule_event(
-            rule_name=rule_name,
-            event_type="applied",
-            context=context,
-            success=success
+            rule_name=rule_name, event_type="applied", context=context, success=success
         )
 
-    def on_rule_error(self, rule_name: str, context: Dict[str, Any], error_message: str):
+    def on_rule_error(
+        self, rule_name: str, context: dict[str, Any], error_message: str
+    ):
         """Hook called when a rule encounters an error."""
         self.collector.record_rule_event(
             rule_name=rule_name,
             event_type="error",
             context=context,
             success=False,
-            error_message=error_message
+            error_message=error_message,
         )
 
-    def on_command_executed(self, command_name: str, context: Dict[str, Any],
-                           success: bool = True, execution_time: float = 0.0):
+    def on_command_executed(
+        self,
+        command_name: str,
+        context: dict[str, Any],
+        success: bool = True,
+        execution_time: float = 0.0,
+    ):
         """Hook called when a command is executed."""
         self.collector.record_command_event(
             command_name=command_name,
             context=context,
             success=success,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
-    def get_analytics_summary(self) -> Dict[str, Any]:
+    def get_analytics_summary(self) -> dict[str, Any]:
         """Get a summary of current analytics."""
         return self.collector.get_system_overview()
 
 
 # Global analytics collector
-_analytics_collector: Optional[RuleAnalyticsCollector] = None
+_analytics_collector: RuleAnalyticsCollector | None = None
 
 
 def get_analytics_collector() -> RuleAnalyticsCollector:
     """Get the global analytics collector."""
     global _analytics_collector
     if _analytics_collector is None:
-        cursor_dir = Path('.cursor')
+        cursor_dir = Path(".cursor")
         _analytics_collector = RuleAnalyticsCollector(cursor_dir / "analytics")
     return _analytics_collector
 
 
-def record_rule_usage(rule_name: str, event_type: str = "applied",
-                     context: Dict[str, Any] = None, success: bool = True, **kwargs):
+def record_rule_usage(
+    rule_name: str,
+    event_type: str = "applied",
+    context: dict[str, Any] = None,
+    success: bool = True,
+    **kwargs,
+):
     """Record rule usage event."""
     collector = get_analytics_collector()
     collector.record_rule_event(
@@ -373,12 +414,17 @@ def record_rule_usage(rule_name: str, event_type: str = "applied",
         event_type=event_type,
         context=context or {},
         success=success,
-        **kwargs
+        **kwargs,
     )
 
 
-def record_command_usage(command_name: str, context: Dict[str, Any] = None,
-                        success: bool = True, execution_time: float = 0.0, **kwargs):
+def record_command_usage(
+    command_name: str,
+    context: dict[str, Any] = None,
+    success: bool = True,
+    execution_time: float = 0.0,
+    **kwargs,
+):
     """Record command usage event."""
     collector = get_analytics_collector()
     collector.record_command_event(
@@ -386,17 +432,17 @@ def record_command_usage(command_name: str, context: Dict[str, Any] = None,
         context=context or {},
         success=success,
         execution_time=execution_time,
-        **kwargs
+        **kwargs,
     )
 
 
-def get_system_analytics(hours: int = 24) -> Dict[str, Any]:
+def get_system_analytics(hours: int = 24) -> dict[str, Any]:
     """Get system analytics for the specified time window."""
     collector = get_analytics_collector()
     return collector.get_system_overview(hours)
 
 
-def generate_rule_analytics(rule_name: str, days: int = 7) -> Dict[str, Any]:
+def generate_rule_analytics(rule_name: str, days: int = 7) -> dict[str, Any]:
     """Generate detailed analytics for a specific rule."""
     collector = get_analytics_collector()
     return collector.generate_rule_analytics(rule_name, days)
@@ -405,13 +451,19 @@ def generate_rule_analytics(rule_name: str, days: int = 7) -> Dict[str, Any]:
 # Integration functions for the hook manager
 def integrate_analytics_hooks(hook_manager):
     """Integrate analytics collection into the hook system."""
-    analytics = HookIntegration(Path('.cursor/analytics'))
+    analytics = HookIntegration(Path(".cursor/analytics"))
 
     # Register analytics hooks
-    hook_manager.register_hook(HookEvent.RULE_APPLIED,
-                             lambda ctx: analytics.on_rule_applied(ctx.rule_name, ctx.metadata or {}, True))
-    hook_manager.register_hook(HookEvent.ERROR_OCCURRED,
-                             lambda ctx: analytics.on_rule_error(ctx.rule_name, ctx.metadata or {}, ctx.error_message or ""))
+    hook_manager.register_hook(
+        HookEvent.RULE_APPLIED,
+        lambda ctx: analytics.on_rule_applied(ctx.rule_name, ctx.metadata or {}, True),
+    )
+    hook_manager.register_hook(
+        HookEvent.ERROR_OCCURRED,
+        lambda ctx: analytics.on_rule_error(
+            ctx.rule_name, ctx.metadata or {}, ctx.error_message or ""
+        ),
+    )
 
     return analytics
 
@@ -420,9 +472,18 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Rule analytics and monitoring")
-    parser.add_argument("--system-overview", type=int, default=24, help="Get system overview for N hours")
+    parser.add_argument(
+        "--system-overview",
+        type=int,
+        default=24,
+        help="Get system overview for N hours",
+    )
     parser.add_argument("--rule-analytics", help="Get analytics for specific rule")
-    parser.add_argument("--generate-report", action="store_true", help="Generate comprehensive analytics report")
+    parser.add_argument(
+        "--generate-report",
+        action="store_true",
+        help="Generate comprehensive analytics report",
+    )
 
     args = parser.parse_args()
 
@@ -436,24 +497,26 @@ if __name__ == "__main__":
         print(f"   System Health: {overview['system_health']}")
 
         print("\n🔥 Top Rules:")
-        for rule, count in overview['top_rules'][:5]:
+        for rule, count in overview["top_rules"][:5]:
             print(f"   {rule}: {count} uses")
 
         print("\n⚡ Top Commands:")
-        for command, count in overview['top_commands'][:5]:
+        for command, count in overview["top_commands"][:5]:
             print(f"   {command}: {count} uses")
 
     elif args.rule_analytics:
         analytics = generate_rule_analytics(args.rule_analytics)
         print(f"📈 Analytics for {args.rule_analytics}:")
         print(f"   Usage Count: {analytics['usage_count']}")
-        print(f"   Success Rate: {analytics['successful_applications']/max(analytics['usage_count'],1):.2f}")
+        print(
+            f"   Success Rate: {analytics['successful_applications']/max(analytics['usage_count'],1):.2f}"
+        )
         print(f"   Average Confidence: {analytics['average_confidence']:.2f}")
         print(f"   Trend: {analytics['usage_trend']}")
 
-        if analytics['improvement_suggestions']:
+        if analytics["improvement_suggestions"]:
             print("\n💡 Improvement Suggestions:")
-            for suggestion in analytics['improvement_suggestions']:
+            for suggestion in analytics["improvement_suggestions"]:
                 print(f"   • {suggestion}")
 
     elif args.generate_report:
@@ -466,15 +529,17 @@ if __name__ == "__main__":
         print(f"   Success Rate: {overview['recent_activity']['success_rate']:.2f}")
 
         # Individual rule analytics
-        cursor_dir = Path('.cursor')
+        cursor_dir = Path(".cursor")
         for rule_file in (cursor_dir / "rules").glob("*.mdc"):
             rule_name = rule_file.stem
             analytics = generate_rule_analytics(rule_name, 1)  # Last day
 
-            if analytics['usage_count'] > 0:
+            if analytics["usage_count"] > 0:
                 print(f"\n📊 {rule_name}:")
                 print(f"   Usage: {analytics['usage_count']}")
-                print(f"   Effectiveness: {analytics['successful_applications']/analytics['usage_count']:.2f}")
+                print(
+                    f"   Effectiveness: {analytics['successful_applications']/analytics['usage_count']:.2f}"
+                )
                 print(f"   Trend: {analytics['usage_trend']}")
 
     else:

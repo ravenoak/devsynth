@@ -11,50 +11,57 @@ import json
 import logging
 import os
 import re
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional, Any
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 @dataclass
 class CodePattern:
     """Represents a detected code pattern."""
+
     pattern_type: str
     description: str
-    examples: List[str]
+    examples: list[str]
     frequency: int
     confidence: float
     suggested_rule: str
-    affected_files: List[str]
+    affected_files: list[str]
     impact_score: float  # 0.0 to 1.0
 
 
 @dataclass
 class RuleSuggestion:
     """Represents a suggested new rule."""
+
     rule_name: str
     description: str
     rule_content: str
     confidence: float
     priority: int
-    patterns: List[CodePattern]
-    yaml_frontmatter: Dict[str, Any]
-    examples: List[str]
+    patterns: list[CodePattern]
+    yaml_frontmatter: dict[str, Any]
+    examples: list[str]
 
 
 class CodebaseAnalyzer:
     """Analyzes codebase to detect patterns and suggest rules."""
 
-    def __init__(self, source_dirs: List[str], exclude_patterns: List[str] = None):
+    def __init__(self, source_dirs: list[str], exclude_patterns: list[str] = None):
         self.source_dirs = [Path(d) for d in source_dirs]
         self.exclude_patterns = exclude_patterns or [
-            "**/__pycache__/**", "**/node_modules/**", "**/.git/**",
-            "**/dist/**", "**/build/**", "**/*.pyc", "**/.pytest_cache/**"
+            "**/__pycache__/**",
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/*.pyc",
+            "**/.pytest_cache/**",
         ]
-        self.patterns: List[CodePattern] = []
+        self.patterns: list[CodePattern] = []
 
-    def analyze_codebase(self) -> List[CodePattern]:
+    def analyze_codebase(self) -> list[CodePattern]:
         """Analyze the entire codebase for patterns."""
         patterns = []
 
@@ -69,7 +76,7 @@ class CodebaseAnalyzer:
 
         return grouped_patterns
 
-    def _analyze_directory(self, directory: Path) -> List[CodePattern]:
+    def _analyze_directory(self, directory: Path) -> list[CodePattern]:
         """Analyze a directory for code patterns."""
         patterns = []
 
@@ -100,11 +107,11 @@ class CodebaseAnalyzer:
         file_str = str(file_path)
         return any(re.search(pattern, file_str) for pattern in self.exclude_patterns)
 
-    def _analyze_python_file(self, file_path: Path) -> List[CodePattern]:
+    def _analyze_python_file(self, file_path: Path) -> list[CodePattern]:
         """Analyze a Python file for patterns."""
         patterns = []
 
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Parse AST for structural analysis
@@ -124,11 +131,11 @@ class CodebaseAnalyzer:
 
         return patterns
 
-    def _analyze_markdown_file(self, file_path: Path) -> List[CodePattern]:
+    def _analyze_markdown_file(self, file_path: Path) -> list[CodePattern]:
         """Analyze a Markdown file for patterns."""
         patterns = []
 
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Detect documentation patterns
@@ -137,7 +144,9 @@ class CodebaseAnalyzer:
 
         return patterns
 
-    def _detect_import_patterns(self, tree: ast.Module, file_path: Path) -> List[CodePattern]:
+    def _detect_import_patterns(
+        self, tree: ast.Module, file_path: Path
+    ) -> list[CodePattern]:
         """Detect import organization patterns."""
         patterns = []
         imports = []
@@ -165,21 +174,27 @@ class CodebaseAnalyzer:
                 local_imports.append(imp)
 
         # Check if imports are properly organized
-        if imports and not self._imports_well_organized(stdlib_imports, third_party_imports, local_imports):
-            patterns.append(CodePattern(
-                pattern_type="import_organization",
-                description="Import statements not properly organized by type",
-                examples=imports[:3],
-                frequency=1,
-                confidence=0.8,
-                suggested_rule="import_organization",
-                affected_files=[str(file_path)],
-                impact_score=0.7
-            ))
+        if imports and not self._imports_well_organized(
+            stdlib_imports, third_party_imports, local_imports
+        ):
+            patterns.append(
+                CodePattern(
+                    pattern_type="import_organization",
+                    description="Import statements not properly organized by type",
+                    examples=imports[:3],
+                    frequency=1,
+                    confidence=0.8,
+                    suggested_rule="import_organization",
+                    affected_files=[str(file_path)],
+                    impact_score=0.7,
+                )
+            )
 
         return patterns
 
-    def _detect_function_patterns(self, tree: ast.Module, file_path: Path) -> List[CodePattern]:
+    def _detect_function_patterns(
+        self, tree: ast.Module, file_path: Path
+    ) -> list[CodePattern]:
         """Detect function definition patterns."""
         patterns = []
 
@@ -187,33 +202,41 @@ class CodebaseAnalyzer:
             if isinstance(node, ast.FunctionDef):
                 # Check for docstrings
                 if not ast.get_docstring(node):
-                    patterns.append(CodePattern(
-                        pattern_type="missing_docstring",
-                        description="Function missing docstring",
-                        examples=[f"def {node.name}(...):"],
-                        frequency=1,
-                        confidence=0.9,
-                        suggested_rule="function_docstring_requirement",
-                        affected_files=[str(file_path)],
-                        impact_score=0.6
-                    ))
+                    patterns.append(
+                        CodePattern(
+                            pattern_type="missing_docstring",
+                            description="Function missing docstring",
+                            examples=[f"def {node.name}(...):"],
+                            frequency=1,
+                            confidence=0.9,
+                            suggested_rule="function_docstring_requirement",
+                            affected_files=[str(file_path)],
+                            impact_score=0.6,
+                        )
+                    )
 
                 # Check function length
                 if len(node.body) > 20:
-                    patterns.append(CodePattern(
-                        pattern_type="long_function",
-                        description="Function is too long and should be broken down",
-                        examples=[f"def {node.name}(...):  # {len(node.body)} lines"],
-                        frequency=1,
-                        confidence=0.7,
-                        suggested_rule="function_length_limit",
-                        affected_files=[str(file_path)],
-                        impact_score=0.8
-                    ))
+                    patterns.append(
+                        CodePattern(
+                            pattern_type="long_function",
+                            description="Function is too long and should be broken down",
+                            examples=[
+                                f"def {node.name}(...):  # {len(node.body)} lines"
+                            ],
+                            frequency=1,
+                            confidence=0.7,
+                            suggested_rule="function_length_limit",
+                            affected_files=[str(file_path)],
+                            impact_score=0.8,
+                        )
+                    )
 
         return patterns
 
-    def _detect_class_patterns(self, tree: ast.Module, file_path: Path) -> List[CodePattern]:
+    def _detect_class_patterns(
+        self, tree: ast.Module, file_path: Path
+    ) -> list[CodePattern]:
         """Detect class definition patterns."""
         patterns = []
 
@@ -221,20 +244,24 @@ class CodebaseAnalyzer:
             if isinstance(node, ast.ClassDef):
                 # Check for docstrings
                 if not ast.get_docstring(node):
-                    patterns.append(CodePattern(
-                        pattern_type="missing_class_docstring",
-                        description="Class missing docstring",
-                        examples=[f"class {node.name}:"],
-                        frequency=1,
-                        confidence=0.9,
-                        suggested_rule="class_docstring_requirement",
-                        affected_files=[str(file_path)],
-                        impact_score=0.6
-                    ))
+                    patterns.append(
+                        CodePattern(
+                            pattern_type="missing_class_docstring",
+                            description="Class missing docstring",
+                            examples=[f"class {node.name}:"],
+                            frequency=1,
+                            confidence=0.9,
+                            suggested_rule="class_docstring_requirement",
+                            affected_files=[str(file_path)],
+                            impact_score=0.6,
+                        )
+                    )
 
         return patterns
 
-    def _detect_docstring_patterns(self, tree: ast.Module, file_path: Path) -> List[CodePattern]:
+    def _detect_docstring_patterns(
+        self, tree: ast.Module, file_path: Path
+    ) -> list[CodePattern]:
         """Detect docstring patterns and quality."""
         patterns = []
 
@@ -244,20 +271,24 @@ class CodebaseAnalyzer:
                 if docstring:
                     # Check docstring quality
                     if len(docstring.split()) < 5:
-                        patterns.append(CodePattern(
-                            pattern_type="poor_docstring",
-                            description="Docstring is too brief or uninformative",
-                            examples=[docstring[:50] + "..."],
-                            frequency=1,
-                            confidence=0.8,
-                            suggested_rule="docstring_quality",
-                            affected_files=[str(file_path)],
-                            impact_score=0.5
-                        ))
+                        patterns.append(
+                            CodePattern(
+                                pattern_type="poor_docstring",
+                                description="Docstring is too brief or uninformative",
+                                examples=[docstring[:50] + "..."],
+                                frequency=1,
+                                confidence=0.8,
+                                suggested_rule="docstring_quality",
+                                affected_files=[str(file_path)],
+                                impact_score=0.5,
+                            )
+                        )
 
         return patterns
 
-    def _detect_error_handling_patterns(self, tree: ast.Module, file_path: Path) -> List[CodePattern]:
+    def _detect_error_handling_patterns(
+        self, tree: ast.Module, file_path: Path
+    ) -> list[CodePattern]:
         """Detect error handling patterns."""
         patterns = []
 
@@ -266,111 +297,142 @@ class CodebaseAnalyzer:
         if not has_try_blocks:
             # Check if file handles external resources or complex operations
             content = open(file_path).read()
-            if any(keyword in content.lower() for keyword in ['file', 'database', 'network', 'api', 'http']):
-                patterns.append(CodePattern(
-                    pattern_type="missing_error_handling",
-                    description="Code interacts with external resources but lacks error handling",
-                    examples=["External resource usage detected"],
-                    frequency=1,
-                    confidence=0.8,
-                    suggested_rule="error_handling_requirement",
-                    affected_files=[str(file_path)],
-                    impact_score=0.9
-                ))
+            if any(
+                keyword in content.lower()
+                for keyword in ["file", "database", "network", "api", "http"]
+            ):
+                patterns.append(
+                    CodePattern(
+                        pattern_type="missing_error_handling",
+                        description="Code interacts with external resources but lacks error handling",
+                        examples=["External resource usage detected"],
+                        frequency=1,
+                        confidence=0.8,
+                        suggested_rule="error_handling_requirement",
+                        affected_files=[str(file_path)],
+                        impact_score=0.9,
+                    )
+                )
 
         return patterns
 
-    def _analyze_python_text(self, content: str, file_path: Path) -> List[CodePattern]:
+    def _analyze_python_text(self, content: str, file_path: Path) -> list[CodePattern]:
         """Analyze Python file as text when AST parsing fails."""
         patterns = []
 
         # Check for debug statements
-        if re.search(r'print\(.*debug|import pdb|breakpoint\(\)', content, re.IGNORECASE):
-            patterns.append(CodePattern(
-                pattern_type="debug_code",
-                description="Debug code found in production file",
-                examples=["print(...) debug statements", "import pdb"],
-                frequency=1,
-                confidence=0.9,
-                suggested_rule="debug_code_removal",
-                affected_files=[str(file_path)],
-                impact_score=0.8
-            ))
+        if re.search(
+            r"print\(.*debug|import pdb|breakpoint\(\)", content, re.IGNORECASE
+        ):
+            patterns.append(
+                CodePattern(
+                    pattern_type="debug_code",
+                    description="Debug code found in production file",
+                    examples=["print(...) debug statements", "import pdb"],
+                    frequency=1,
+                    confidence=0.9,
+                    suggested_rule="debug_code_removal",
+                    affected_files=[str(file_path)],
+                    impact_score=0.8,
+                )
+            )
 
         # Check for TODO/FIXME comments
-        todo_matches = re.findall(r'# (TODO|FIXME|XXX):?.*', content, re.IGNORECASE)
+        todo_matches = re.findall(r"# (TODO|FIXME|XXX):?.*", content, re.IGNORECASE)
         if todo_matches:
-            patterns.append(CodePattern(
-                pattern_type="todo_comments",
-                description="TODO/FIXME comments suggest incomplete work",
-                examples=todo_matches[:3],
-                frequency=len(todo_matches),
-                confidence=0.7,
-                suggested_rule="todo_comment_management",
-                affected_files=[str(file_path)],
-                impact_score=0.6
-            ))
+            patterns.append(
+                CodePattern(
+                    pattern_type="todo_comments",
+                    description="TODO/FIXME comments suggest incomplete work",
+                    examples=todo_matches[:3],
+                    frequency=len(todo_matches),
+                    confidence=0.7,
+                    suggested_rule="todo_comment_management",
+                    affected_files=[str(file_path)],
+                    impact_score=0.6,
+                )
+            )
 
         return patterns
 
-    def _detect_docstring_patterns_markdown(self, content: str, file_path: Path) -> List[CodePattern]:
+    def _detect_docstring_patterns_markdown(
+        self, content: str, file_path: Path
+    ) -> list[CodePattern]:
         """Detect documentation patterns in Markdown files."""
         patterns = []
 
         # Check for inconsistent formatting
-        if file_path.suffix == '.md':
+        if file_path.suffix == ".md":
             # Check for missing headers
-            lines = content.split('\n')
-            if len(lines) > 10 and not any(re.match(r'^#', line) for line in lines):
-                patterns.append(CodePattern(
-                    pattern_type="missing_headers",
-                    description="Markdown file lacks proper heading structure",
-                    examples=["No headers found in documentation"],
-                    frequency=1,
-                    confidence=0.8,
-                    suggested_rule="markdown_structure",
-                    affected_files=[str(file_path)],
-                    impact_score=0.5
-                ))
+            lines = content.split("\n")
+            if len(lines) > 10 and not any(re.match(r"^#", line) for line in lines):
+                patterns.append(
+                    CodePattern(
+                        pattern_type="missing_headers",
+                        description="Markdown file lacks proper heading structure",
+                        examples=["No headers found in documentation"],
+                        frequency=1,
+                        confidence=0.8,
+                        suggested_rule="markdown_structure",
+                        affected_files=[str(file_path)],
+                        impact_score=0.5,
+                    )
+                )
 
         return patterns
 
-    def _detect_specification_patterns(self, content: str, file_path: Path) -> List[CodePattern]:
+    def _detect_specification_patterns(
+        self, content: str, file_path: Path
+    ) -> list[CodePattern]:
         """Detect specification file patterns."""
         patterns = []
 
-        if 'specification' in file_path.name.lower():
+        if "specification" in file_path.name.lower():
             # Check for required sections
-            required_sections = ['Overview', 'Requirements', 'Implementation']
+            required_sections = ["Overview", "Requirements", "Implementation"]
             missing_sections = []
 
             for section in required_sections:
-                if f'## {section}' not in content and f'# {section}' not in content:
+                if f"## {section}" not in content and f"# {section}" not in content:
                     missing_sections.append(section)
 
             if missing_sections:
-                patterns.append(CodePattern(
-                    pattern_type="incomplete_specification",
-                    description=f"Specification missing required sections: {missing_sections}",
-                    examples=missing_sections,
-                    frequency=1,
-                    confidence=0.9,
-                    suggested_rule="specification_template",
-                    affected_files=[str(file_path)],
-                    impact_score=0.7
-                ))
+                patterns.append(
+                    CodePattern(
+                        pattern_type="incomplete_specification",
+                        description=f"Specification missing required sections: {missing_sections}",
+                        examples=missing_sections,
+                        frequency=1,
+                        confidence=0.9,
+                        suggested_rule="specification_template",
+                        affected_files=[str(file_path)],
+                        impact_score=0.7,
+                    )
+                )
 
         return patterns
 
     def _is_stdlib_import(self, import_stmt: str) -> bool:
         """Check if import is from standard library."""
         stdlib_modules = {
-            'os', 'sys', 'json', 'datetime', 'typing', 'collections', 'itertools',
-            'functools', 're', 'math', 'random', 'uuid', 'pathlib', 'dataclasses'
+            "os",
+            "sys",
+            "json",
+            "datetime",
+            "typing",
+            "collections",
+            "itertools",
+            "functools",
+            "re",
+            "math",
+            "random",
+            "uuid",
+            "pathlib",
+            "dataclasses",
         }
 
         # Extract module name from import statement
-        match = re.match(r'(?:from\s+)?(\w+)', import_stmt)
+        match = re.match(r"(?:from\s+)?(\w+)", import_stmt)
         if match:
             module = match.group(1)
             return module in stdlib_modules
@@ -381,18 +443,30 @@ class CodebaseAnalyzer:
         """Check if import is from third-party packages."""
         # Common third-party packages
         third_party = {
-            'numpy', 'pandas', 'requests', 'flask', 'django', 'fastapi',
-            'pytest', 'mypy', 'black', 'flake8', 'sqlalchemy', 'alembic'
+            "numpy",
+            "pandas",
+            "requests",
+            "flask",
+            "django",
+            "fastapi",
+            "pytest",
+            "mypy",
+            "black",
+            "flake8",
+            "sqlalchemy",
+            "alembic",
         }
 
-        match = re.match(r'(?:from\s+)?(\w+)', import_stmt)
+        match = re.match(r"(?:from\s+)?(\w+)", import_stmt)
         if match:
             module = match.group(1)
             return module in third_party
 
         return False
 
-    def _imports_well_organized(self, stdlib: List[str], third_party: List[str], local: List[str]) -> bool:
+    def _imports_well_organized(
+        self, stdlib: list[str], third_party: list[str], local: list[str]
+    ) -> bool:
         """Check if imports are well organized."""
         # Should be: stdlib, blank line, third-party, blank line, local
         all_imports = stdlib + third_party + local
@@ -401,17 +475,17 @@ class CodebaseAnalyzer:
             return True
 
         # Simple heuristic: check for proper separation
-        import_text = '\n'.join(all_imports)
+        import_text = "\n".join(all_imports)
 
         # Look for proper grouping patterns
-        if stdlib and third_party and '\n\n' not in import_text:
+        if stdlib and third_party and "\n\n" not in import_text:
             return False
 
         return True
 
-    def _group_patterns(self, patterns: List[CodePattern]) -> List[CodePattern]:
+    def _group_patterns(self, patterns: list[CodePattern]) -> list[CodePattern]:
         """Group similar patterns and calculate aggregate metrics."""
-        pattern_groups: Dict[str, List[CodePattern]] = defaultdict(list)
+        pattern_groups: dict[str, list[CodePattern]] = defaultdict(list)
 
         for pattern in patterns:
             pattern_groups[pattern.pattern_type].append(pattern)
@@ -433,22 +507,26 @@ class CodebaseAnalyzer:
 
                 # Calculate weighted confidence
                 total_confidence = sum(p.confidence * p.frequency for p in pattern_list)
-                avg_confidence = total_confidence / total_frequency if total_frequency > 0 else 0.5
+                avg_confidence = (
+                    total_confidence / total_frequency if total_frequency > 0 else 0.5
+                )
 
                 # Calculate impact score based on frequency and affected files
                 unique_files = len(set(all_files))
                 impact_score = min(1.0, (total_frequency * 0.1) + (unique_files * 0.01))
 
-                grouped_patterns.append(CodePattern(
-                    pattern_type=pattern_type,
-                    description=f"Multiple instances of {pattern_type.replace('_', ' ')} pattern",
-                    examples=all_examples[:5],  # Keep top 5 examples
-                    frequency=total_frequency,
-                    confidence=avg_confidence,
-                    suggested_rule=pattern_list[0].suggested_rule,
-                    affected_files=list(set(all_files)),
-                    impact_score=impact_score
-                ))
+                grouped_patterns.append(
+                    CodePattern(
+                        pattern_type=pattern_type,
+                        description=f"Multiple instances of {pattern_type.replace('_', ' ')} pattern",
+                        examples=all_examples[:5],  # Keep top 5 examples
+                        frequency=total_frequency,
+                        confidence=avg_confidence,
+                        suggested_rule=pattern_list[0].suggested_rule,
+                        affected_files=list(set(all_files)),
+                        impact_score=impact_score,
+                    )
+                )
 
         # Sort by impact score and frequency
         grouped_patterns.sort(key=lambda x: (x.impact_score, x.frequency), reverse=True)
@@ -482,11 +560,13 @@ class RuleGenerator:
             "pattern_type": pattern.pattern_type,
             "confidence": pattern.confidence,
             "alwaysApply": pattern.confidence > 0.8,
-            "globs": self._generate_globs(pattern.affected_files)
+            "globs": self._generate_globs(pattern.affected_files),
         }
 
         # Generate examples
-        examples = pattern.examples[:3] if pattern.examples else ["No examples available"]
+        examples = (
+            pattern.examples[:3] if pattern.examples else ["No examples available"]
+        )
 
         return RuleSuggestion(
             rule_name=rule_name,
@@ -496,7 +576,7 @@ class RuleGenerator:
             priority=int(pattern.impact_score * 5),  # Convert to 1-5 scale
             patterns=[pattern],
             yaml_frontmatter=yaml_frontmatter,
-            examples=examples
+            examples=examples,
         )
 
     def _generate_rule_content(self, pattern: CodePattern) -> str:
@@ -616,7 +696,7 @@ result = external_api_call()  # Risky!
 
         return base_content
 
-    def _generate_globs(self, affected_files: List[str]) -> List[str]:
+    def _generate_globs(self, affected_files: list[str]) -> list[str]:
         """Generate appropriate glob patterns for the rule."""
         if not affected_files:
             return ["**/*"]
@@ -659,10 +739,10 @@ result = external_api_call()  # Risky!
         suggestion_data = {
             **asdict(suggestion),
             "created_at": suggestion.yaml_frontmatter.pop("created_at", None),
-            "status": status
+            "status": status,
         }
 
-        with open(suggestions_dir / filename, 'w') as f:
+        with open(suggestions_dir / filename, "w") as f:
             json.dump(suggestion_data, f, indent=2)
 
         # If approved, also create the actual rule file
@@ -677,20 +757,24 @@ result = external_api_call()  # Risky!
         frontmatter_lines = ["---"]
         for key, value in suggestion.yaml_frontmatter.items():
             if isinstance(value, list):
-                frontmatter_lines.append(f"{key}: [{', '.join(f'"{v}"' for v in value)}]")
+                frontmatter_lines.append(
+                    f"{key}: [{', '.join(f'"{v}"' for v in value)}]"
+                )
             else:
-                frontmatter_lines.append(f'{key}: {value}')
+                frontmatter_lines.append(f"{key}: {value}")
         frontmatter_lines.append("---")
         frontmatter_lines.append("")
 
         # Combine with rule content
         full_content = "\n".join(frontmatter_lines) + suggestion.rule_content
 
-        with open(rule_file, 'w') as f:
+        with open(rule_file, "w") as f:
             f.write(full_content)
 
 
-def analyze_and_suggest_rules(source_dirs: List[str], rules_dir: str) -> List[RuleSuggestion]:
+def analyze_and_suggest_rules(
+    source_dirs: list[str], rules_dir: str
+) -> list[RuleSuggestion]:
     """Main function to analyze codebase and suggest rules."""
     analyzer = CodebaseAnalyzer(source_dirs)
     generator = RuleGenerator(Path(rules_dir))
@@ -713,22 +797,38 @@ def analyze_and_suggest_rules(source_dirs: List[str], rules_dir: str) -> List[Ru
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Analyze codebase and generate Cursor rules")
-    parser.add_argument("--source", nargs="+", default=["src", "tests"],
-                       help="Source directories to analyze")
-    parser.add_argument("--rules-dir", default=".cursor/rules",
-                       help="Directory to save generated rules")
-    parser.add_argument("--min-confidence", type=float, default=0.7,
-                       help="Minimum confidence threshold for suggestions")
-    parser.add_argument("--auto-approve", action="store_true",
-                       help="Automatically approve and create high-confidence rules")
+    parser = argparse.ArgumentParser(
+        description="Analyze codebase and generate Cursor rules"
+    )
+    parser.add_argument(
+        "--source",
+        nargs="+",
+        default=["src", "tests"],
+        help="Source directories to analyze",
+    )
+    parser.add_argument(
+        "--rules-dir", default=".cursor/rules", help="Directory to save generated rules"
+    )
+    parser.add_argument(
+        "--min-confidence",
+        type=float,
+        default=0.7,
+        help="Minimum confidence threshold for suggestions",
+    )
+    parser.add_argument(
+        "--auto-approve",
+        action="store_true",
+        help="Automatically approve and create high-confidence rules",
+    )
 
     args = parser.parse_args()
 
     suggestions = analyze_and_suggest_rules(args.source, args.rules_dir)
 
     # Filter by confidence
-    high_confidence_suggestions = [s for s in suggestions if s.confidence >= args.min_confidence]
+    high_confidence_suggestions = [
+        s for s in suggestions if s.confidence >= args.min_confidence
+    ]
 
     print(f"\n🎯 High-confidence suggestions ({args.min_confidence}+):")
     for i, suggestion in enumerate(high_confidence_suggestions, 1):
