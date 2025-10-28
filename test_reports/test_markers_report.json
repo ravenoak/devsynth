@@ -1,8 +1,18 @@
 {
   "markers": {
-    "unit": 1
+    "fast": 201,
+    "medium": 198,
+    "slow": 4,
+    "requires_resource": 7,
+    "no_network": 2,
+    "integration": 1,
+    "skipif": 2,
+    "property": 12,
+    "asyncio": 1,
+    "parametrize": 14,
+    "unit": 7
   },
-  "files_scanned": 1,
+  "files_scanned": 128,
   "files_with_issues": 0,
   "undocumented_markers": []
 }
