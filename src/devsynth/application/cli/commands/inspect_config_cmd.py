@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional, Sequence, cast
+from typing import Optional, cast
+from collections.abc import Sequence
 
 import yaml
 from rich.console import Console
@@ -27,11 +28,11 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def inspect_config_cmd(
-    path: Optional[str] = None,
+    path: str | None = None,
     update: bool = False,
     prune: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Inspect and manage the project configuration file.
 
@@ -88,7 +89,7 @@ def inspect_config_cmd(
             return
 
         # Load the configuration file
-        with open(manifest_path, "r") as f:
+        with open(manifest_path) as f:
             manifest_data = yaml.safe_load(f) or {}
         if not isinstance(manifest_data, dict):
             bridge.print(

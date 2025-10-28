@@ -27,10 +27,10 @@ else:
     _COUNTER_FACTORY = cast(CounterFactory, _PrometheusCounter)
 
 # Registry of created counters to avoid re-definitions with conflicting types
-_COUNTERS: Dict[Tuple[str, Tuple[str, ...]], CounterProtocol] = {}
+_COUNTERS: dict[tuple[str, tuple[str, ...]], CounterProtocol] = {}
 
 
-def _labels_tuple(labels: Optional[Dict[str, str]]) -> Tuple[str, ...]:
+def _labels_tuple(labels: dict[str, str] | None) -> tuple[str, ...]:
     if not labels:
         return tuple()
     # Sort keys to make label set stable
@@ -38,7 +38,7 @@ def _labels_tuple(labels: Optional[Dict[str, str]]) -> Tuple[str, ...]:
 
 
 def increment_counter(
-    name: str, labels: Optional[Dict[str, str]] = None, *, description: str = ""
+    name: str, labels: dict[str, str] | None = None, *, description: str = ""
 ) -> None:
     """Increment a Prometheus counter if available, otherwise no-op.
 

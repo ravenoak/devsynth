@@ -28,8 +28,8 @@ class WSDEMemoryIntegration:
         self,
         memory_adapter: MemorySystemAdapter,
         wsde_team: WSDETeam,
-        agent_memory: Optional[AgentMemoryIntegration] = None,
-        memory_manager: Optional[MemoryManager] = None,
+        agent_memory: AgentMemoryIntegration | None = None,
+        memory_manager: MemoryManager | None = None,
     ) -> None:
         """Initialize the WSDE memory integration."""
         self.memory_adapter = memory_adapter
@@ -44,10 +44,10 @@ class WSDEMemoryIntegration:
 
     def store_dialectical_process(
         self,
-        task: Dict[str, Any],
-        thesis: Dict[str, Any],
-        antithesis: Dict[str, Any],
-        synthesis: Dict[str, Any],
+        task: dict[str, Any],
+        thesis: dict[str, Any],
+        antithesis: dict[str, Any],
+        synthesis: dict[str, Any],
     ) -> str:
         """
         Store a dialectical process in memory.
@@ -69,7 +69,7 @@ class WSDEMemoryIntegration:
         logger.info(f"Stored dialectical process in memory with ID {item_id}")
         return item_id
 
-    def retrieve_dialectical_process(self, task_id: str) -> Dict[str, Any]:
+    def retrieve_dialectical_process(self, task_id: str) -> dict[str, Any]:
         """
         Retrieve a dialectical process for a specific task from memory.
 
@@ -94,9 +94,9 @@ class WSDEMemoryIntegration:
     def store_agent_solution(
         self,
         agent_id: str,
-        task: Dict[str, Any],
-        solution: Dict[str, Any],
-        edrr_phase: Optional[str] = None,
+        task: dict[str, Any],
+        solution: dict[str, Any],
+        edrr_phase: str | None = None,
     ) -> str:
         """Store an agent solution in memory."""
 
@@ -152,7 +152,7 @@ class WSDEMemoryIntegration:
         logger.info(f"Stored agent solution in memory with ID {item_id}")
         return item_id
 
-    def retrieve_agent_solutions(self, task_id: str) -> List[MemoryItem]:
+    def retrieve_agent_solutions(self, task_id: str) -> list[MemoryItem]:
         """
         Retrieve agent solutions for a specific task from memory.
 
@@ -164,13 +164,13 @@ class WSDEMemoryIntegration:
         """
         # If a memory manager is available, query all registered stores
         if self.memory_manager is not None:
-            results: List[MemoryItem] = []
+            results: list[MemoryItem] = []
             for adapter in self.memory_manager.adapters.values():
                 store = adapter
                 if hasattr(adapter, "get_memory_store"):
                     store = adapter.get_memory_store()  # type: ignore[assignment]
 
-                items: List[MemoryItem] = []
+                items: list[MemoryItem] = []
                 if hasattr(store, "items"):
                     items = list(store.items.values())  # type: ignore[assignment]
                 elif hasattr(store, "search"):
@@ -204,7 +204,7 @@ class WSDEMemoryIntegration:
         logger.info(f"Retrieved {len(solutions)} agent solutions for task {task_id}")
         return solutions
 
-    def store_team_context(self, context_data: Dict[str, Any]) -> None:
+    def store_team_context(self, context_data: dict[str, Any]) -> None:
         """
         Store team context in memory.
 
@@ -216,7 +216,7 @@ class WSDEMemoryIntegration:
 
         logger.info("Stored team context in memory")
 
-    def retrieve_team_context(self) -> Dict[str, Any]:
+    def retrieve_team_context(self) -> dict[str, Any]:
         """
         Retrieve team context from memory.
 
@@ -229,7 +229,7 @@ class WSDEMemoryIntegration:
         logger.info("Retrieved team context from memory")
         return context_data
 
-    def search_similar_solutions(self, query: str, top_k: int = 5) -> List[Any]:
+    def search_similar_solutions(self, query: str, top_k: int = 5) -> list[Any]:
         """
         Search for solutions similar to the query using vector similarity.
 
@@ -248,7 +248,7 @@ class WSDEMemoryIntegration:
 
     def retrieve_solutions_by_edrr_phase(
         self, task_id: str, edrr_phase: str
-    ) -> List[MemoryItem]:
+    ) -> list[MemoryItem]:
         """
         Retrieve agent solutions for a specific task filtered by EDRR phase.
 
@@ -274,7 +274,7 @@ class WSDEMemoryIntegration:
 
     def query_knowledge_graph(
         self, query: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Query the knowledge graph for information.
 
@@ -307,7 +307,7 @@ class WSDEMemoryIntegration:
 
     def query_related_concepts(
         self, concept: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Query the knowledge graph for concepts related to a given concept.
 
@@ -340,7 +340,7 @@ class WSDEMemoryIntegration:
 
     def query_concept_relationships(
         self, concept1: str, concept2: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Query the knowledge graph for relationships between two concepts.
 
@@ -379,7 +379,7 @@ class WSDEMemoryIntegration:
 
     def query_by_concept_type(
         self, concept_type: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Query the knowledge graph for concepts of a specific type.
 
@@ -414,8 +414,8 @@ class WSDEMemoryIntegration:
         return results
 
     def query_knowledge_for_task(
-        self, task: Dict[str, Any], limit: int = 10
-    ) -> List[Dict[str, Any]]:
+        self, task: dict[str, Any], limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Query the knowledge graph for knowledge relevant to a specific task.
 
@@ -480,8 +480,8 @@ class WSDEMemoryIntegration:
         return results
 
     def integrate_knowledge_from_dialectical_process(
-        self, task_id: str, dialectical_process: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, task_id: str, dialectical_process: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Extract key insights from a dialectical process and integrate them into the team's memory system.
 
@@ -684,7 +684,7 @@ class WSDEMemoryIntegration:
         return "general"
 
     def _calculate_insight_relevance(
-        self, insight: str, synthesis: Dict[str, Any]
+        self, insight: str, synthesis: dict[str, Any]
     ) -> float:
         """
         Calculate the relevance score of an insight based on whether it was addressed in the synthesis.
@@ -725,7 +725,7 @@ class WSDEMemoryIntegration:
 
         return relevance
 
-    def _store_integrated_knowledge(self, integrated_knowledge: Dict[str, Any]) -> None:
+    def _store_integrated_knowledge(self, integrated_knowledge: dict[str, Any]) -> None:
         """
         Store the integrated knowledge in the memory system.
 
@@ -765,7 +765,7 @@ class WSDEMemoryIntegration:
                 except Exception as e:
                     logger.error(f"Failed to add knowledge graph entry: {str(e)}")
 
-    def retrieve_integrated_knowledge(self, task_id: str) -> List[Dict[str, Any]]:
+    def retrieve_integrated_knowledge(self, task_id: str) -> list[dict[str, Any]]:
         """
         Retrieve integrated knowledge for a specific task from memory.
 

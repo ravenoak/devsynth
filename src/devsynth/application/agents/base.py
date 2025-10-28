@@ -35,7 +35,7 @@ class BaseAgent(Agent, ABC):
         """Set the LLM port for this agent."""
         self.llm_port = llm_port
 
-    def generate_text(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+    def generate_text(self, prompt: str, parameters: dict[str, Any] = None) -> str:
         """Generate text using the LLM port."""
         if self.llm_port is None:
             logger.warning("LLM port not set. Using placeholder text.")
@@ -50,8 +50,8 @@ class BaseAgent(Agent, ABC):
     def generate_text_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> str:
         """Generate text with conversation context using the LLM port."""
         if self.llm_port is None:
@@ -65,11 +65,11 @@ class BaseAgent(Agent, ABC):
             return f"Error generating text with context: {str(e)}"
 
     @abstractmethod
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and produce outputs."""
         pass
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Get the capabilities of this agent."""
         if self.config:
             return self.config.capabilities
@@ -105,13 +105,13 @@ class BaseAgent(Agent, ABC):
         return "Base agent"
 
     def create_wsde(
-        self, content: str, content_type: str = "text", metadata: Dict[str, Any] = None
+        self, content: str, content_type: str = "text", metadata: dict[str, Any] = None
     ) -> WSDE:
         """Create a new WSDE with the given content."""
         return WSDE(content=content, content_type=content_type, metadata=metadata or {})
 
     def update_wsde(
-        self, wsde: WSDE, content: str = None, metadata: Dict[str, Any] = None
+        self, wsde: WSDE, content: str = None, metadata: dict[str, Any] = None
     ) -> WSDE:
         """Update an existing WSDE."""
         if content is not None:

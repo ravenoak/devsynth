@@ -14,8 +14,8 @@ SPRINT_RETROSPECTIVE_PHASE = "retrospect"
 
 
 def map_retrospective_to_summary(
-    retrospective: Dict[str, Any], sprint: int
-) -> Dict[str, Any]:
+    retrospective: dict[str, Any], sprint: int
+) -> dict[str, Any]:
     """Return summarized retrospective information.
 
     Args:

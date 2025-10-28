@@ -70,7 +70,7 @@ def _patch_starlette_testclient() -> None:
         "starlette.testclient", spec.loader
     )
 
-    exec_globals: Dict[str, Any] = module.__dict__
+    exec_globals: dict[str, Any] = module.__dict__
     exec_globals["httpx"] = httpx
     exec_globals["WebSocketDisconnect"] = WebSocketDisconnect
 
@@ -82,5 +82,4 @@ def _patch_starlette_testclient() -> None:
     sys.modules["starlette.testclient"] = module
 
 
-if sys.version_info >= (3, 12):
-    _patch_starlette_testclient()
+_patch_starlette_testclient()

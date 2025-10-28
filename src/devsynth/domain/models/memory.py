@@ -7,7 +7,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, TypedDict, cast
 from uuid import UUID, uuid4
 
-from typing_extensions import Self
+from typing import Self
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -16,7 +16,7 @@ logger = DevSynthLogger(__name__)
 if TYPE_CHECKING:  # pragma: no cover - import for typing only
     from devsynth.application.memory.dto import MemoryMetadata
 else:  # Fallback to keep runtime import graph minimal.
-    from typing import Mapping
+    from collections.abc import Mapping
 
     MemoryMetadata = Mapping[str, Any]
 
@@ -60,7 +60,7 @@ class MemoryType(Enum):
     INGEST_RETROSPECT_RESULTS = "ingest_retrospect_results"
 
     @classmethod
-    def from_raw(cls, raw: object) -> "MemoryType":
+    def from_raw(cls, raw: object) -> MemoryType:
         """Coerce arbitrary representations into a :class:`MemoryType`.
 
         Historically adapters accepted either an enum instance, its value, or an
@@ -89,8 +89,10 @@ MemoryItemType = MemoryType
 
 # Memetic Unit Enums and Types
 
+
 class MemeticSource(Enum):
     """Source types for memetic units."""
+
     USER_INPUT = "user_input"
     AGENT_SELF = "agent_self"
     LLM_RESPONSE = "llm_response"
@@ -106,28 +108,31 @@ class MemeticSource(Enum):
 
 class CognitiveType(Enum):
     """Cognitive function types for memory processing."""
-    WORKING = "working"      # Active manipulation, current context
-    EPISODIC = "episodic"    # Experience record, chronological
-    SEMANTIC = "semantic"    # General knowledge, world model
-    PROCEDURAL = "procedural" # Skills, plans, executable knowledge
+
+    WORKING = "working"  # Active manipulation, current context
+    EPISODIC = "episodic"  # Experience record, chronological
+    SEMANTIC = "semantic"  # General knowledge, world model
+    PROCEDURAL = "procedural"  # Skills, plans, executable knowledge
 
 
 class MemeticStatus(Enum):
     """Lifecycle status of memetic units."""
-    RAW = "raw"              # Initial ingestion, unprocessed
+
+    RAW = "raw"  # Initial ingestion, unprocessed
     PROCESSED = "processed"  # Basic processing complete
-    CONSOLIDATED = "consolidated" # Pattern extracted, abstracted
-    ARCHIVED = "archived"    # Low relevance, compressed
-    DEPRECATED = "deprecated" # Outdated, marked for removal
+    CONSOLIDATED = "consolidated"  # Pattern extracted, abstracted
+    ARCHIVED = "archived"  # Low relevance, compressed
+    DEPRECATED = "deprecated"  # Outdated, marked for removal
 
 
 @dataclass
 class MemeticLink:
     """Represents a relationship between memetic units."""
+
     target_id: UUID
     relationship_type: str
     strength: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -136,19 +141,19 @@ class MemeticMetadata:
 
     # Identity & Provenance
     unit_id: UUID = field(default_factory=uuid4)
-    parent_id: Optional[UUID] = None  # Causal predecessor
+    parent_id: UUID | None = None  # Causal predecessor
     source: MemeticSource = MemeticSource.USER_INPUT
     timestamp_created: datetime = field(default_factory=datetime.now)
-    timestamp_accessed: Optional[datetime] = None
-    timestamp_modified: Optional[datetime] = None
+    timestamp_accessed: datetime | None = None
+    timestamp_modified: datetime | None = None
 
     # Cognitive Type
     cognitive_type: CognitiveType = CognitiveType.WORKING
 
     # Semantic Descriptors
     content_hash: str = ""
-    semantic_vector: List[float] = field(default_factory=list)
-    keywords: List[str] = field(default_factory=list)
+    semantic_vector: list[float] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
     topic: str = ""
     summary: str = ""
 
@@ -157,11 +162,11 @@ class MemeticMetadata:
     confidence_score: float = 1.0
     salience_score: float = 0.5
     access_count: int = 0
-    access_control: Dict[str, Any] = field(default_factory=dict)
-    lifespan_policy: Dict[str, Any] = field(default_factory=dict)
+    access_control: dict[str, Any] = field(default_factory=dict)
+    lifespan_policy: dict[str, Any] = field(default_factory=dict)
 
     # Relational Links
-    links: List[MemeticLink] = field(default_factory=list)
+    links: list[MemeticLink] = field(default_factory=list)
 
     # Quality Metrics
     validation_score: float = 0.0
@@ -208,19 +213,23 @@ class MemeticUnit:
 
         return hashlib.sha256(normalized.encode()).hexdigest()[:16]
 
-    def add_link(self, target_id: UUID, relationship_type: str, strength: float = 1.0, **metadata):
+    def add_link(
+        self, target_id: UUID, relationship_type: str, strength: float = 1.0, **metadata
+    ):
         """Add a relationship to another memetic unit."""
         link = MemeticLink(
             target_id=target_id,
             relationship_type=relationship_type,
             strength=strength,
-            metadata=metadata
+            metadata=metadata,
         )
         self.metadata.links.append(link)
 
-        logger.debug(f"Added link from {self.metadata.unit_id} to {target_id} with type {relationship_type}")
+        logger.debug(
+            f"Added link from {self.metadata.unit_id} to {target_id} with type {relationship_type}"
+        )
 
-    def update_salience(self, context: Dict[str, Any]) -> None:
+    def update_salience(self, context: dict[str, Any]) -> None:
         """Update salience score based on context and usage patterns."""
         base_salience = self.metadata.salience_score
 
@@ -234,10 +243,12 @@ class MemeticUnit:
         confidence_factor = self.metadata.confidence_score
 
         # Calculate new salience
-        new_salience = (base_salience * 0.6 +
-                       time_factor * 0.2 +
-                       context_factor * 0.15 +
-                       confidence_factor * 0.05)
+        new_salience = (
+            base_salience * 0.6
+            + time_factor * 0.2
+            + context_factor * 0.15
+            + confidence_factor * 0.05
+        )
 
         self.metadata.salience_score = min(1.0, max(0.0, new_salience))
 
@@ -246,12 +257,14 @@ class MemeticUnit:
         if not self.metadata.timestamp_accessed:
             return 0.0
 
-        hours_since_access = (datetime.now() - self.metadata.timestamp_accessed).total_seconds() / 3600
+        hours_since_access = (
+            datetime.now() - self.metadata.timestamp_accessed
+        ).total_seconds() / 3600
 
         # Exponential decay with half-life of 24 hours
         return math.exp(-hours_since_access / 24.0)
 
-    def _calculate_context_factor(self, context: Dict[str, Any]) -> float:
+    def _calculate_context_factor(self, context: dict[str, Any]) -> float:
         """Calculate context relevance factor."""
         if not context or not self.metadata.keywords:
             return 0.5
@@ -262,7 +275,7 @@ class MemeticUnit:
             if isinstance(value, str):
                 context_keywords.update(value.lower().split())
 
-        unit_keywords = set(word.lower() for word in self.metadata.keywords)
+        unit_keywords = {word.lower() for word in self.metadata.keywords}
 
         if not context_keywords or not unit_keywords:
             return 0.5
@@ -280,14 +293,18 @@ class MemeticUnit:
         # Check time-based expiration
         if "max_age_hours" in policy:
             max_age = policy["max_age_hours"]
-            age_hours = (datetime.now() - self.metadata.timestamp_created).total_seconds() / 3600
+            age_hours = (
+                datetime.now() - self.metadata.timestamp_created
+            ).total_seconds() / 3600
             if age_hours > max_age:
                 return True
 
         # Check access-based expiration
         if "max_inactive_hours" in policy:
             if self.metadata.timestamp_accessed:
-                inactive_hours = (datetime.now() - self.metadata.timestamp_accessed).total_seconds() / 3600
+                inactive_hours = (
+                    datetime.now() - self.metadata.timestamp_accessed
+                ).total_seconds() / 3600
                 if inactive_hours > policy["max_inactive_hours"]:
                     return True
 
@@ -301,18 +318,30 @@ class MemeticUnit:
         """Get time since last access in hours."""
         if not self.metadata.timestamp_accessed:
             return self.get_age_hours()
-        return (datetime.now() - self.metadata.timestamp_accessed).total_seconds() / 3600
+        return (
+            datetime.now() - self.metadata.timestamp_accessed
+        ).total_seconds() / 3600
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "metadata": {
                 "unit_id": str(self.metadata.unit_id),
-                "parent_id": str(self.metadata.parent_id) if self.metadata.parent_id else None,
+                "parent_id": (
+                    str(self.metadata.parent_id) if self.metadata.parent_id else None
+                ),
                 "source": self.metadata.source.value,
                 "timestamp_created": self.metadata.timestamp_created.isoformat(),
-                "timestamp_accessed": self.metadata.timestamp_accessed.isoformat() if self.metadata.timestamp_accessed else None,
-                "timestamp_modified": self.metadata.timestamp_modified.isoformat() if self.metadata.timestamp_modified else None,
+                "timestamp_accessed": (
+                    self.metadata.timestamp_accessed.isoformat()
+                    if self.metadata.timestamp_accessed
+                    else None
+                ),
+                "timestamp_modified": (
+                    self.metadata.timestamp_modified.isoformat()
+                    if self.metadata.timestamp_modified
+                    else None
+                ),
                 "cognitive_type": self.metadata.cognitive_type.value,
                 "content_hash": self.metadata.content_hash,
                 "semantic_vector": self.metadata.semantic_vector,
@@ -330,30 +359,42 @@ class MemeticUnit:
                         "target_id": str(link.target_id),
                         "relationship_type": link.relationship_type,
                         "strength": link.strength,
-                        "metadata": link.metadata
+                        "metadata": link.metadata,
                     }
                     for link in self.metadata.links
                 ],
                 "validation_score": self.metadata.validation_score,
                 "consistency_score": self.metadata.consistency_score,
-                "relevance_score": self.metadata.relevance_score
+                "relevance_score": self.metadata.relevance_score,
             },
-            "payload": self.payload
+            "payload": self.payload,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MemeticUnit":
+    def from_dict(cls, data: dict[str, Any]) -> MemeticUnit:
         """Reconstruct from dictionary."""
         metadata_data = data["metadata"]
 
         # Reconstruct metadata
         metadata = MemeticMetadata(
             unit_id=UUID(metadata_data["unit_id"]),
-            parent_id=UUID(metadata_data["parent_id"]) if metadata_data["parent_id"] else None,
+            parent_id=(
+                UUID(metadata_data["parent_id"]) if metadata_data["parent_id"] else None
+            ),
             source=MemeticSource(metadata_data["source"]),
-            timestamp_created=datetime.fromisoformat(metadata_data["timestamp_created"]),
-            timestamp_accessed=datetime.fromisoformat(metadata_data["timestamp_accessed"]) if metadata_data["timestamp_accessed"] else None,
-            timestamp_modified=datetime.fromisoformat(metadata_data["timestamp_modified"]) if metadata_data["timestamp_modified"] else None,
+            timestamp_created=datetime.fromisoformat(
+                metadata_data["timestamp_created"]
+            ),
+            timestamp_accessed=(
+                datetime.fromisoformat(metadata_data["timestamp_accessed"])
+                if metadata_data["timestamp_accessed"]
+                else None
+            ),
+            timestamp_modified=(
+                datetime.fromisoformat(metadata_data["timestamp_modified"])
+                if metadata_data["timestamp_modified"]
+                else None
+            ),
             cognitive_type=CognitiveType(metadata_data["cognitive_type"]),
             content_hash=metadata_data["content_hash"],
             semantic_vector=metadata_data["semantic_vector"],
@@ -371,13 +412,13 @@ class MemeticUnit:
                     target_id=UUID(link["target_id"]),
                     relationship_type=link["relationship_type"],
                     strength=link["strength"],
-                    metadata=link["metadata"]
+                    metadata=link["metadata"],
                 )
                 for link in metadata_data["links"]
             ],
             validation_score=metadata_data["validation_score"],
             consistency_score=metadata_data["consistency_score"],
-            relevance_score=metadata_data["relevance_score"]
+            relevance_score=metadata_data["relevance_score"],
         )
 
         return cls(metadata=metadata, payload=data["payload"])
@@ -400,7 +441,7 @@ class MemoryItem:
         if self.created_at is None:
             self.created_at = datetime.now()
 
-    def to_dict(self) -> "SerializedMemoryItem":
+    def to_dict(self) -> SerializedMemoryItem:
         """Return a serialized representation suitable for adapters.
 
         Metadata mappings are copied to prevent downstream mutation from
@@ -421,7 +462,7 @@ class MemoryItem:
         }
 
     @classmethod
-    def from_dict(cls, payload: "SerializedMemoryItem") -> Self:
+    def from_dict(cls, payload: SerializedMemoryItem) -> Self:
         """Reconstruct a :class:`MemoryItem` from serialized data."""
 
         metadata = payload.get("metadata")

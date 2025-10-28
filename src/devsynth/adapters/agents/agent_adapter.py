@@ -12,15 +12,11 @@ from importlib import import_module
 from pathlib import Path
 from typing import (
     Any,
-    Callable,
     Final,
-    Iterable,
-    Mapping,
-    MutableMapping,
-    Sequence,
     TypedDict,
     cast,
 )
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 
 from devsynth.exceptions import ValidationError
 from devsynth.logging_setup import DevSynthLogger
@@ -65,7 +61,7 @@ class AgentInitializationPayload:
     @classmethod
     def from_mapping(
         cls, payload: Mapping[str, Any], requested_type: str
-    ) -> "AgentInitializationPayload":
+    ) -> AgentInitializationPayload:
         """Coerce loosely-typed config dictionaries into a structured payload."""
 
         description = str(

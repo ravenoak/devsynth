@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Sequence, cast
+from typing import Any, Dict, List, Optional, cast
+from collections.abc import Sequence
 
 from .structures import (
     SubtaskSpec,
@@ -35,7 +36,7 @@ class TaskManagementMixin:
     reassigning tasks based on progress.
     """
 
-    def process_task(self, task: TaskInput) -> Dict[str, Any]:
+    def process_task(self, task: TaskInput) -> dict[str, Any]:
         """Process a task by breaking it down into subtasks and delegating them."""
 
         context = cast(TaskManagementContext, self)
@@ -72,7 +73,7 @@ class TaskManagementMixin:
                 )
 
         results = self._collect_subtask_results(task_spec.id)
-        payload: Dict[str, Any] = task_spec.to_payload()
+        payload: dict[str, Any] = task_spec.to_payload()
         payload["delegation_results"] = [
             result.to_payload() for result in delegation_results
         ]
@@ -82,10 +83,10 @@ class TaskManagementMixin:
 
         return payload
 
-    def _generate_subtasks(self, task: TaskSpec) -> List[SubtaskSpec]:
+    def _generate_subtasks(self, task: TaskSpec) -> list[SubtaskSpec]:
         """Generate subtasks based on task requirements."""
 
-        subtasks: List[SubtaskSpec] = []
+        subtasks: list[SubtaskSpec] = []
 
         requirements = list(task.requirements)
         if not requirements and task.description:
@@ -117,7 +118,7 @@ class TaskManagementMixin:
 
         context = cast(TaskManagementContext, self)
         task_id = main_task.id
-        prepared_subtasks: List[SubtaskSpec] = []
+        prepared_subtasks: list[SubtaskSpec] = []
         for index, subtask in enumerate(subtasks):
             if not subtask.id:
                 subtask.id = f"{task_id}_subtask_{index}"
@@ -133,11 +134,11 @@ class TaskManagementMixin:
 
     def delegate_subtasks(
         self, subtasks: Sequence[SubtaskSpec]
-    ) -> List[TaskDelegationResult]:
+    ) -> list[TaskDelegationResult]:
         """Delegate subtasks to team members based on expertise."""
 
         context = cast(TaskManagementContext, self)
-        delegation_results: List[TaskDelegationResult] = []
+        delegation_results: list[TaskDelegationResult] = []
 
         for subtask in subtasks:
             best_agent = None
@@ -223,14 +224,14 @@ class TaskManagementMixin:
 
     def reassign_subtasks_based_on_progress(
         self, subtasks: Sequence[SubtaskSpec]
-    ) -> List[TaskReassignmentResult]:
+    ) -> list[TaskReassignmentResult]:
         """Reassign subtasks based on progress and agent availability."""
 
         context = cast(TaskManagementContext, self)
-        reassignment_results: List[TaskReassignmentResult] = []
+        reassignment_results: list[TaskReassignmentResult] = []
         agent_workloads = self._calculate_agent_workloads()
 
-        low_progress_subtasks: List[SubtaskSpec] = []
+        low_progress_subtasks: list[SubtaskSpec] = []
         for subtask in subtasks:
             progress = context.subtask_progress.get(subtask.id, 0.0)
             if progress < 0.3 and subtask.status != "completed" and subtask.assigned_to:
@@ -323,11 +324,11 @@ class TaskManagementMixin:
 
         return reassignment_results
 
-    def _calculate_agent_workloads(self) -> Dict[str, int]:
+    def _calculate_agent_workloads(self) -> dict[str, int]:
         """Calculate the current workload for each agent."""
 
         context = cast(TaskManagementContext, self)
-        workloads: Dict[str, int] = {}
+        workloads: dict[str, int] = {}
         for task_subtasks in context.subtasks.values():
             for subtask in task_subtasks:
                 if subtask.assigned_to and subtask.status != "completed":
@@ -365,11 +366,11 @@ class TaskManagementMixin:
             elif subtask.progress:
                 self.update_subtask_progress(subtask.id, subtask.progress)
 
-    def _collect_subtask_results(self, task_id: str) -> List[Dict[str, Any]]:
+    def _collect_subtask_results(self, task_id: str) -> list[dict[str, Any]]:
         """Collect results from completed subtasks."""
 
         context = cast(TaskManagementContext, self)
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         if task_id not in context.subtasks:
             return results
@@ -433,7 +434,7 @@ class TaskManagementMixin:
                 agent_metrics["total_progress"] / agent_metrics["assigned_subtasks"]
             )
 
-    def get_contribution_metrics(self, task_id: str) -> Dict[str, Dict[str, Any]]:
+    def get_contribution_metrics(self, task_id: str) -> dict[str, dict[str, Any]]:
         """
         Get contribution metrics for a specific task.
 
@@ -449,7 +450,7 @@ class TaskManagementMixin:
             return {}
         return {agent: dict(values) for agent, values in metrics.items()}
 
-    def update_task_requirements(self, updated_task: TaskInput) -> Dict[str, Any]:
+    def update_task_requirements(self, updated_task: TaskInput) -> dict[str, Any]:
         """Update task requirements and adjust subtasks accordingly."""
 
         context = cast(TaskManagementContext, self)
@@ -474,7 +475,7 @@ class TaskManagementMixin:
             ]
             task_spec.requirements = new_requirements
 
-        updated_subtasks: List[SubtaskSpec] = []
+        updated_subtasks: list[SubtaskSpec] = []
         for index, requirement in enumerate(new_requirements):
             if requirement in requirement_map:
                 updated_subtasks.append(requirement_map[requirement])
@@ -492,11 +493,11 @@ class TaskManagementMixin:
         context.subtasks[task_id] = updated_subtasks
 
         new_pending = [sub for sub in updated_subtasks if sub.status == "pending"]
-        delegation_results: List[TaskDelegationResult] = []
+        delegation_results: list[TaskDelegationResult] = []
         if new_pending:
             delegation_results = self.delegate_subtasks(new_pending)
 
-        payload: Dict[str, Any] = task_spec.to_payload()
+        payload: dict[str, Any] = task_spec.to_payload()
         if delegation_results:
             payload.setdefault("delegation_results", []).extend(
                 result.to_payload() for result in delegation_results

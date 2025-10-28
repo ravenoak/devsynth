@@ -29,23 +29,23 @@ class ValidationError(DevSynthError):
 class BaseLLMProvider:
     """Base class for LLM providers."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] = None) -> str:
         """Generate text from a prompt."""
         raise NotImplementedError("Subclasses must implement this method")
 
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> str:
         """Generate text from a prompt with conversation context."""
         raise NotImplementedError("Subclasses must implement this method")
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Get an embedding vector for the given text."""
         raise NotImplementedError("Subclasses must implement this method")
 
@@ -79,7 +79,7 @@ class AnthropicTokenLimitError(DevSynthError):
 class AnthropicProvider(BaseLLMProvider):
     """Anthropic LLM provider implementation."""
 
-    def __init__(self, config: Dict[str, Any] | None = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
 
         self.api_key = self.config.get("api_key") or os.environ.get("ANTHROPIC_API_KEY")
@@ -136,7 +136,7 @@ class AnthropicProvider(BaseLLMProvider):
                 f"Anthropic max_retries must be non-negative, got {self.max_retries}"
             )
 
-    def _validate_runtime_parameters(self, parameters: Dict[str, Any]) -> None:
+    def _validate_runtime_parameters(self, parameters: dict[str, Any]) -> None:
         """Validate runtime parameters for API calls."""
         # Validate temperature if provided
         if "temperature" in parameters:
@@ -201,7 +201,7 @@ class AnthropicProvider(BaseLLMProvider):
 
         return _wrapped()
 
-    def _post(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _post(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         url = f"{self.api_base}{endpoint}"
         try:
             response = httpx.post(
@@ -218,7 +218,7 @@ class AnthropicProvider(BaseLLMProvider):
             logger.error(error_msg)
             raise AnthropicConnectionError(error_msg) from e
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] | None = None) -> str:
         """Generate text from a prompt using Anthropic."""
 
         # Ensure the prompt doesn't exceed token limits
@@ -265,8 +265,8 @@ class AnthropicProvider(BaseLLMProvider):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] | None = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Generate text from a prompt with conversation context using Anthropic."""
 
@@ -296,7 +296,7 @@ class AnthropicProvider(BaseLLMProvider):
             return data["completion"]
         raise AnthropicModelError("Invalid response from Anthropic")
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Get an embedding vector for the given text using Anthropic."""
 
         payload = {
@@ -325,10 +325,10 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
     """
 
     def __init__(self):
-        self.provider_types: Dict[str, Any] = {}
+        self.provider_types: dict[str, Any] = {}
 
     def create_provider(
-        self, provider_type: str, config: Dict[str, Any] = None
+        self, provider_type: str, config: dict[str, Any] = None
     ) -> LLMProvider:
         """Create an LLM provider of the specified type."""
         if provider_type not in self.provider_types:
@@ -359,7 +359,7 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
 
 
 # Provider selection logic
-def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
+def get_llm_provider(config: dict[str, Any] | None = None) -> LLMProvider:
     """Return an LLM provider based on configuration.
 
     Safe-by-default policy:

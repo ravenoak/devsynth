@@ -13,7 +13,8 @@ import hmac
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Mapping, NotRequired, TypedDict, cast
+from typing import Any, NotRequired, TypedDict, cast
+from collections.abc import Mapping
 from uuid import uuid4
 
 from devsynth.integrations import A2AConnector, MCPConnector
@@ -238,7 +239,7 @@ class SocraticCheckpoint:
     raw: dict[str, Any]
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "SocraticCheckpoint":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> SocraticCheckpoint:
         checkpoint_id = _string_or_none(
             mapping.get("checkpoint_id")
             or mapping.get("id")
@@ -301,7 +302,7 @@ class DebateLog:
     raw: dict[str, Any]
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "DebateLog":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> DebateLog:
         label = _string_or_none(
             mapping.get("label")
             or mapping.get("topic")
@@ -360,7 +361,7 @@ class CoalitionMessage:
     raw: dict[str, Any]
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "CoalitionMessage":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> CoalitionMessage:
         channel = _string_or_none(mapping.get("channel") or mapping.get("thread"))
         sender = _string_or_none(
             mapping.get("sender") or mapping.get("author") or mapping.get("agent")
@@ -403,7 +404,7 @@ class QueryStateSnapshot:
     raw: dict[str, Any]
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "QueryStateSnapshot":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> QueryStateSnapshot:
         name = _string_or_none(
             mapping.get("name") or mapping.get("query") or mapping.get("identifier")
         )
@@ -437,7 +438,7 @@ class PlannerGraphExport:
     raw: dict[str, Any]
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "PlannerGraphExport":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> PlannerGraphExport:
         graph_id = _string_or_none(
             mapping.get("graph_id") or mapping.get("id") or mapping.get("name")
         )
@@ -490,7 +491,7 @@ class ExtendedMetadata:
     query_state_snapshots: tuple[QueryStateSnapshot, ...] = ()
     planner_graph_exports: tuple[PlannerGraphExport, ...] = ()
 
-    def merge(self, other: "ExtendedMetadata") -> "ExtendedMetadata":
+    def merge(self, other: ExtendedMetadata) -> ExtendedMetadata:
         return ExtendedMetadata(
             socratic_checkpoints=self.socratic_checkpoints + other.socratic_checkpoints,
             debate_logs=self.debate_logs + other.debate_logs,

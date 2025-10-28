@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import Mapping
+from collections.abc import Mapping
 
 from devsynth.logger import DevSynthLogger, get_logger
 

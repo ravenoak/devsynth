@@ -39,7 +39,7 @@ def chunk_commit(
         False, help="Pass --no-verify to git commit for each chunk."
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Group repository changes into logical chunks and commit sequentially.
 
@@ -74,7 +74,7 @@ def fix_rebase_pr(
         "--remote",
         help="Git remote name",
     ),
-    new_branch: Optional[str] = typer.Option(
+    new_branch: str | None = typer.Option(
         None,
         "--new-branch",
         help="Optional new branch name; defaults to '<source>-fix-<timestamp>'",
@@ -90,7 +90,7 @@ def fix_rebase_pr(
         help="If executing, also push the new branch to the remote",
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Recreate a mergeable PR branch by cherry-picking unique commits onto base.
 

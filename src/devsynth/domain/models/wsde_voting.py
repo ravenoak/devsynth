@@ -6,7 +6,8 @@ import random
 from dataclasses import dataclass
 from datetime import datetime
 from random import Random
-from typing import Dict, Iterable, Mapping, Optional, Sequence
+from typing import Dict, Optional
+from collections.abc import Iterable, Mapping, Sequence
 from uuid import uuid4
 
 from devsynth.domain.models.wsde_core import WSDETeam
@@ -34,8 +35,8 @@ class VotingEngine:
     team: WSDETeam
 
     def vote(
-        self, task: TaskDict, rng: Optional[Random] = None
-    ) -> VotingTranscript | Dict[str, object]:
+        self, task: TaskDict, rng: Random | None = None
+    ) -> VotingTranscript | dict[str, object]:
         if not self.team.agents:
             logger.warning("Cannot conduct vote: no agents in team")
             return {"status": "failed", "reason": "no_agents"}
@@ -74,8 +75,8 @@ class VotingEngine:
         return transcript
 
     def consensus_vote(
-        self, task: TaskDict, rng: Optional[Random] = None
-    ) -> Dict[str, object]:
+        self, task: TaskDict, rng: Random | None = None
+    ) -> dict[str, object]:
         consensus_task: TaskDict = dict(task)
         consensus_task["voting_method"] = VoteMethod.MAJORITY.value
         result = self.vote(consensus_task, rng)
@@ -89,8 +90,8 @@ class VotingEngine:
         }
 
     def build_consensus(
-        self, task: TaskDict, rng: Optional[Random] = None
-    ) -> ConsensusTranscript | Dict[str, object]:
+        self, task: TaskDict, rng: Random | None = None
+    ) -> ConsensusTranscript | dict[str, object]:
         if not self.team.agents:
             logger.warning("Cannot build consensus: no agents in team")
             return {"status": "failed", "reason": "no_agents"}
@@ -203,9 +204,9 @@ class VotingEngine:
     # ------------------------------------------------------------------
     def _collect_votes(
         self, options: Sequence[str], rng: Random
-    ) -> tuple[Dict[str, str], Dict[str, str]]:
-        votes: Dict[str, str] = {}
-        reasoning: Dict[str, str] = {}
+    ) -> tuple[dict[str, str], dict[str, str]]:
+        votes: dict[str, str] = {}
+        reasoning: dict[str, str] = {}
         for agent in self.team.agents:
             vote, explanation = self._vote_for_agent(agent, options, rng)
             votes[agent.name] = vote
@@ -237,8 +238,8 @@ class VotingEngine:
         method: VoteMethod,
         task: TaskDict,
         options: Sequence[str],
-        votes: Dict[str, str],
-        vote_counts: Dict[str, int],
+        votes: dict[str, str],
+        vote_counts: dict[str, int],
         rng: Random,
     ) -> VoteRecord:
         if method is VoteMethod.MAJORITY:
@@ -255,7 +256,7 @@ class VotingEngine:
         self,
         task: TaskDict,
         options: Sequence[str],
-        vote_counts: Dict[str, int],
+        vote_counts: dict[str, int],
         rng: Random,
     ) -> VoteRecord:
         max_votes = max(vote_counts.values())
@@ -310,7 +311,7 @@ class VotingEngine:
         self,
         task: TaskDict,
         options: Sequence[str],
-        votes: Dict[str, str],
+        votes: dict[str, str],
         domain: str,
         rng: Random,
     ) -> VoteRecord:
@@ -358,8 +359,8 @@ class VotingEngine:
             weighted_votes=weighted_votes,
         )
 
-    def _weight_agents(self, domain: str) -> Dict[str, float]:
-        weights: Dict[str, float] = {}
+    def _weight_agents(self, domain: str) -> dict[str, float]:
+        weights: dict[str, float] = {}
         for agent in self.team.agents:
             expertise = getattr(agent, "expertise", None) or []
             base = 1.0
@@ -373,7 +374,7 @@ class VotingEngine:
 
     def _initial_preferences(
         self, agent: SupportsTeamAgent, options: Sequence[str]
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         expertise = getattr(agent, "expertise", None) or []
         if expertise:
             scores = {
@@ -387,10 +388,10 @@ class VotingEngine:
 
     def _adjust_preferences(
         self,
-        current_preferences: Mapping[str, Dict[str, float]],
+        current_preferences: Mapping[str, dict[str, float]],
         options: Sequence[str],
-    ) -> Dict[str, Dict[str, float]]:
-        adjustments: Dict[str, Dict[str, float]] = {}
+    ) -> dict[str, dict[str, float]]:
+        adjustments: dict[str, dict[str, float]] = {}
         for agent_name, prefs in current_preferences.items():
             others = [
                 p for name, p in current_preferences.items() if name != agent_name
@@ -435,7 +436,7 @@ def _normalise_options(raw_options: Iterable[object]) -> list[str]:
     return options
 
 
-def _count_votes(options: Sequence[str], votes: Mapping[str, str]) -> Dict[str, int]:
+def _count_votes(options: Sequence[str], votes: Mapping[str, str]) -> dict[str, int]:
     return {
         option: sum(1 for vote in votes.values() if vote == option)
         for option in options
@@ -451,8 +452,8 @@ def _engine(team: WSDETeam) -> VotingEngine:
 
 
 def vote_on_critical_decision(
-    self: WSDETeam, task: TaskDict, rng: Optional[Random] = None
-) -> Dict[str, object]:
+    self: WSDETeam, task: TaskDict, rng: Random | None = None
+) -> dict[str, object]:
     result = _engine(self).vote(task, rng)
     return result if isinstance(result, dict) else result.as_dict()
 
@@ -460,9 +461,9 @@ def vote_on_critical_decision(
 def _apply_majority_voting(
     self: WSDETeam,
     task: TaskDict,
-    voting_result: Dict[str, object],
-    rng: Optional[Random] = None,
-) -> Dict[str, object]:
+    voting_result: dict[str, object],
+    rng: Random | None = None,
+) -> dict[str, object]:
     result = _engine(self).vote(task, rng)
     return result if isinstance(result, dict) else result.as_dict()
 
@@ -470,11 +471,11 @@ def _apply_majority_voting(
 def _handle_tied_vote(
     self: WSDETeam,
     task: TaskDict,
-    voting_result: Dict[str, object],
-    vote_counts: Dict[str, int],
+    voting_result: dict[str, object],
+    vote_counts: dict[str, int],
     tied_options: Sequence[str],
-    rng: Optional[Random] = None,
-) -> Dict[str, object]:
+    rng: Random | None = None,
+) -> dict[str, object]:
     rng_instance = rng if rng is not None else Random()
     record = _engine(self)._handle_tie(task, tied_options, rng_instance)
     transcript = VotingTranscript(
@@ -487,17 +488,17 @@ def _handle_tied_vote(
         reasoning={},
         record=record,
     )
-    result_dict: Dict[str, object] = transcript.as_dict()
+    result_dict: dict[str, object] = transcript.as_dict()
     return result_dict
 
 
 def _apply_weighted_voting(
     self: WSDETeam,
     task: TaskDict,
-    voting_result: Dict[str, object],
+    voting_result: dict[str, object],
     domain: str,
-    rng: Optional[Random] = None,
-) -> Dict[str, object]:
+    rng: Random | None = None,
+) -> dict[str, object]:
     engine = _engine(self)
     options = voting_result.get("options", [])
     options_list = (
@@ -527,7 +528,7 @@ def _apply_weighted_voting(
 
 
 def _record_voting_history(
-    self: WSDETeam, task: TaskDict, voting_result: Dict[str, object]
+    self: WSDETeam, task: TaskDict, voting_result: dict[str, object]
 ) -> None:
     self.voting_history.append(
         {
@@ -542,14 +543,14 @@ def _record_voting_history(
 
 
 def consensus_vote(
-    self: WSDETeam, task: TaskDict, rng: Optional[Random] = None
-) -> Dict[str, object]:
+    self: WSDETeam, task: TaskDict, rng: Random | None = None
+) -> dict[str, object]:
     return _engine(self).consensus_vote(task, rng)
 
 
 def build_consensus(
-    self: WSDETeam, task: TaskDict, rng: Optional[Random] = None
-) -> Dict[str, object]:
+    self: WSDETeam, task: TaskDict, rng: Random | None = None
+) -> dict[str, object]:
     result = _engine(self).build_consensus(task, rng)
     return result if isinstance(result, dict) else result.as_dict()
 

@@ -32,12 +32,12 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def edrr_cycle_cmd(
-    manifest: Optional[str] = None,
-    prompt: Optional[str] = None,
-    context: Optional[str] = None,
+    manifest: str | None = None,
+    prompt: str | None = None,
+    context: str | None = None,
     max_iterations: int = 3,
     auto: bool = True,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Run an enhanced EDRR cycle from a manifest file or a prompt.
 

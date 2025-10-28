@@ -25,10 +25,10 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def validate_manifest_cmd(
-    manifest_path: Optional[str] = None,
-    schema_path: Optional[str] = None,
+    manifest_path: str | None = None,
+    schema_path: str | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Validate the project configuration file against its schema.
 
@@ -105,10 +105,10 @@ def validate_manifest_cmd(
             return
 
         # Load the manifest and schema
-        with open(manifest_path_obj, "r") as f:
+        with open(manifest_path_obj) as f:
             manifest = yaml.safe_load(f)
 
-        with open(schema_path_obj, "r") as f:
+        with open(schema_path_obj) as f:
             schema = json.load(f)
 
         # Validate against schema

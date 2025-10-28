@@ -30,7 +30,7 @@ logger = DevSynthLogger(__name__)
 # Load default configuration for feature flags
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
 try:
-    with open(_DEFAULT_CONFIG_PATH, "r") as f:
+    with open(_DEFAULT_CONFIG_PATH) as f:
         _DEFAULT_CONFIG = yaml.safe_load(f) or {}
 except Exception:
     _DEFAULT_CONFIG = {}
@@ -46,10 +46,10 @@ class PromptManager:
 
     def __init__(
         self,
-        storage_path: Optional[str] = None,
-        efficacy_tracker: Optional[PromptEfficacyTracker] = None,
-        reflection_system: Optional[PromptReflection] = None,
-        config: Optional[Dict[str, Any]] = None,
+        storage_path: str | None = None,
+        efficacy_tracker: PromptEfficacyTracker | None = None,
+        reflection_system: PromptReflection | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize the prompt manager.
@@ -59,7 +59,7 @@ class PromptManager:
             efficacy_tracker: Optional efficacy tracker to use
             reflection_system: Optional reflection system to use
         """
-        self.templates: Dict[str, PromptTemplate] = {}
+        self.templates: dict[str, PromptTemplate] = {}
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "prompts"
         )
@@ -68,8 +68,8 @@ class PromptManager:
         self.config = config or _DEFAULT_CONFIG
         feature_cfg = self.config.get("features", {})
         self.auto_tuning_enabled = feature_cfg.get("prompt_auto_tuning", False)
-        self.auto_tuner: Optional[PromptAutoTuner] = None
-        self._last_variant_ids: Dict[str, str] = {}
+        self.auto_tuner: PromptAutoTuner | None = None
+        self._last_variant_ids: dict[str, str] = {}
 
         if self.auto_tuning_enabled:
             self.auto_tuner = PromptAutoTuner(storage_path=self.storage_path)
@@ -90,8 +90,8 @@ class PromptManager:
         name: str,
         description: str,
         template_text: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        edrr_phase: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        edrr_phase: str | None = None,
     ) -> PromptTemplate:
         """
         Register a new prompt template.
@@ -132,7 +132,7 @@ class PromptManager:
         logger.info(f"Registered new prompt template: {name}")
         return template
 
-    def get_template(self, name: str) -> Optional[PromptTemplate]:
+    def get_template(self, name: str) -> PromptTemplate | None:
         """
         Get a prompt template by name.
 
@@ -145,8 +145,8 @@ class PromptManager:
         return self.templates.get(name)
 
     def update_template(
-        self, name: str, template_text: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> Optional[PromptTemplateVersion]:
+        self, name: str, template_text: str, metadata: dict[str, Any] | None = None
+    ) -> PromptTemplateVersion | None:
         """
         Update a prompt template by adding a new version.
 
@@ -173,8 +173,8 @@ class PromptManager:
         return version
 
     def render_prompt(
-        self, name: str, variables: Dict[str, str], version_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, name: str, variables: dict[str, str], version_id: str | None = None
+    ) -> str | None:
         """
         Render a prompt template with the provided variables.
 
@@ -216,8 +216,8 @@ class PromptManager:
             return None
 
     def render_and_reflect(
-        self, name: str, variables: Dict[str, str], version_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, name: str, variables: dict[str, str], version_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Render a prompt template and set up reflection for the response.
 
@@ -238,7 +238,7 @@ class PromptManager:
         )
         return {"prompt": rendered, "reflection_id": reflection_id}
 
-    def process_response(self, reflection_id: str, response: str) -> Dict[str, Any]:
+    def process_response(self, reflection_id: str, response: str) -> dict[str, Any]:
         """
         Process a response to a prompt, triggering reflection if available.
 
@@ -258,8 +258,8 @@ class PromptManager:
     def record_tuning_feedback(
         self,
         name: str,
-        success: Union[bool, None] = None,
-        feedback_score: Union[float, None] = None,
+        success: bool | None = None,
+        feedback_score: float | None = None,
     ) -> None:
         """Record feedback for the last rendered variant of a template."""
         if not self.auto_tuner:
@@ -277,7 +277,7 @@ class PromptManager:
         except PromptAutoTuningError as e:
             logger.error(f"Failed to record auto-tuning feedback: {e}")
 
-    def list_templates(self, edrr_phase: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_templates(self, edrr_phase: str | None = None) -> list[dict[str, Any]]:
         """
         List all available templates, optionally filtered by EDRR phase.
 
@@ -321,7 +321,7 @@ class PromptManager:
         template_files = Path(self.storage_path).glob("*.json")
         for file_path in template_files:
             try:
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     data = json.load(f)
 
                 template = self._deserialize_template(data)
@@ -355,7 +355,7 @@ class PromptManager:
         except Exception as e:
             logger.error(f"Error saving template {template.name}: {str(e)}")
 
-    def _serialize_template(self, template: PromptTemplate) -> Dict[str, Any]:
+    def _serialize_template(self, template: PromptTemplate) -> dict[str, Any]:
         """Serialize a template to a dictionary."""
         return {
             "name": template.name,
@@ -373,7 +373,7 @@ class PromptManager:
             ],
         }
 
-    def _deserialize_template(self, data: Dict[str, Any]) -> Optional[PromptTemplate]:
+    def _deserialize_template(self, data: dict[str, Any]) -> PromptTemplate | None:
         """Deserialize a template from a dictionary."""
         try:
             template = PromptTemplate(

@@ -61,7 +61,7 @@ class SupportsMessageProtocol(Protocol):
         ...
 
     def get_messages(
-        self, agent: Optional[str], filters: Optional[dict[str, Any]]
+        self, agent: str | None, filters: dict[str, Any] | None
     ) -> list[Any]:  # pragma: no cover - simple delegation
         ...
 
@@ -155,8 +155,8 @@ def broadcast_message(
 
 def get_messages(
     team: Any,
-    agent: Optional[str] = None,
-    filters: Optional[dict[str, Any]] = None,
+    agent: str | None = None,
+    filters: dict[str, Any] | None = None,
 ) -> list[Any]:
     """Retrieve messages from the team's message protocol."""
     _init_message_protocol(team)

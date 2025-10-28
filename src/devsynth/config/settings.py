@@ -6,7 +6,8 @@ import os
 import re
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, TypeVar, Union, cast
+from collections.abc import Callable
 
 import toml  # type: ignore[import-untyped]  # TODO(2025-12-20): Adopt typed tomllib or bundle stubs.
 import yaml
@@ -46,7 +47,7 @@ from .loader import load_config
 DEFAULT_KUZU_EMBEDDED = True
 
 # Module-level defaults for Kuzu integration
-kuzu_db_path: Optional[str] = None
+kuzu_db_path: str | None = None
 # Whether to use the embedded KuzuDB backend by default. Tests and runtime
 # environments may override this via the ``DEVSYNTH_KUZU_EMBEDDED``
 # environment variable. ``KUZU_EMBEDDED`` mirrors ``kuzu_embedded`` and
@@ -76,7 +77,7 @@ def _install_get_settings_impl(func: Callable[..., Any]) -> Callable[..., Any]:
     return func
 
 
-def get_settings(reload: bool = False, **kwargs: Any) -> "Settings":
+def get_settings(reload: bool = False, **kwargs: Any) -> Settings:
     """Return cached settings, delegating to the active implementation."""
 
     return _get_settings_impl(reload=reload, **kwargs)
@@ -98,7 +99,7 @@ def _parse_bool_env(value: Any, field: str) -> bool:
     )
 
 
-def is_devsynth_managed_project(project_dir: Optional[str] = None) -> bool:
+def is_devsynth_managed_project(project_dir: str | None = None) -> bool:
     """
     Check if the project is managed by DevSynth.
 
@@ -132,7 +133,7 @@ def is_devsynth_managed_project(project_dir: Optional[str] = None) -> bool:
     return False
 
 
-def load_dotenv(dotenv_path: Optional[str] = None) -> None:
+def load_dotenv(dotenv_path: str | None = None) -> None:
     """
     Load environment variables from a .env file.
 
@@ -151,7 +152,7 @@ def load_dotenv(dotenv_path: Optional[str] = None) -> None:
     logger.debug(f"Loading environment variables from {dotenv_path}")
 
     # Read the .env file
-    with open(dotenv_path, "r") as f:
+    with open(dotenv_path) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
@@ -190,7 +191,7 @@ class Settings(BaseSettings):
             KeyError: If the setting does not exist
         """
         # Map test-expected keys to actual attribute names
-        key_mapping: dict[str, Callable[["Settings"], Any]] = {
+        key_mapping: dict[str, Callable[[Settings], Any]] = {
             "llm_provider": lambda s: os.environ.get(
                 "DEVSYNTH_LLM_PROVIDER", "lmstudio"
             ),
@@ -241,13 +242,13 @@ class Settings(BaseSettings):
     memory_store_type: str = Field(
         default="memory", json_schema_extra={"env": "DEVSYNTH_MEMORY_STORE"}
     )
-    memory_file_path: Optional[str] = Field(
+    memory_file_path: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_MEMORY_PATH"}
     )
-    s3_bucket_name: Optional[str] = Field(
+    s3_bucket_name: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_S3_BUCKET"}
     )
-    kuzu_db_path: Optional[str] = Field(
+    kuzu_db_path: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_KUZU_DB_PATH"}
     )
     # Enable or disable the embedded KuzuDB backend. When ``False`` the system
@@ -277,7 +278,7 @@ class Settings(BaseSettings):
     chromadb_distance_func: str = Field(
         default="cosine", json_schema_extra={"env": "DEVSYNTH_CHROMADB_DISTANCE_FUNC"}
     )
-    chromadb_host: Optional[str] = Field(
+    chromadb_host: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_CHROMADB_HOST"}
     )
     chromadb_port: int = Field(
@@ -296,10 +297,10 @@ class Settings(BaseSettings):
     )
 
     # Path settings
-    log_dir: Optional[str] = Field(
+    log_dir: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_LOG_DIR"}
     )
-    project_dir: Optional[str] = Field(
+    project_dir: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_PROJECT_DIR"}
     )
 
@@ -307,12 +308,12 @@ class Settings(BaseSettings):
     provider_type: str = Field(
         default="openai", json_schema_extra={"env": "DEVSYNTH_PROVIDER_TYPE"}
     )
-    openai_api_key: Optional[str] = Field(
+    openai_api_key: str | None = Field(
         default=None,
         validation_alias="OPENAI_API_KEY",
         json_schema_extra={"env": "OPENAI_API_KEY"},
     )
-    lm_studio_endpoint: Optional[str] = Field(
+    lm_studio_endpoint: str | None = Field(
         default=None, json_schema_extra={"env": "LM_STUDIO_ENDPOINT"}
     )
 
@@ -337,12 +338,12 @@ class Settings(BaseSettings):
     provider_retry_metrics: bool = Field(
         default=True, json_schema_extra={"env": "DEVSYNTH_PROVIDER_RETRY_METRICS"}
     )
-    provider_retry_conditions: Optional[str] = Field(
+    provider_retry_conditions: str | None = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_PROVIDER_RETRY_CONDITIONS"}
     )
 
     @field_validator("provider_retry_conditions", mode="after")
-    def _normalize_conditions(cls, v: Union[str, None]) -> Optional[str]:
+    def _normalize_conditions(cls, v: str | None) -> str | None:
         if v is None:
             return None
         return ",".join(part.strip() for part in str(v).split(",") if part.strip())
@@ -369,7 +370,7 @@ class Settings(BaseSettings):
     )
 
     @field_validator("openai_api_key", mode="before")
-    def validate_api_key(cls, v: Optional[str]) -> Optional[str]:
+    def validate_api_key(cls, v: str | None) -> str | None:
         if v is not None and not v.strip():
             raise ConfigurationError(
                 "OPENAI_API_KEY cannot be empty",
@@ -404,12 +405,12 @@ class Settings(BaseSettings):
         validation_alias="DEVSYNTH_ENCRYPTION_AT_REST",
         json_schema_extra={"env": "DEVSYNTH_ENCRYPTION_AT_REST"},
     )
-    encryption_key: Optional[str] = Field(
+    encryption_key: str | None = Field(
         default=None,
         validation_alias="DEVSYNTH_ENCRYPTION_KEY",
         json_schema_extra={"env": "DEVSYNTH_ENCRYPTION_KEY"},
     )
-    access_token: Optional[str] = Field(
+    access_token: str | None = Field(
         default=None,
         validation_alias="DEVSYNTH_ACCESS_TOKEN",
         json_schema_extra={"env": "DEVSYNTH_ACCESS_TOKEN"},
@@ -419,17 +420,17 @@ class Settings(BaseSettings):
         validation_alias="DEVSYNTH_TLS_VERIFY",
         json_schema_extra={"env": "DEVSYNTH_TLS_VERIFY"},
     )
-    tls_cert_file: Optional[str] = Field(
+    tls_cert_file: str | None = Field(
         default=None,
         validation_alias="DEVSYNTH_TLS_CERT_FILE",
         json_schema_extra={"env": "DEVSYNTH_TLS_CERT_FILE"},
     )
-    tls_key_file: Optional[str] = Field(
+    tls_key_file: str | None = Field(
         default=None,
         validation_alias="DEVSYNTH_TLS_KEY_FILE",
         json_schema_extra={"env": "DEVSYNTH_TLS_KEY_FILE"},
     )
-    tls_ca_file: Optional[str] = Field(
+    tls_ca_file: str | None = Field(
         default=None,
         validation_alias="DEVSYNTH_TLS_CA_FILE",
         json_schema_extra={"env": "DEVSYNTH_TLS_CA_FILE"},
@@ -519,15 +520,15 @@ class Settings(BaseSettings):
     @field_validator("memory_file_path", mode="before")
     def set_default_memory_path(
         cls,
-        v: Optional[str],
+        v: str | None,
         info: ValidationInfo,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Set default memory path if not specified.
         First check for project-level config, then fall back to global config.
         Defer path creation to maintain testability.
         """
-        values = cast(Dict[str, Any], info.data)
+        values = cast(dict[str, Any], info.data)
         if v is not None:
             return v
 
@@ -584,7 +585,7 @@ class Settings(BaseSettings):
         global_config_path = os.path.join(global_config_dir, "global_config.yaml")
         if os.path.exists(global_config_path):
             try:
-                with open(global_config_path, "r") as f:
+                with open(global_config_path) as f:
                     config = yaml.safe_load(f)
                     if (
                         isinstance(config, dict)
@@ -614,15 +615,15 @@ class Settings(BaseSettings):
     @field_validator("log_dir", mode="before")
     def set_default_log_dir(
         cls,
-        v: Optional[str],
+        v: str | None,
         info: ValidationInfo,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Set default log directory if not specified.
         First check for project-level config, then fall back to global config.
         Defer directory creation to maintain testability.
         """
-        values = cast(Dict[str, Any], info.data)
+        values = cast(dict[str, Any], info.data)
         if v is not None:
             return v
 
@@ -681,7 +682,7 @@ class Settings(BaseSettings):
         global_config_path = os.path.join(global_config_dir, "global_config.yaml")
         if os.path.exists(global_config_path):
             try:
-                with open(global_config_path, "r") as f:
+                with open(global_config_path) as f:
                     config = yaml.safe_load(f)
                     if (
                         isinstance(config, dict)
@@ -710,14 +711,14 @@ class Settings(BaseSettings):
     @field_validator("project_dir", mode="before")
     def set_default_project_dir(
         cls,
-        v: Optional[str],
+        v: str | None,
         info: ValidationInfo,
     ) -> str:
         """
         Set default project directory if not specified.
         First check environment variables, then fall back to current working directory.
         """
-        values = cast(Dict[str, Any], info.data)
+        values = cast(dict[str, Any], info.data)
         if v is not None:
             return v
 
@@ -735,7 +736,7 @@ class Settings(BaseSettings):
 
 
 # Global settings instance for singleton pattern
-_settings_instance: Optional[Settings] = None
+_settings_instance: Settings | None = None
 
 
 @_install_get_settings_impl
@@ -867,7 +868,7 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
     return path
 
 
-def get_llm_settings(reload: bool = False, **kwargs: Any) -> Dict[str, Any]:
+def get_llm_settings(reload: bool = False, **kwargs: Any) -> dict[str, Any]:
     """
     Get LLM-specific settings.
 

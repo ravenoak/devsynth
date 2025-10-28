@@ -12,7 +12,7 @@ import argparse
 import os
 import subprocess
 import tempfile
-from typing import Sequence
+from collections.abc import Sequence
 
 from devsynth.logging_setup import DevSynthLogger
 

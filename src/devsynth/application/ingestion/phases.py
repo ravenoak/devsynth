@@ -16,7 +16,7 @@ from . import (
 )
 
 
-def run_expand_phase(ingestion: "Ingestion", dry_run: bool, verbose: bool) -> None:
+def run_expand_phase(ingestion: Ingestion, dry_run: bool, verbose: bool) -> None:
     """Run the Expand phase of EDRR."""
     ingestion.metrics.start_phase(IngestionPhase.EXPAND)
     if verbose:
@@ -69,7 +69,7 @@ def run_expand_phase(ingestion: "Ingestion", dry_run: bool, verbose: bool) -> No
 
 
 def run_differentiate_phase(
-    ingestion: "Ingestion", dry_run: bool, verbose: bool
+    ingestion: Ingestion, dry_run: bool, verbose: bool
 ) -> None:
     """Run the Differentiate phase of EDRR."""
     ingestion.metrics.start_phase(IngestionPhase.DIFFERENTIATE)
@@ -118,7 +118,7 @@ def run_differentiate_phase(
         raise IngestionError(f"Failed to complete Differentiate phase: {e}")
 
 
-def run_refine_phase(ingestion: "Ingestion", dry_run: bool, verbose: bool) -> None:
+def run_refine_phase(ingestion: Ingestion, dry_run: bool, verbose: bool) -> None:
     """Run the Refine phase of EDRR."""
     ingestion.metrics.start_phase(IngestionPhase.REFINE)
     if verbose:
@@ -154,7 +154,7 @@ def run_refine_phase(ingestion: "Ingestion", dry_run: bool, verbose: bool) -> No
         raise IngestionError(f"Failed to complete Refine phase: {e}")
 
 
-def run_retrospect_phase(ingestion: "Ingestion", dry_run: bool, verbose: bool) -> None:
+def run_retrospect_phase(ingestion: Ingestion, dry_run: bool, verbose: bool) -> None:
     """Run the Retrospect phase of EDRR."""
     ingestion.metrics.start_phase(IngestionPhase.RETROSPECT)
     if verbose:

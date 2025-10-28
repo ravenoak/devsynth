@@ -8,7 +8,8 @@ the Typer application.
 
 from __future__ import annotations
 
-from typing import Callable, cast
+from typing import cast
+from collections.abc import Callable
 
 from devsynth.core import workflows
 

@@ -14,7 +14,7 @@ from typing import Any, Dict
 SPRINT_PLANNING_PHASE = "expand"
 
 
-def map_requirements_to_plan(requirement_results: Dict[str, Any]) -> Dict[str, Any]:
+def map_requirements_to_plan(requirement_results: dict[str, Any]) -> dict[str, Any]:
     """Return sprint planning information derived from requirement analysis.
 
     Args:

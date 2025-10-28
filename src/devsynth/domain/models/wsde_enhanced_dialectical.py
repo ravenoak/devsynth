@@ -19,10 +19,10 @@ logger = DevSynthLogger(__name__)
 
 def apply_enhanced_dialectical_reasoning(
     self: WSDETeam,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     critic_agent: Any,
     memory_integration: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Apply enhanced dialectical reasoning to a task.
 
@@ -97,8 +97,8 @@ def apply_enhanced_dialectical_reasoning(
 # possible to keep reasoning deterministic in tests.
 
 
-def _categorize_critiques_by_domain(critiques: List[str]) -> Dict[str, List[str]]:
-    categories: Dict[str, List[str]] = {
+def _categorize_critiques_by_domain(critiques: list[str]) -> dict[str, list[str]]:
+    categories: dict[str, list[str]] = {
         "security": [],
         "performance": [],
         "error_handling": [],
@@ -134,10 +134,10 @@ def _categorize_critiques_by_domain(critiques: List[str]) -> Dict[str, List[str]
 
 
 def _identify_domain_conflicts(
-    domain_critiques: Dict[str, List[str]],
-) -> List[Dict[str, str]]:
+    domain_critiques: dict[str, list[str]],
+) -> list[dict[str, str]]:
     # Simple heuristic: conflicts arise between performance and security or readability
-    conflicts: List[Dict[str, str]] = []
+    conflicts: list[dict[str, str]] = []
     if domain_critiques.get("performance") and domain_critiques.get("security"):
         conflicts.append({"domain1": "performance", "domain2": "security"})
     if domain_critiques.get("performance") and domain_critiques.get("code_quality"):
@@ -145,7 +145,7 @@ def _identify_domain_conflicts(
     return conflicts
 
 
-def _prioritize_critiques(critiques: List[str]) -> List[str]:
+def _prioritize_critiques(critiques: list[str]) -> list[str]:
     # Stable sort by simple severity keywords; fall back to input order
     def score(c: str) -> int:
         lc = c.lower()
@@ -193,8 +193,8 @@ def _improve_structure(content: str) -> str:
 
 
 def _resolve_code_improvement_conflict(
-    conflict: Dict[str, Any], imp1: List[str], imp2: List[str]
-) -> Dict[str, Any]:
+    conflict: dict[str, Any], imp1: list[str], imp2: list[str]
+) -> dict[str, Any]:
     return {
         "conflict": conflict,
         "resolution": "balanced code trade-off",
@@ -203,8 +203,8 @@ def _resolve_code_improvement_conflict(
 
 
 def _resolve_content_improvement_conflict(
-    conflict: Dict[str, Any], imp1: List[str], imp2: List[str]
-) -> Dict[str, Any]:
+    conflict: dict[str, Any], imp1: list[str], imp2: list[str]
+) -> dict[str, Any]:
     return {
         "conflict": conflict,
         "resolution": "clarified documentation",
@@ -212,24 +212,24 @@ def _resolve_content_improvement_conflict(
     }
 
 
-def _check_pep8_compliance(code: str) -> Dict[str, Any]:
+def _check_pep8_compliance(code: str) -> dict[str, Any]:
     return {"pep8": True, "issues": []}
 
 
-def _check_security_best_practices(code: str) -> Dict[str, Any]:
+def _check_security_best_practices(code: str) -> dict[str, Any]:
     return {"static_checks": True, "issues": []}
 
 
-def _check_content_standards_compliance(content: str) -> Dict[str, Any]:
+def _check_content_standards_compliance(content: str) -> dict[str, Any]:
     return {"style": True, "issues": []}
 
 
 def _generate_detailed_synthesis_reasoning(
-    domain_critiques: Dict[str, Any],
-    domain_improvements: Dict[str, Any],
-    domain_conflicts: List[Dict[str, Any]],
-    resolved_conflicts: List[Dict[str, Any]],
-    standards_compliance: Dict[str, Any],
+    domain_critiques: dict[str, Any],
+    domain_improvements: dict[str, Any],
+    domain_conflicts: list[dict[str, Any]],
+    resolved_conflicts: list[dict[str, Any]],
+    standards_compliance: dict[str, Any],
 ) -> str:
     return (
         "Synthesis integrates domain improvements, resolves key conflicts, and "
@@ -238,8 +238,8 @@ def _generate_detailed_synthesis_reasoning(
 
 
 def _analyze_solution(
-    solution: Dict[str, Any], task: Dict[str, Any], index: int
-) -> Dict[str, Any]:
+    solution: dict[str, Any], task: dict[str, Any], index: int
+) -> dict[str, Any]:
     return {
         "id": solution.get("id", f"solution-{index}"),
         "score": len(solution.get("content", "")),
@@ -249,8 +249,8 @@ def _analyze_solution(
 
 
 def _generate_comparative_analysis(
-    solution_analyses: List[Dict[str, Any]], task: Dict[str, Any]
-) -> Dict[str, Any]:
+    solution_analyses: list[dict[str, Any]], task: dict[str, Any]
+) -> dict[str, Any]:
     best = (
         max(solution_analyses, key=lambda a: a.get("score", 0))
         if solution_analyses
@@ -264,8 +264,8 @@ def _generate_comparative_analysis(
 
 
 def _generate_multi_solution_synthesis(
-    solutions: List[Dict[str, Any]], comparative_analysis: Dict[str, Any]
-) -> Dict[str, Any]:
+    solutions: list[dict[str, Any]], comparative_analysis: dict[str, Any]
+) -> dict[str, Any]:
     return {
         "id": str(uuid4()),
         "timestamp": datetime.now().isoformat(),
@@ -278,10 +278,10 @@ def _generate_multi_solution_synthesis(
 
 
 def _generate_comparative_evaluation(
-    synthesis: Dict[str, Any],
-    solutions: List[Dict[str, Any]],
-    comparative_analysis: Dict[str, Any],
-) -> Dict[str, Any]:
+    synthesis: dict[str, Any],
+    solutions: list[dict[str, Any]],
+    comparative_analysis: dict[str, Any],
+) -> dict[str, Any]:
     return {
         "id": str(uuid4()),
         "timestamp": datetime.now().isoformat(),
@@ -293,10 +293,10 @@ def _generate_comparative_evaluation(
 
 def apply_enhanced_dialectical_reasoning_multi(
     self: WSDETeam,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     critic_agent: Any,
     memory_integration: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Apply enhanced dialectical reasoning to multiple solutions for a task.
 
@@ -371,8 +371,8 @@ def apply_enhanced_dialectical_reasoning_multi(
 
 
 def _identify_thesis(
-    self: WSDETeam, thesis_solution: Dict[str, Any], task: Dict[str, Any]
-) -> Dict[str, Any]:
+    self: WSDETeam, thesis_solution: dict[str, Any], task: dict[str, Any]
+) -> dict[str, Any]:
     """
     Identify the thesis from a solution.
 
@@ -407,8 +407,8 @@ def _identify_thesis(
 
 
 def _generate_enhanced_antithesis(
-    self: WSDETeam, thesis: Dict[str, Any], critic_agent: Any
-) -> Dict[str, Any]:
+    self: WSDETeam, thesis: dict[str, Any], critic_agent: Any
+) -> dict[str, Any]:
     """
     Generate an enhanced antithesis for a thesis.
 
@@ -486,8 +486,8 @@ def _generate_enhanced_antithesis(
 
 
 def _generate_enhanced_synthesis(
-    self: WSDETeam, thesis: Dict[str, Any], antithesis: Dict[str, Any]
-) -> Dict[str, Any]:
+    self: WSDETeam, thesis: dict[str, Any], antithesis: dict[str, Any]
+) -> dict[str, Any]:
     """
     Generate an enhanced synthesis from a thesis and antithesis.
 
@@ -613,10 +613,10 @@ def _generate_enhanced_synthesis(
 
 def _generate_evaluation(
     self: WSDETeam,
-    synthesis: Dict[str, Any],
-    antithesis: Dict[str, Any],
-    task: Dict[str, Any],
-) -> Dict[str, Any]:
+    synthesis: dict[str, Any],
+    antithesis: dict[str, Any],
+    task: dict[str, Any],
+) -> dict[str, Any]:
     """
     Generate an evaluation of a synthesis.
 

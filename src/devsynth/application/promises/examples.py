@@ -28,7 +28,7 @@ class MathAgent(PromiseAgent):
     """
 
     def __init__(
-        self, agent_id: str = "math_agent", broker: Optional[PromiseBroker] = None
+        self, agent_id: str = "math_agent", broker: PromiseBroker | None = None
     ):
         """Initialize the Math Agent."""
         super().__init__(agent_id, broker)
@@ -100,7 +100,7 @@ class TextAgent(PromiseAgent):
     """
 
     def __init__(
-        self, agent_id: str = "text_agent", broker: Optional[PromiseBroker] = None
+        self, agent_id: str = "text_agent", broker: PromiseBroker | None = None
     ):
         """Initialize the Text Agent."""
         super().__init__(agent_id, broker)
@@ -131,7 +131,7 @@ class TextAgent(PromiseAgent):
             f"Text Agent initialized with {len(self.get_own_capabilities())} capabilities"
         )
 
-    def concatenate_texts(self, texts: List[str], separator: str = " ") -> str:
+    def concatenate_texts(self, texts: list[str], separator: str = " ") -> str:
         """Concatenate multiple strings with a separator."""
         result = separator.join(texts)
         logger.debug(f"Concatenated {len(texts)} texts with separator '{separator}'")
@@ -143,7 +143,7 @@ class TextAgent(PromiseAgent):
         logger.debug(f"Reversed text: '{text}' -> '{result}'")
         return result
 
-    def tokenize_text(self, text: str, delimiter: str = " ") -> List[str]:
+    def tokenize_text(self, text: str, delimiter: str = " ") -> list[str]:
         """Split text into tokens using the delimiter."""
         tokens = text.split(delimiter)
         logger.debug(
@@ -158,7 +158,7 @@ class ProjectAgent(PromiseAgent):
     """
 
     def __init__(
-        self, agent_id: str = "project_agent", broker: Optional[PromiseBroker] = None
+        self, agent_id: str = "project_agent", broker: PromiseBroker | None = None
     ):
         """Initialize the Project Agent."""
         super().__init__(agent_id, broker)
@@ -182,7 +182,7 @@ class ProjectAgent(PromiseAgent):
             f"Project Agent initialized with {len(self.get_own_capabilities())} capabilities"
         )
 
-    def create_project(self, name: str, description: str) -> Dict[str, Any]:
+    def create_project(self, name: str, description: str) -> dict[str, Any]:
         """Create a new project."""
         logger.info(f"Creating project: {name}")
 
@@ -196,7 +196,7 @@ class ProjectAgent(PromiseAgent):
 
         return project
 
-    def analyze_requirements(self, requirements: str) -> Dict[str, Any]:
+    def analyze_requirements(self, requirements: str) -> dict[str, Any]:
         """Analyze project requirements using other agents' capabilities."""
         logger.info("Analyzing requirements")
 

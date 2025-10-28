@@ -6,7 +6,8 @@ import uuid
 from collections import OrderedDict
 from dataclasses import replace
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Union
+from collections.abc import Mapping, Sequence
 
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
@@ -137,16 +138,16 @@ class CollaborativeWSDETeam(WSDETeam):
             persona_summary,
         )
 
-    def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def collaborative_decision(self, task: dict[str, Any]) -> dict[str, Any]:
         """Run a collaborative voting process for a critical decision task."""
         return self.vote_on_critical_decision(task)
 
-    def peer_review_solution(self, work_product: Any, author: Any) -> Dict[str, Any]:
+    def peer_review_solution(self, work_product: Any, author: Any) -> dict[str, Any]:
         """Conduct a full peer review cycle for a work product."""
         reviewers = [a for a in self.agents if a is not author]
         return self.conduct_peer_review(work_product, author, reviewers)
 
-    def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def process_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """Process a task using the team's collaborative approach."""
 
         task_id = task.get("id", str(uuid.uuid4()))
@@ -349,7 +350,7 @@ class CollaborativeWSDETeam(WSDETeam):
 
     def get_contribution_metrics(
         self, task_id: str
-    ) -> Dict[str, Dict[str, Union[int, float]]]:
+    ) -> dict[str, dict[str, int | float]]:
         """
         Get contribution metrics for a task.
 
@@ -361,7 +362,7 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         return self.contribution_metrics.get(task_id, {})
 
-    def get_role_history(self) -> List[Dict[str, Any]]:
+    def get_role_history(self) -> list[dict[str, Any]]:
         """
         Get the history of role assignments.
 
@@ -371,7 +372,7 @@ class CollaborativeWSDETeam(WSDETeam):
         return self.role_history
 
     def associate_subtasks(
-        self, main_task: Dict[str, Any], subtasks: List[Dict[str, Any]]
+        self, main_task: dict[str, Any], subtasks: list[dict[str, Any]]
     ) -> None:
         """
         Associate subtasks with a main task.
@@ -395,7 +396,7 @@ class CollaborativeWSDETeam(WSDETeam):
             subtask_id = subtask.get("id", str(uuid.uuid4()))
             self.subtask_progress[subtask_id] = 0.0
 
-    def delegate_subtasks(self, subtasks: List[Dict[str, Any]]) -> Dict[str, str]:
+    def delegate_subtasks(self, subtasks: list[dict[str, Any]]) -> dict[str, str]:
         """
         Delegate subtasks to agents based on expertise.
 
@@ -469,8 +470,8 @@ class CollaborativeWSDETeam(WSDETeam):
         self.subtask_progress[subtask_id] = progress
 
     def reassign_subtasks_based_on_progress(
-        self, subtasks: List[Dict[str, Any]]
-    ) -> Dict[str, str]:
+        self, subtasks: list[dict[str, Any]]
+    ) -> dict[str, str]:
         """
         Reassign subtasks based on progress and agent availability.
 
@@ -571,7 +572,7 @@ class CollaborativeWSDETeam(WSDETeam):
 
         return new_assignments
 
-    def update_task_requirements(self, updated_task: Dict[str, Any]) -> None:
+    def update_task_requirements(self, updated_task: dict[str, Any]) -> None:
         """
         Update task requirements and trigger leadership reassessment.
 
@@ -613,7 +614,7 @@ class CollaborativeWSDETeam(WSDETeam):
             "timestamp": datetime.now().isoformat(),
         }
 
-    def get_leadership_reassessment_result(self, task_id: str) -> Dict[str, Any]:
+    def get_leadership_reassessment_result(self, task_id: str) -> dict[str, Any]:
         """
         Get the result of a leadership reassessment for a task.
 
@@ -625,7 +626,7 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         return self.leadership_reassessments.get(task_id, {})
 
-    def get_transition_metrics(self, task_id: str) -> Dict[str, Any]:
+    def get_transition_metrics(self, task_id: str) -> dict[str, Any]:
         """
         Get transition metrics for a task.
 
@@ -637,7 +638,7 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         return self.transition_metrics.get(task_id, {})
 
-    def solve_collaboratively(self, problem: Dict[str, Any]) -> Dict[str, Any]:
+    def solve_collaboratively(self, problem: dict[str, Any]) -> dict[str, Any]:
         """
         Solve a problem collaboratively without hierarchy.
 
@@ -766,7 +767,7 @@ class CollaborativeWSDETeam(WSDETeam):
 
         return solution
 
-    def get_collaboration_metrics(self, problem_id: str) -> Dict[str, Any]:
+    def get_collaboration_metrics(self, problem_id: str) -> dict[str, Any]:
         """
         Get collaboration metrics for a problem.
 
@@ -806,7 +807,7 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         return decision_id in self.decision_documentation
 
-    def force_voting_tie(self, task: Dict[str, Any]) -> None:
+    def force_voting_tie(self, task: dict[str, Any]) -> None:
         """
         Force a tie in the voting for a task (for testing purposes).
 
@@ -840,7 +841,7 @@ class CollaborativeWSDETeam(WSDETeam):
             ] = "completed"
 
     def add_decision_implementation_details(
-        self, decision_id: str, details: Dict[str, Any]
+        self, decision_id: str, details: dict[str, Any]
     ) -> None:
         """
         Add implementation details to a decision.
@@ -857,7 +858,7 @@ class CollaborativeWSDETeam(WSDETeam):
             for key, value in details.items():
                 self.decision_tracking[decision_id]["metadata"][key] = value
 
-    def get_tracked_decision(self, decision_id: str) -> Dict[str, Any]:
+    def get_tracked_decision(self, decision_id: str) -> dict[str, Any]:
         """
         Get a tracked decision.
 
@@ -869,7 +870,7 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         return self.decision_tracking.get(decision_id, {})
 
-    def query_decisions(self, **kwargs) -> List[Dict[str, Any]]:
+    def query_decisions(self, **kwargs) -> list[dict[str, Any]]:
         """
         Query decisions based on criteria.
 
@@ -906,7 +907,7 @@ class CollaborativeWSDETeam(WSDETeam):
 
         return results
 
-    def build_consensus(self, task: Dict[str, Any]) -> ConsensusOutcome:
+    def build_consensus(self, task: dict[str, Any]) -> ConsensusOutcome:
         """Build consensus for a task with additional enrichment."""
 
         task_id = task.get("id", str(uuid.uuid4()))
@@ -921,7 +922,7 @@ class CollaborativeWSDETeam(WSDETeam):
         return self._summarize_and_store_consensus(task, enriched_outcome)
 
     def _summarize_and_store_consensus(
-        self, task: Dict[str, Any], consensus_result: ConsensusOutcome
+        self, task: dict[str, Any], consensus_result: ConsensusOutcome
     ) -> ConsensusOutcome:
         """Summarize and persist consensus results.
 
@@ -945,9 +946,9 @@ class CollaborativeWSDETeam(WSDETeam):
         except Exception:
             summary = ""
 
-        metadata_updates: Dict[str, Any] = OrderedDict((("summary", summary),))
+        metadata_updates: dict[str, Any] = OrderedDict((("summary", summary),))
 
-        memory_ref: Optional[str] = None
+        memory_ref: str | None = None
         manager = getattr(self, "memory_manager", None)
         if manager is not None:
             try:
@@ -974,13 +975,13 @@ class CollaborativeWSDETeam(WSDETeam):
         task_id: str,
         task: Mapping[str, Any],
         outcome: ConsensusOutcome,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create deterministic metadata annotations for a consensus outcome."""
 
         opinions: Sequence[AgentOpinionRecord] = outcome.agent_opinions
         conflicts: Sequence[ConflictRecord] = outcome.conflicts
 
-        reasoning_entries: List[tuple[str, str]] = []
+        reasoning_entries: list[tuple[str, str]] = []
         for index, record in enumerate(opinions):
             agent_id = record.agent_id or f"agent_{index}"
             rationale = record.rationale or record.opinion or "No opinion provided"
@@ -1089,7 +1090,7 @@ class CollaborativeWSDETeam(WSDETeam):
         if outcome.synthesis is not None and outcome.synthesis.text:
             consensus_decision["tie_breaking_rationale"] = outcome.synthesis.text
 
-        metadata_update: Dict[str, Any] = OrderedDict(
+        metadata_update: dict[str, Any] = OrderedDict(
             (
                 ("identified_conflicts", tuple(c.to_dict() for c in conflicts)),
                 ("resolution_process", resolution_process),
@@ -1117,7 +1118,7 @@ class CollaborativeWSDETeam(WSDETeam):
 
     def _merge_metadata(
         self, base: Mapping[str, Any], updates: Mapping[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Merge metadata mappings with deterministic ordering."""
 
         merged = OrderedDict(sorted(base.items(), key=lambda item: str(item[0])))
@@ -1125,7 +1126,7 @@ class CollaborativeWSDETeam(WSDETeam):
             merged[key] = value
         return merged
 
-    def _identify_conflicts(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _identify_conflicts(self, task: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Identify conflicts in agent opinions for a task.
 
@@ -1193,8 +1194,8 @@ class CollaborativeWSDETeam(WSDETeam):
         ) in conflicting_pairs
 
     def _generate_conflict_resolution_synthesis(
-        self, task: Dict[str, Any], conflicts: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, task: dict[str, Any], conflicts: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """
         Generate a synthesis that resolves conflicts.
 
@@ -1359,7 +1360,7 @@ class CollaborativeWSDETeam(WSDETeam):
         return max(1.0, combined_weight * 10.0)
 
     def _track_decision(
-        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
+        self, task: dict[str, Any], consensus_result: dict[str, Any]
     ) -> None:
         """
         Track a decision for future reference.
@@ -1575,11 +1576,11 @@ class CollaborativeWSDETeam(WSDETeam):
 
     def _handle_tied_vote(
         self,
-        task: Dict[str, Any],
-        voting_result: Dict[str, Any],
-        vote_counts: Dict[str, int],
-        tied_options: List[str],
-    ) -> Dict[str, Any]:
+        task: dict[str, Any],
+        voting_result: dict[str, Any],
+        vote_counts: dict[str, int],
+        tied_options: list[str],
+    ) -> dict[str, Any]:
         """
         Handle a tied vote using enhanced tie-breaking strategies.
 
@@ -2090,7 +2091,7 @@ class CollaborativeWSDETeam(WSDETeam):
         return voting_result
 
     def _generate_stakeholder_explanation(
-        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
+        self, task: dict[str, Any], consensus_result: dict[str, Any]
     ) -> str:
         """
         Generate a stakeholder-friendly explanation of a decision.

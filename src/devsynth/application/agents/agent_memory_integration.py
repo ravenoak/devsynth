@@ -58,7 +58,7 @@ class AgentMemoryIntegration:
         logger.info("Agent memory integration initialized")
 
     def store_agent_solution(
-        self, agent_id: str, task: Dict[str, Any], solution: Dict[str, Any]
+        self, agent_id: str, task: dict[str, Any], solution: dict[str, Any]
     ) -> str:
         """
         Store an agent solution in memory.
@@ -90,7 +90,7 @@ class AgentMemoryIntegration:
         logger.info(f"Stored agent solution in memory with ID {item_id}")
         return item_id
 
-    def retrieve_agent_solutions(self, task_id: str) -> List[MemoryItem]:
+    def retrieve_agent_solutions(self, task_id: str) -> list[MemoryItem]:
         """
         Retrieve agent solutions for a specific task from memory.
 
@@ -140,9 +140,9 @@ class AgentMemoryIntegration:
     def store_dialectical_reasoning(
         self,
         task_id: str,
-        thesis: Dict[str, Any],
-        antithesis: Dict[str, Any],
-        synthesis: Dict[str, Any],
+        thesis: dict[str, Any],
+        antithesis: dict[str, Any],
+        synthesis: dict[str, Any],
     ) -> str:
         """
         Store dialectical reasoning in memory.
@@ -182,7 +182,7 @@ class AgentMemoryIntegration:
         logger.info(f"Stored dialectical reasoning in memory with ID {item_id}")
         return item_id
 
-    def retrieve_dialectical_reasoning(self, task_id: str) -> Optional[MemoryItem]:
+    def retrieve_dialectical_reasoning(self, task_id: str) -> MemoryItem | None:
         """
         Retrieve dialectical reasoning for a specific task from memory.
 
@@ -207,7 +207,7 @@ class AgentMemoryIntegration:
             logger.info(f"No dialectical reasoning found for task {task_id}")
             return None
 
-    def store_agent_context(self, agent_id: str, context_data: Dict[str, Any]) -> None:
+    def store_agent_context(self, agent_id: str, context_data: dict[str, Any]) -> None:
         """
         Store agent context in memory.
 
@@ -220,7 +220,7 @@ class AgentMemoryIntegration:
 
         logger.info(f"Stored context for agent {agent_id}")
 
-    def retrieve_agent_context(self, agent_id: str) -> Dict[str, Any]:
+    def retrieve_agent_context(self, agent_id: str) -> dict[str, Any]:
         """
         Retrieve agent context from memory.
 
@@ -236,7 +236,7 @@ class AgentMemoryIntegration:
         logger.info(f"Retrieved context for agent {agent_id}")
         return context_data
 
-    def search_similar_solutions(self, query: str, top_k: int = 5) -> List[Any]:
+    def search_similar_solutions(self, query: str, top_k: int = 5) -> list[Any]:
         """
         Search for solutions similar to the query using vector similarity.
 
@@ -261,7 +261,7 @@ class AgentMemoryIntegration:
         self,
         content: Any,
         memory_type: MemoryType,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Store an arbitrary piece of memory for this agent.
 
@@ -295,7 +295,7 @@ class AgentMemoryIntegration:
         )
         return item_id
 
-    def retrieve_memory(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve_memory(self, item_id: str) -> MemoryItem | None:
         """Retrieve a memory item by ``item_id``."""
 
         item = self.memory_store.retrieve(item_id)
@@ -310,7 +310,7 @@ class AgentMemoryIntegration:
 
         return item
 
-    def search_memory(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search_memory(self, query: dict[str, Any]) -> list[MemoryItem]:
         """Search memory items using ``query``.
 
         The ``query`` dictionary is passed directly to the underlying store.
@@ -330,7 +330,7 @@ class AgentMemoryIntegration:
         else:
             return []
 
-        results: List[MemoryItem] = []
+        results: list[MemoryItem] = []
         for item in items:
             match = True
             for key, value in query.items():
@@ -357,7 +357,7 @@ class AgentMemoryIntegration:
         self,
         item_id: str,
         content: Any,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Update an existing memory item."""
 
@@ -390,8 +390,8 @@ class AgentMemoryIntegration:
         self,
         content: Any,
         memory_type: MemoryType,
-        metadata: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
     ) -> str:
         """Store a memory item associated with additional ``context``."""
 
@@ -402,7 +402,7 @@ class AgentMemoryIntegration:
 
         return self.store_memory(content, memory_type, metadata)
 
-    def retrieve_memory_with_context(self, context: Dict[str, Any]) -> List[MemoryItem]:
+    def retrieve_memory_with_context(self, context: dict[str, Any]) -> list[MemoryItem]:
         """Retrieve memory items matching a given ``context``."""
 
         query = {"metadata.context": context}

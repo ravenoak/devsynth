@@ -24,7 +24,7 @@ def webapp_cmd(
     path: str = ".",
     force: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate a web application with the specified framework.
 

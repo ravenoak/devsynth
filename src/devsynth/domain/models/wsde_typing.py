@@ -20,15 +20,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import (
-    Callable,
     Dict,
-    Iterable,
     List,
-    MutableMapping,
     Protocol,
-    Sequence,
     runtime_checkable,
 )
+from collections.abc import Callable, Iterable, MutableMapping, Sequence
 
 
 class VoteMethod(str, Enum):
@@ -66,7 +63,7 @@ class RoleName(str, Enum):
     EVALUATOR = "evaluator"
 
     @classmethod
-    def ordered(cls) -> Sequence["RoleName"]:
+    def ordered(cls) -> Sequence[RoleName]:
         """Return the deterministic rotation order for roles."""
 
         return (
@@ -111,7 +108,7 @@ TaskDict = MutableMapping[str, object]
 class RoleAssignments:
     """Strongly-typed representation of team role allocations."""
 
-    assignments: Dict[RoleName, SupportsTeamAgent | None] = field(
+    assignments: dict[RoleName, SupportsTeamAgent | None] = field(
         default_factory=lambda: {role: None for role in RoleName}
     )
 
@@ -137,7 +134,7 @@ class RoleAssignments:
     ]:  # pragma: no cover - trivial
         return self.assignments.items()
 
-    def as_name_mapping(self) -> Dict[str, SupportsTeamAgent | None]:
+    def as_name_mapping(self) -> dict[str, SupportsTeamAgent | None]:
         """Expose assignments using string keys to preserve legacy semantics."""
 
         return {role.value: agent for role, agent in self.assignments.items()}
@@ -157,13 +154,13 @@ class VoteRecord:
 
     method: VoteMethod
     options: Sequence[str]
-    votes: Dict[str, str]
-    vote_counts: Dict[str, int]
+    votes: dict[str, str]
+    vote_counts: dict[str, int]
     status: VoteStatus
     explanation: str
     result: object
-    weights: Dict[str, float] | None = None
-    weighted_votes: Dict[str, float] | None = None
+    weights: dict[str, float] | None = None
+    weighted_votes: dict[str, float] | None = None
 
 
 @dataclass(slots=True)
@@ -171,8 +168,8 @@ class ConsensusRound:
     """Immutable snapshot of a consensus discussion round."""
 
     round_number: int
-    preferences: Dict[str, Dict[str, float]]
-    adjustments: Dict[str, Dict[str, float]]
+    preferences: dict[str, dict[str, float]]
+    adjustments: dict[str, dict[str, float]]
     discussions: Sequence[str]
 
 
@@ -183,8 +180,8 @@ class ConsensusResult:
     status: ConsensusStatus
     result: str | None
     explanation: str
-    rounds: List[ConsensusRound]
-    final_preferences: Dict[str, Dict[str, float]]
+    rounds: list[ConsensusRound]
+    final_preferences: dict[str, dict[str, float]]
 
 
 @dataclass(slots=True)
@@ -196,11 +193,11 @@ class VotingTranscript:
     task_id: str
     method: VoteMethod
     options: Sequence[str]
-    votes: Dict[str, str]
-    reasoning: Dict[str, str]
+    votes: dict[str, str]
+    reasoning: dict[str, str]
     record: VoteRecord
 
-    def as_dict(self) -> Dict[str, object]:
+    def as_dict(self) -> dict[str, object]:
         return {
             "id": self.identifier,
             "timestamp": self.timestamp,
@@ -226,10 +223,10 @@ class ConsensusTranscript:
     timestamp: datetime
     task_id: str
     options: Sequence[str]
-    initial_preferences: Dict[str, Dict[str, float]]
+    initial_preferences: dict[str, dict[str, float]]
     result: ConsensusResult
 
-    def as_dict(self) -> Dict[str, object]:
+    def as_dict(self) -> dict[str, object]:
         return {
             "id": self.identifier,
             "timestamp": self.timestamp,
@@ -252,5 +249,5 @@ class ConsensusTranscript:
         }
 
 
-HookType = Callable[[TaskDict, List[Dict[str, object]]], None]
+HookType = Callable[[TaskDict, list[dict[str, object]]], None]
 """Type alias for dialectical hook callables."""

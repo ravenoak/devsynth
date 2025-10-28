@@ -12,8 +12,8 @@ from devsynth.methodology.base import Phase
 
 
 def progress_roles(
-    team: WSDETeam, phase: Phase, memory_manager: Optional[object] = None
-) -> Dict[str, str]:
+    team: WSDETeam, phase: Phase, memory_manager: object | None = None
+) -> dict[str, str]:
     """Assign roles for an EDRR phase and flush pending memory updates.
 
     Args:
@@ -31,7 +31,7 @@ def progress_roles(
         except TypeError:
             team.assign_roles_for_phase(phase, {})
 
-    assignments: Dict[str, str] = {}
+    assignments: dict[str, str] = {}
     for role, agent in team.roles.items():
         if agent is None:
             continue

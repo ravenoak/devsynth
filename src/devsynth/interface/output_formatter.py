@@ -75,7 +75,7 @@ class OutputFormatter:
 
     def __init__(
         self,
-        console: Optional[Console] = None,
+        console: Console | None = None,
         default_format: OutputFormat = OutputFormat.RICH,
     ) -> None:
         """Initialize the output formatter.
@@ -149,8 +149,8 @@ class OutputFormatter:
         return "normal"
 
     def format_message(
-        self, message: str, message_type: Optional[str] = None, highlight: bool = False
-    ) -> Union[str, Text, Panel, Markdown]:
+        self, message: str, message_type: str | None = None, highlight: bool = False
+    ) -> str | Text | Panel | Markdown:
         """Format a message based on its type and highlight flag.
 
         Args:
@@ -229,7 +229,7 @@ class OutputFormatter:
         """
         self.console = console
 
-    def format_table(self, data: Dict[str, Any], title: Optional[str] = None) -> str:
+    def format_table(self, data: dict[str, Any], title: str | None = None) -> str:
         """Format a dictionary as a table.
 
         Args:
@@ -255,7 +255,7 @@ class OutputFormatter:
         return "\n".join(result)
 
     def format_list(
-        self, items: List[Any], title: Optional[str] = None, bullet: str = "•"
+        self, items: list[Any], title: str | None = None, bullet: str = "•"
     ) -> str:
         """Format a list of items.
 
@@ -282,9 +282,9 @@ class OutputFormatter:
     def format_structured(
         self,
         data: Any,
-        output_format: Optional[OutputFormat] = None,
-        title: Optional[str] = None,
-    ) -> Union[str, Panel, Table, Syntax]:
+        output_format: OutputFormat | None = None,
+        title: str | None = None,
+    ) -> str | Panel | Table | Syntax:
         """Format data in a structured format (JSON, YAML, etc.).
 
         Args:
@@ -358,7 +358,7 @@ class OutputFormatter:
                 return "\n".join(result)
 
     def _dict_to_markdown(
-        self, data: Dict[str, Any], title: Optional[str] = None
+        self, data: dict[str, Any], title: str | None = None
     ) -> str:
         """Convert a dictionary to markdown format.
 
@@ -402,7 +402,7 @@ class OutputFormatter:
 
         return "\n".join(result)
 
-    def _list_to_markdown(self, data: List[Any], title: Optional[str] = None) -> str:
+    def _list_to_markdown(self, data: list[Any], title: str | None = None) -> str:
         """Convert a list to markdown format.
 
         Args:
@@ -431,7 +431,7 @@ class OutputFormatter:
         return "\n".join(result)
 
     def _dict_to_table(
-        self, data: Dict[str, Any], title: Optional[str] = None
+        self, data: dict[str, Any], title: str | None = None
     ) -> Table:
         """Convert a dictionary to a Rich table.
 
@@ -460,7 +460,7 @@ class OutputFormatter:
         return table
 
     def _list_of_dicts_to_table(
-        self, data: List[Dict[str, Any]], title: Optional[str] = None
+        self, data: list[dict[str, Any]], title: str | None = None
     ) -> Table:
         """Convert a list of dictionaries to a Rich table.
 
@@ -499,7 +499,7 @@ class OutputFormatter:
 
         return table
 
-    def _dict_to_rich(self, data: Dict[str, Any], title: Optional[str] = None) -> Panel:
+    def _dict_to_rich(self, data: dict[str, Any], title: str | None = None) -> Panel:
         """Convert a dictionary to a Rich panel.
 
         Args:
@@ -516,8 +516,8 @@ class OutputFormatter:
         return Panel(table, title=title, border_style="blue")
 
     def _list_to_rich(
-        self, data: List[Any], title: Optional[str] = None
-    ) -> Union[Panel, Table]:
+        self, data: list[Any], title: str | None = None
+    ) -> Panel | Table:
         """Convert a list to a Rich panel or table.
 
         Args:
@@ -546,9 +546,9 @@ class OutputFormatter:
 
     def set_format_options(
         self,
-        indent: Optional[int] = None,
-        spacing: Optional[int] = None,
-        line_width: Optional[int] = None,
+        indent: int | None = None,
+        spacing: int | None = None,
+        line_width: int | None = None,
     ) -> None:
         """Set formatting options.
 
@@ -565,8 +565,8 @@ class OutputFormatter:
             self.line_width = line_width
 
     def format_command_output(
-        self, data: Any, format_name: Optional[str] = None, title: Optional[str] = None
-    ) -> Union[str, Panel, Table, Syntax]:
+        self, data: Any, format_name: str | None = None, title: str | None = None
+    ) -> str | Panel | Table | Syntax:
         """Format command output in the specified format.
 
         This is a convenience method for CLI commands to format their output

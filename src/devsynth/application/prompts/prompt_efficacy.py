@@ -27,7 +27,7 @@ class PromptEfficacyTracker:
     and generating statistics and recommendations for prompt optimization.
     """
 
-    def __init__(self, storage_path: Optional[str] = None):
+    def __init__(self, storage_path: str | None = None):
         """
         Initialize the prompt efficacy tracker.
 
@@ -37,7 +37,7 @@ class PromptEfficacyTracker:
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "prompts", "efficacy"
         )
-        self.usage_data: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+        self.usage_data: dict[str, dict[str, list[dict[str, Any]]]] = {}
 
         # Create the storage directory if it doesn't exist
         os.makedirs(self.storage_path, exist_ok=True)
@@ -89,8 +89,8 @@ class PromptEfficacyTracker:
         self,
         tracking_id: str,
         success: bool,
-        metrics: Optional[Dict[str, Any]] = None,
-        feedback: Optional[str] = None,
+        metrics: dict[str, Any] | None = None,
+        feedback: str | None = None,
     ) -> bool:
         """
         Record the outcome of a prompt usage.
@@ -127,8 +127,8 @@ class PromptEfficacyTracker:
         return False
 
     def get_efficacy_metrics(
-        self, template_name: str, version_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, template_name: str, version_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Get efficacy metrics for a prompt template.
 
@@ -170,7 +170,7 @@ class PromptEfficacyTracker:
 
     def get_optimization_recommendations(
         self, template_name: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get recommendations for optimizing a prompt template.
 
@@ -216,8 +216,8 @@ class PromptEfficacyTracker:
         return recommendations
 
     def _calculate_metrics_for_version(
-        self, template_name: str, version_id: str, usages: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, template_name: str, version_id: str, usages: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Calculate metrics for a specific version of a template."""
         total_usages = len(usages)
         usages_with_outcome = [u for u in usages if u.get("outcome") is not None]
@@ -267,8 +267,8 @@ class PromptEfficacyTracker:
         return metrics
 
     def _compare_versions(
-        self, version_metrics: Dict[str, Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, version_metrics: dict[str, dict[str, Any]]
+    ) -> dict[str, Any]:
         """Compare metrics across versions."""
         # Find the version with the highest success rate
         best_version = None
@@ -294,7 +294,7 @@ class PromptEfficacyTracker:
         data_file = os.path.join(self.storage_path, "efficacy_data.json")
         if os.path.exists(data_file):
             try:
-                with open(data_file, "r") as f:
+                with open(data_file) as f:
                     self.usage_data = json.load(f)
                 logger.debug("Loaded prompt efficacy data")
             except Exception as e:

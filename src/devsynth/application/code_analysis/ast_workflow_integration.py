@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass, field
-from typing import Any, Optional, Sequence
+from typing import Any, Optional
+from collections.abc import Sequence
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import (
@@ -251,7 +252,7 @@ class AstWorkflowIntegration:
 
     def differentiate_implementation_quality(
         self, options: Sequence[ImplementationAlternative], task_id: str
-    ) -> Optional[EvaluatedImplementation]:
+    ) -> EvaluatedImplementation | None:
         """
         Use AST analysis in the Differentiate phase to evaluate code quality.
 

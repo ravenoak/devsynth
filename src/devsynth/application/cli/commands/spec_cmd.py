@@ -22,8 +22,8 @@ from ..utils import (
 def spec_cmd(
     requirements_file: str = "requirements.md",
     *,
-    auto_confirm: Optional[bool] = None,
-    bridge: Optional[UXBridge] = None,
+    auto_confirm: bool | None = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate specifications from a requirements file.
 

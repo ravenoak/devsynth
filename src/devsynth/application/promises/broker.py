@@ -54,9 +54,9 @@ class CapabilityMetadata:
         name: str,
         description: str,
         provider_id: str,
-        parameters: Dict[str, str] = None,
-        tags: List[str] = None,
-        authorized_requesters: Set[str] = None,
+        parameters: dict[str, str] = None,
+        tags: list[str] = None,
+        authorized_requesters: set[str] = None,
     ):
         """
         Initialize capability metadata.
@@ -77,7 +77,7 @@ class CapabilityMetadata:
         self.parameters = parameters or {}
         self.tags = tags or []
         self.authorized_requesters = authorized_requesters
-        self.promises: Dict[str, Promise] = {}
+        self.promises: dict[str, Promise] = {}
 
     def authorize(self, requester_id: str) -> bool:
         """
@@ -106,7 +106,7 @@ class CapabilityMetadata:
         """
         self.promises[promise_id] = promise
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the capability metadata to a dictionary.
 
@@ -141,16 +141,16 @@ class PromiseBroker:
     def __init__(self):
         """Initialize the Promise Broker."""
         # Map of capability ID to capability metadata
-        self._capabilities: Dict[str, CapabilityMetadata] = {}
+        self._capabilities: dict[str, CapabilityMetadata] = {}
 
         # Map of capability name to list of capability IDs (for lookup by name)
-        self._capability_name_index: Dict[str, List[str]] = {}
+        self._capability_name_index: dict[str, list[str]] = {}
 
         # Map of provider ID to list of capability IDs (for lookup by provider)
-        self._provider_index: Dict[str, List[str]] = {}
+        self._provider_index: dict[str, list[str]] = {}
 
         # Map of tag to list of capability IDs (for lookup by tag)
-        self._tag_index: Dict[str, List[str]] = {}
+        self._tag_index: dict[str, list[str]] = {}
 
         logger.debug("Promise Broker initialized")
 
@@ -159,9 +159,9 @@ class PromiseBroker:
         name: str,
         description: str,
         provider_id: str,
-        parameters: Dict[str, str] = None,
-        tags: List[str] = None,
-        authorized_requesters: Set[str] = None,
+        parameters: dict[str, str] = None,
+        tags: list[str] = None,
+        authorized_requesters: set[str] = None,
     ) -> str:
         """
         Register a new capability with the broker.
@@ -262,7 +262,7 @@ class PromiseBroker:
         logger.debug(f"Unregistered capability {capability_id} ('{capability.name}')")
         return True
 
-    def get_capability(self, capability_id: str) -> Optional[CapabilityMetadata]:
+    def get_capability(self, capability_id: str) -> CapabilityMetadata | None:
         """
         Get metadata for a specific capability.
 
@@ -276,11 +276,11 @@ class PromiseBroker:
 
     def find_capabilities(
         self,
-        name: Optional[str] = None,
-        provider_id: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        requester_id: Optional[str] = None,
-    ) -> List[CapabilityMetadata]:
+        name: str | None = None,
+        provider_id: str | None = None,
+        tags: list[str] | None = None,
+        requester_id: str | None = None,
+    ) -> list[CapabilityMetadata]:
         """
         Find capabilities matching the given criteria.
 
@@ -294,7 +294,7 @@ class PromiseBroker:
             List of matching capability metadata objects
         """
         # Start with all capability IDs
-        candidate_ids: Set[str] = set(self._capabilities.keys())
+        candidate_ids: set[str] = set(self._capabilities.keys())
 
         # Filter by name
         if name is not None:
@@ -331,8 +331,8 @@ class PromiseBroker:
         self,
         requester_id: str,
         name: str,
-        provider_id: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        provider_id: str | None = None,
+        tags: list[str] | None = None,
     ) -> Promise:
         """
         Request a capability from the broker.
@@ -395,7 +395,7 @@ class PromiseBroker:
 
     def get_capabilities_provided_by(
         self, provider_id: str
-    ) -> List[CapabilityMetadata]:
+    ) -> list[CapabilityMetadata]:
         """
         Get all capabilities provided by a specific agent.
 
@@ -414,7 +414,7 @@ class PromiseBroker:
 
     def get_capabilities_available_to(
         self, requester_id: str
-    ) -> List[CapabilityMetadata]:
+    ) -> list[CapabilityMetadata]:
         """
         Get all capabilities available to a specific agent.
 
@@ -429,7 +429,7 @@ class PromiseBroker:
         ]
 
     def register_capability_with_type(
-        self, agent_id: str, promise_type, constraints: Dict[str, Any]
+        self, agent_id: str, promise_type, constraints: dict[str, Any]
     ) -> str:
         """
         Register a capability for an agent with the given promise type and constraints.

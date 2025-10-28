@@ -67,7 +67,7 @@ class SubtaskProgressSnapshot(TypedDict, total=False):
     total: float
     current: float
     status: ProgressStatusText
-    nested_subtasks: dict[str, "SubtaskProgressSnapshot"]
+    nested_subtasks: dict[str, SubtaskProgressSnapshot]
 
 
 @runtime_checkable
@@ -119,7 +119,7 @@ class SupportsNestedSubtasks(SupportsSubtasks, Protocol):
 class ProgressIndicator(ABC):
     """Handle to update progress for long running operations."""
 
-    def __enter__(self) -> "ProgressIndicator":  # pragma: no cover - simple passthrough
+    def __enter__(self) -> ProgressIndicator:  # pragma: no cover - simple passthrough
         return self
 
     def __exit__(

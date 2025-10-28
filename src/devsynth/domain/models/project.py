@@ -43,7 +43,7 @@ class ArtifactProtocol(Protocol):
 
     path: Path
     artifact_type: ArtifactType
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     name: str
     is_directory: bool
 
@@ -53,9 +53,9 @@ class Artifact(ArtifactProtocol):
 
     def __init__(
         self,
-        path: Union[str, Path],
+        path: str | Path,
         artifact_type: ArtifactType = ArtifactType.UNKNOWN,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """
         Initialize an artifact.
@@ -87,7 +87,7 @@ class ProjectModel:
     querying and navigating the project structure.
     """
 
-    def __init__(self, project_root: Union[str, Path], manifest_data: Dict[str, Any]):
+    def __init__(self, project_root: str | Path, manifest_data: dict[str, Any]):
         """
         Initialize the project model.
 
@@ -97,7 +97,7 @@ class ProjectModel:
         """
         self.project_root = Path(project_root).resolve()
         self.manifest_data = manifest_data
-        self.artifacts: Dict[str, Artifact] = {}
+        self.artifacts: dict[str, Artifact] = {}
         self.structure_type = self._determine_structure_type()
         # Directed graph representing project structure where each node key is the
         # resolved artifact path and node data contains the ``artifact`` object.
@@ -662,7 +662,7 @@ class ProjectModel:
                 str(self.project_root), str(doc_path), relationship="contains"
             )
 
-    def get_artifact(self, path: Union[str, Path]) -> Optional[Artifact]:
+    def get_artifact(self, path: str | Path) -> Artifact | None:
         """
         Get an artifact by path.
 
@@ -675,7 +675,7 @@ class ProjectModel:
         path_str = str(Path(path).resolve())
         return self.artifacts.get(path_str)
 
-    def get_artifacts_by_type(self, artifact_type: ArtifactType) -> List[Artifact]:
+    def get_artifacts_by_type(self, artifact_type: ArtifactType) -> list[Artifact]:
         """
         Get all artifacts of a specific type.
 
@@ -687,7 +687,7 @@ class ProjectModel:
         """
         return [a for a in self.artifacts.values() if a.artifact_type == artifact_type]
 
-    def get_related_artifacts(self, artifact_path: Union[str, Path]) -> List[Artifact]:
+    def get_related_artifacts(self, artifact_path: str | Path) -> list[Artifact]:
         """
         Get artifacts related to the specified artifact.
 
@@ -704,7 +704,7 @@ class ProjectModel:
         if path_str not in self.artifacts:
             raise ProjectModelError(f"Artifact not found: {path_str}")
 
-        related_paths: List[str] = []
+        related_paths: list[str] = []
 
         # Get successors (outgoing edges)
         if path_str in self.graph:
@@ -821,7 +821,7 @@ class ProjectModel:
         # If no specific type is determined, use the default
         return default_type
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the project model to a dictionary representation.
 

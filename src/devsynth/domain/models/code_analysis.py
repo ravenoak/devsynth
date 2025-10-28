@@ -16,12 +16,12 @@ class FileAnalysis(FileAnalysisResult):
 
     def __init__(
         self,
-        imports: List[Dict[str, Any]],
-        classes: List[Dict[str, Any]],
-        functions: List[Dict[str, Any]],
-        variables: List[Dict[str, Any]],
+        imports: list[dict[str, Any]],
+        classes: list[dict[str, Any]],
+        functions: list[dict[str, Any]],
+        variables: list[dict[str, Any]],
         docstring: str,
-        metrics: Dict[str, Any],
+        metrics: dict[str, Any],
     ):
         """Initialize a FileAnalysis instance.
 
@@ -40,19 +40,19 @@ class FileAnalysis(FileAnalysisResult):
         self._docstring = docstring
         self._metrics = metrics
 
-    def get_imports(self) -> List[Dict[str, Any]]:
+    def get_imports(self) -> list[dict[str, Any]]:
         """Get the imports found in the file."""
         return self._imports
 
-    def get_classes(self) -> List[Dict[str, Any]]:
+    def get_classes(self) -> list[dict[str, Any]]:
         """Get the classes found in the file."""
         return self._classes
 
-    def get_functions(self) -> List[Dict[str, Any]]:
+    def get_functions(self) -> list[dict[str, Any]]:
         """Get the functions found in the file."""
         return self._functions
 
-    def get_variables(self) -> List[Dict[str, Any]]:
+    def get_variables(self) -> list[dict[str, Any]]:
         """Get the variables found in the file."""
         return self._variables
 
@@ -60,7 +60,7 @@ class FileAnalysis(FileAnalysisResult):
         """Get the module-level docstring of the file."""
         return self._docstring
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get metrics about the file."""
         return self._metrics
 
@@ -70,10 +70,10 @@ class CodeAnalysis(CodeAnalysisResult):
 
     def __init__(
         self,
-        files: Dict[str, FileAnalysisResult],
-        symbols: Dict[str, List[Dict[str, Any]]],
-        dependencies: Dict[str, List[str]],
-        metrics: Dict[str, Any],
+        files: dict[str, FileAnalysisResult],
+        symbols: dict[str, list[dict[str, Any]]],
+        dependencies: dict[str, list[str]],
+        metrics: dict[str, Any],
     ):
         """Initialize a CodeAnalysis instance.
 
@@ -88,31 +88,31 @@ class CodeAnalysis(CodeAnalysisResult):
         self._dependencies = dependencies
         self._metrics = metrics
 
-    def get_file_analysis(self, file_path: str) -> Optional[FileAnalysisResult]:
+    def get_file_analysis(self, file_path: str) -> FileAnalysisResult | None:
         """Get the analysis result for a specific file."""
         return self._files.get(file_path)
 
-    def get_symbol_references(self, symbol_name: str) -> List[Dict[str, Any]]:
+    def get_symbol_references(self, symbol_name: str) -> list[dict[str, Any]]:
         """Get all references to a symbol in the codebase."""
         return self._symbols.get(symbol_name, [])
 
-    def get_dependencies(self, module_name: str) -> List[str]:
+    def get_dependencies(self, module_name: str) -> list[str]:
         """Get the dependencies of a module."""
         return self._dependencies.get(module_name, [])
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get metrics about the codebase."""
         return self._metrics
 
-    def get_files(self) -> Dict[str, FileAnalysisResult]:
+    def get_files(self) -> dict[str, FileAnalysisResult]:
         """Get all files in the codebase."""
         return self._files
 
-    def get_symbols(self) -> Dict[str, List[Dict[str, Any]]]:
+    def get_symbols(self) -> dict[str, list[dict[str, Any]]]:
         """Get all symbols in the codebase."""
         return self._symbols
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert the CodeAnalysis object to a dictionary representation."""
         return {
             "files": {
@@ -126,7 +126,7 @@ class CodeAnalysis(CodeAnalysisResult):
 
     def _serialize_file_analysis(
         self, file_analysis: FileAnalysisResult
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Serialize a FileAnalysisResult object to a dictionary."""
         return {
             "imports": file_analysis.get_imports(),
@@ -142,7 +142,7 @@ class CodeTransformation(TransformationResult):
     """Implementation of TransformationResult for storing code transformation data."""
 
     def __init__(
-        self, original_code: str, transformed_code: str, changes: List[Dict[str, Any]]
+        self, original_code: str, transformed_code: str, changes: list[dict[str, Any]]
     ):
         """Initialize a CodeTransformation instance.
 
@@ -163,11 +163,11 @@ class CodeTransformation(TransformationResult):
         """Get the transformed code after transformation."""
         return self._transformed_code
 
-    def get_changes(self) -> List[Dict[str, Any]]:
+    def get_changes(self) -> list[dict[str, Any]]:
         """Get the changes made during transformation."""
         return self._changes
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert the CodeTransformation object to a dictionary representation."""
         return {
             "original_code": self._original_code,

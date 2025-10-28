@@ -20,7 +20,7 @@ class CLIConfig:
     non_interactive: bool = False
 
     @classmethod
-    def from_env(cls) -> "CLIConfig":
+    def from_env(cls) -> CLIConfig:
         """Create a configuration populated from environment variables."""
 
         val = os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {

@@ -89,12 +89,12 @@ class ToolRegistry:
         )
         logger.debug("Registered tool %s", name)
 
-    def get(self, name: str) -> Optional[ToolCallable]:
+    def get(self, name: str) -> ToolCallable | None:
         """Return the callable for a registered tool."""
         tool = self._tools.get(name)
         return tool.func if tool else None
 
-    def get_metadata(self, name: str) -> Optional[ToolMetadata]:
+    def get_metadata(self, name: str) -> ToolMetadata | None:
         """Return metadata for a registered tool."""
         tool = self._tools.get(name)
         if tool:
@@ -150,8 +150,8 @@ class _CaptureBridge(UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:  # pragma: no cover - interface stub
         return default or ""
@@ -170,7 +170,7 @@ class _CaptureBridge(UXBridge):
 def alignment_metrics_tool(
     path: str = ".",
     metrics_file: str = ".devsynth/alignment_metrics.json",
-    output: Optional[str] = None,
+    output: str | None = None,
 ) -> ToolResponse:
     """Collect alignment metrics and return them.
 
@@ -224,7 +224,7 @@ def alignment_metrics_tool(
 
 def run_tests_tool(
     target: str = "unit-tests",
-    speed_categories: Optional[Sequence[str]] = None,
+    speed_categories: Sequence[str] | None = None,
     verbose: bool = False,
     report: bool = False,
     parallel: bool = True,

@@ -5,7 +5,8 @@ This command depends on optional extras and may not be available in all environm
 
 from __future__ import annotations
 
-from typing import Callable, Optional, cast
+from typing import Optional, cast
+from collections.abc import Callable
 
 from devsynth.exceptions import DevSynthError
 from devsynth.interface.ux_bridge import UXBridge

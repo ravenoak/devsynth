@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Sequence, TypedDict, Union, cast
+from typing import Optional, TypedDict, Union, cast
+from collections.abc import Sequence
 
 from devsynth.application.sprint.planning import map_requirements_to_plan
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
@@ -114,7 +115,7 @@ def sprint_retrospective_cmd(
     )
 
 
-def _load_json(source: str) -> Optional[JSONMapping]:
+def _load_json(source: str) -> JSONMapping | None:
     """Load JSON from a file path or raw string."""
 
     try:

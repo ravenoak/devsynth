@@ -24,7 +24,7 @@ class GitHubIssueAdapter:
         self.token = token
         self.logger = DevSynthLogger(__name__)
 
-    def fetch(self, issue_ref: str) -> Optional[Dict[str, str]]:
+    def fetch(self, issue_ref: str) -> dict[str, str] | None:
         """Fetch title and acceptance criteria for the given issue.
 
         Args:

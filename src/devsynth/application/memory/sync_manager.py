@@ -169,7 +169,7 @@ logger = DevSynthLogger(__name__)
 class LMDBTransactionContext(AbstractContextManager[object]):
     """Transaction context for :class:`LMDBStore`."""
 
-    def __init__(self, adapter: "LMDBStoreType") -> None:
+    def __init__(self, adapter: LMDBStoreType) -> None:
         self.adapter = adapter
         self._context: TransactionContextProtocol | None = None
 

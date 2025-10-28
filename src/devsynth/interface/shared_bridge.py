@@ -20,7 +20,7 @@ class SharedBridgeMixin:
         message: str,
         *,
         highlight: bool = False,
-        message_type: Optional[str] = None,
+        message_type: str | None = None,
     ):
         """Format and sanitize a message for output.
 

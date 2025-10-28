@@ -33,7 +33,7 @@ _DEFAULT_CONFIG = {
 }
 
 
-def mvu_init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def mvu_init_cmd(*, bridge: UXBridge | None = None) -> None:
     """Create a default `.devsynth/mvu.yml` configuration file."""
     bridge = bridge or CLIUXBridge()
     cfg_path = Path(".devsynth") / "mvu.yml"

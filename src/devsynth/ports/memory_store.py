@@ -9,22 +9,22 @@ class MemoryStore(ABC):
     """
 
     @abstractmethod
-    def add(self, item: Dict[str, Any]) -> str:
+    def add(self, item: dict[str, Any]) -> str:
         """Add an item to the memory store. Returns item ID."""
         raise NotImplementedError("add must be implemented by subclasses")
 
     @abstractmethod
-    def get(self, item_id: str) -> Dict[str, Any]:
+    def get(self, item_id: str) -> dict[str, Any]:
         """Retrieve an item by ID."""
         raise NotImplementedError("get must be implemented by subclasses")
 
     @abstractmethod
-    def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
         """Semantic search for items matching the query."""
         raise NotImplementedError("search must be implemented by subclasses")
 
     @abstractmethod
-    def all(self) -> List[Dict[str, Any]]:
+    def all(self) -> list[dict[str, Any]]:
         """Return all items in the store."""
         raise NotImplementedError("all must be implemented by subclasses")
 

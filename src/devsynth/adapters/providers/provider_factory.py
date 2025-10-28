@@ -18,11 +18,11 @@ class ProviderFactory(provider_system.ProviderFactory):
 
     @staticmethod
     def create_provider(
-        provider_type: Optional[str] = None,
+        provider_type: str | None = None,
         *,
-        config: Optional[Dict[str, Any]] = None,
-        tls_config: Optional[provider_system.TLSConfig] = None,
-        retry_config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
+        tls_config: provider_system.TLSConfig | None = None,
+        retry_config: dict[str, Any] | None = None,
     ) -> provider_system.BaseProvider:
         """Create a provider instance.
 

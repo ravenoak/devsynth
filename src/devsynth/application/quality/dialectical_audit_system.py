@@ -21,10 +21,10 @@ Key features:
 import json
 import os
 import re
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from devsynth.ports.memory_port import MemoryPort
 
@@ -32,12 +32,13 @@ from devsynth.ports.memory_port import MemoryPort
 @dataclass
 class AuditQuestion:
     """Represents a question requiring dialectical review."""
+
     question: str
     feature_name: str
     inconsistency_type: str
     severity: str
-    artifacts: List[str]
-    evidence: Dict[str, Any]
+    artifacts: list[str]
+    evidence: dict[str, Any]
     suggestion: str
     requires_review: bool = True
 
@@ -45,23 +46,25 @@ class AuditQuestion:
 @dataclass
 class ArtifactFeature:
     """Features found in a specific artifact."""
+
     artifact_path: str
     artifact_type: str  # docs, code, tests
-    features: Set[str]
-    feature_locations: Dict[str, int]  # feature -> line number
+    features: set[str]
+    feature_locations: dict[str, int]  # feature -> line number
 
 
 @dataclass
 class DialecticalAuditResult:
     """Results of a dialectical audit."""
+
     timestamp: datetime
     project_path: str
     total_features_found: int
     inconsistencies_found: int
-    questions_generated: List[AuditQuestion]
-    coverage_analysis: Dict[str, Dict[str, int]]
-    feature_matrix: Dict[str, Set[str]]
-    audit_summary: Dict[str, Any]
+    questions_generated: list[AuditQuestion]
+    coverage_analysis: dict[str, dict[str, int]]
+    feature_matrix: dict[str, set[str]]
+    audit_summary: dict[str, Any]
 
 
 class DialecticalAuditSystem:
@@ -79,7 +82,7 @@ class DialecticalAuditSystem:
     - Inconsistencies in feature descriptions across artifacts
     """
 
-    def __init__(self, memory_port: Optional[MemoryPort] = None):
+    def __init__(self, memory_port: MemoryPort | None = None):
         """Initialize the dialectical audit system."""
         self.memory_port = memory_port
         self.audit_log_path = Path.home() / ".devsynth" / "dialectical_audit.log"
@@ -91,13 +94,13 @@ class DialecticalAuditSystem:
             "src/devsynth/interface/webui.py": {
                 "diagnostics_page": "WebUI Diagnostics Page",
                 "metrics_page": "WebUI Metrics Page",
-                "configuration_page": "WebUI Configuration Page"
+                "configuration_page": "WebUI Configuration Page",
             },
             "src/devsynth/application/agents/wsde_team_coordinator.py": {
                 "wsde_collaboration": "WSDE Team Collaboration",
                 "agent_coordination": "Agent Coordination",
-                "consensus_building": "Consensus Building"
-            }
+                "consensus_building": "Consensus Building",
+            },
         }
 
         # Feature extraction patterns
@@ -113,7 +116,7 @@ class DialecticalAuditSystem:
         project_path: str = ".",
         include_docs: bool = True,
         include_code: bool = True,
-        include_tests: bool = True
+        include_tests: bool = True,
     ) -> DialecticalAuditResult:
         """
         Run a comprehensive dialectical audit.
@@ -153,7 +156,7 @@ class DialecticalAuditSystem:
             feature_matrix[feature] = {
                 "docs": feature in doc_features,
                 "code": feature in code_features,
-                "tests": feature in test_features
+                "tests": feature in test_features,
             }
 
         # Generate questions for inconsistencies
@@ -171,7 +174,7 @@ class DialecticalAuditSystem:
             questions_generated=questions,
             coverage_analysis=coverage_analysis,
             feature_matrix={f: m for f, m in feature_matrix.items()},
-            audit_summary=self._generate_audit_summary(questions, coverage_analysis)
+            audit_summary=self._generate_audit_summary(questions, coverage_analysis),
         )
 
         # Log audit results
@@ -183,7 +186,7 @@ class DialecticalAuditSystem:
 
         return result
 
-    def extract_features_from_docs(self, docs_dir: Path) -> Set[str]:
+    def extract_features_from_docs(self, docs_dir: Path) -> set[str]:
         """Extract feature references from documentation."""
         features = set()
 
@@ -193,13 +196,15 @@ class DialecticalAuditSystem:
         for path in docs_dir.rglob("*.md"):
             try:
                 content = path.read_text(encoding="utf-8")
-                features.update(self._extract_features_from_text(content, str(path), "docs"))
+                features.update(
+                    self._extract_features_from_text(content, str(path), "docs")
+                )
             except (UnicodeDecodeError, OSError):
                 continue
 
         return features
 
-    def extract_features_from_tests(self, tests_dir: Path) -> Set[str]:
+    def extract_features_from_tests(self, tests_dir: Path) -> set[str]:
         """Extract feature references from test files."""
         features = set()
 
@@ -222,13 +227,15 @@ class DialecticalAuditSystem:
         for path in tests_dir.rglob("*.py"):
             try:
                 content = path.read_text(encoding="utf-8")
-                features.update(self._extract_features_from_text(content, str(path), "tests"))
+                features.update(
+                    self._extract_features_from_text(content, str(path), "tests")
+                )
             except (UnicodeDecodeError, OSError):
                 continue
 
         return features
 
-    def extract_features_from_code(self, code_dir: Path) -> Set[str]:
+    def extract_features_from_code(self, code_dir: Path) -> set[str]:
         """Extract feature references from code comments."""
         features = set()
 
@@ -238,12 +245,16 @@ class DialecticalAuditSystem:
         for path in code_dir.rglob("*.py"):
             try:
                 content = path.read_text(encoding="utf-8")
-                features.update(self._extract_features_from_text(content, str(path), "code"))
+                features.update(
+                    self._extract_features_from_text(content, str(path), "code")
+                )
 
                 # Check for manual feature mappings
                 rel_path = str(path.relative_to(code_dir.parent.parent))
                 if rel_path in self.code_feature_map:
-                    for func_name, feature_name in self.code_feature_map[rel_path].items():
+                    for func_name, feature_name in self.code_feature_map[
+                        rel_path
+                    ].items():
                         if re.search(rf"def\s+{re.escape(func_name)}\s*\(", content):
                             features.add(feature_name)
 
@@ -253,11 +264,8 @@ class DialecticalAuditSystem:
         return features
 
     def _extract_features_from_text(
-        self,
-        content: str,
-        source_path: str,
-        artifact_type: str
-    ) -> Set[str]:
+        self, content: str, source_path: str, artifact_type: str
+    ) -> set[str]:
         """Extract features from text content."""
         features = set()
 
@@ -277,17 +285,15 @@ class DialecticalAuditSystem:
                     if match:
                         feature_text = match.group(1).strip()
                         # Clean up feature text
-                        feature_text = re.sub(r'[^\w\s\-_]', '', feature_text)
+                        feature_text = re.sub(r"[^\w\s\-_]", "", feature_text)
                         if len(feature_text) > 3:  # Avoid very short matches
                             features.add(feature_text)
 
         return features
 
     def generate_audit_questions(
-        self,
-        feature_matrix: Dict[str, Dict[str, bool]],
-        project_root: Path
-    ) -> List[AuditQuestion]:
+        self, feature_matrix: dict[str, dict[str, bool]], project_root: Path
+    ) -> list[AuditQuestion]:
         """Generate questions requiring dialectical review."""
         questions = []
 
@@ -299,58 +305,72 @@ class DialecticalAuditSystem:
 
             # Generate questions based on coverage patterns
             if has_tests and not has_docs:
-                questions.append(AuditQuestion(
-                    question=f"Feature '{feature}' has tests but is not documented.",
-                    feature_name=feature,
-                    inconsistency_type="missing_documentation",
-                    severity="medium",
-                    artifacts=["tests"],
-                    evidence={"tests_only": True, "missing_docs": True},
-                    suggestion="Add documentation for this feature or verify if it's still needed"
-                ))
+                questions.append(
+                    AuditQuestion(
+                        question=f"Feature '{feature}' has tests but is not documented.",
+                        feature_name=feature,
+                        inconsistency_type="missing_documentation",
+                        severity="medium",
+                        artifacts=["tests"],
+                        evidence={"tests_only": True, "missing_docs": True},
+                        suggestion="Add documentation for this feature or verify if it's still needed",
+                    )
+                )
 
             elif has_docs and not has_tests:
-                questions.append(AuditQuestion(
-                    question=f"Feature '{feature}' is documented but has no corresponding tests.",
-                    feature_name=feature,
-                    inconsistency_type="missing_tests",
-                    severity="high",
-                    artifacts=["docs"],
-                    evidence={"docs_only": True, "missing_tests": True},
-                    suggestion="Add tests for this documented feature or remove documentation if feature is deprecated"
-                ))
+                questions.append(
+                    AuditQuestion(
+                        question=f"Feature '{feature}' is documented but has no corresponding tests.",
+                        feature_name=feature,
+                        inconsistency_type="missing_tests",
+                        severity="high",
+                        artifacts=["docs"],
+                        evidence={"docs_only": True, "missing_tests": True},
+                        suggestion="Add tests for this documented feature or remove documentation if feature is deprecated",
+                    )
+                )
 
             elif has_code and not has_docs and not has_tests:
-                questions.append(AuditQuestion(
-                    question=f"Feature '{feature}' is implemented in code but not documented or tested.",
-                    feature_name=feature,
-                    inconsistency_type="missing_docs_and_tests",
-                    severity="high",
-                    artifacts=["code"],
-                    evidence={"code_only": True, "missing_docs": True, "missing_tests": True},
-                    suggestion="Add comprehensive documentation and tests for this implemented feature"
-                ))
+                questions.append(
+                    AuditQuestion(
+                        question=f"Feature '{feature}' is implemented in code but not documented or tested.",
+                        feature_name=feature,
+                        inconsistency_type="missing_docs_and_tests",
+                        severity="high",
+                        artifacts=["code"],
+                        evidence={
+                            "code_only": True,
+                            "missing_docs": True,
+                            "missing_tests": True,
+                        },
+                        suggestion="Add comprehensive documentation and tests for this implemented feature",
+                    )
+                )
 
             elif not has_code and not has_docs and not has_tests:
                 # This might be a false positive from pattern matching
-                questions.append(AuditQuestion(
-                    question=f"Feature '{feature}' appears in multiple artifacts but implementation unclear.",
-                    feature_name=feature,
-                    inconsistency_type="unclear_implementation",
-                    severity="low",
-                    artifacts=[],
-                    evidence={"ambiguous": True},
-                    suggestion="Verify if this is a valid feature or remove references"
-                ))
+                questions.append(
+                    AuditQuestion(
+                        question=f"Feature '{feature}' appears in multiple artifacts but implementation unclear.",
+                        feature_name=feature,
+                        inconsistency_type="unclear_implementation",
+                        severity="low",
+                        artifacts=[],
+                        evidence={"ambiguous": True},
+                        suggestion="Verify if this is a valid feature or remove references",
+                    )
+                )
 
         return questions
 
-    def analyze_coverage(self, feature_matrix: Dict[str, Dict[str, bool]]) -> Dict[str, Dict[str, int]]:
+    def analyze_coverage(
+        self, feature_matrix: dict[str, dict[str, bool]]
+    ) -> dict[str, dict[str, int]]:
         """Analyze feature coverage across artifact types."""
         coverage = {
             "docs": {"covered": 0, "total": 0, "percentage": 0},
             "code": {"covered": 0, "total": 0, "percentage": 0},
-            "tests": {"covered": 0, "total": 0, "percentage": 0}
+            "tests": {"covered": 0, "total": 0, "percentage": 0},
         }
 
         total_features = len(feature_matrix)
@@ -373,17 +393,18 @@ class DialecticalAuditSystem:
         for artifact_type in coverage:
             if coverage[artifact_type]["total"] > 0:
                 coverage[artifact_type]["percentage"] = (
-                    coverage[artifact_type]["covered"] / coverage[artifact_type]["total"]
+                    coverage[artifact_type]["covered"]
+                    / coverage[artifact_type]["total"]
                 ) * 100
 
         return coverage
 
-    def log_audit_results(self, questions: List[str]) -> None:
+    def log_audit_results(self, questions: list[str]) -> None:
         """Log audit results for review."""
         try:
             # Load existing log or create new one
             if self.audit_log_path.exists():
-                with open(self.audit_log_path, 'r') as f:
+                with open(self.audit_log_path) as f:
                     log_data = json.load(f)
             else:
                 log_data = {"questions": [], "resolved": []}
@@ -393,26 +414,30 @@ class DialecticalAuditSystem:
             log_data["last_audit"] = datetime.now().isoformat()
 
             # Save updated log
-            with open(self.audit_log_path, 'w') as f:
+            with open(self.audit_log_path, "w") as f:
                 json.dump(log_data, f, indent=2)
 
         except (json.JSONDecodeError, OSError):
             # If logging fails, create a simple log
             try:
-                with open(self.audit_log_path, 'w') as f:
-                    json.dump({
-                        "questions": questions,
-                        "resolved": [],
-                        "last_audit": datetime.now().isoformat()
-                    }, f, indent=2)
+                with open(self.audit_log_path, "w") as f:
+                    json.dump(
+                        {
+                            "questions": questions,
+                            "resolved": [],
+                            "last_audit": datetime.now().isoformat(),
+                        },
+                        f,
+                        indent=2,
+                    )
             except OSError:
                 pass
 
-    def get_audit_history(self) -> Dict[str, Any]:
+    def get_audit_history(self) -> dict[str, Any]:
         """Get audit history from log file."""
         try:
             if self.audit_log_path.exists():
-                with open(self.audit_log_path, 'r') as f:
+                with open(self.audit_log_path) as f:
                     return json.load(f)
             else:
                 return {"questions": [], "resolved": [], "last_audit": None}
@@ -427,14 +452,16 @@ class DialecticalAuditSystem:
             # Move question from questions to resolved
             if question_text in log_data["questions"]:
                 log_data["questions"].remove(question_text)
-                log_data["resolved"].append({
-                    "question": question_text,
-                    "resolution": resolution,
-                    "resolved_at": datetime.now().isoformat()
-                })
+                log_data["resolved"].append(
+                    {
+                        "question": question_text,
+                        "resolution": resolution,
+                        "resolved_at": datetime.now().isoformat(),
+                    }
+                )
 
             # Save updated log
-            with open(self.audit_log_path, 'w') as f:
+            with open(self.audit_log_path, "w") as f:
                 json.dump(log_data, f, indent=2)
 
         except (json.JSONDecodeError, OSError):
@@ -442,24 +469,32 @@ class DialecticalAuditSystem:
 
     def _generate_audit_summary(
         self,
-        questions: List[AuditQuestion],
-        coverage_analysis: Dict[str, Dict[str, int]]
-    ) -> Dict[str, Any]:
+        questions: list[AuditQuestion],
+        coverage_analysis: dict[str, dict[str, int]],
+    ) -> dict[str, Any]:
         """Generate audit summary."""
         # Count questions by type and severity
         by_type = {}
         by_severity = {"high": 0, "medium": 0, "low": 0}
 
         for question in questions:
-            by_type[question.inconsistency_type] = by_type.get(question.inconsistency_type, 0) + 1
+            by_type[question.inconsistency_type] = (
+                by_type.get(question.inconsistency_type, 0) + 1
+            )
             by_severity[question.severity] += 1
 
         # Calculate overall health score
-        total_possible = len(questions) + sum(coverage_analysis[artifact]["covered"]
-                                           for artifact in coverage_analysis)
+        total_possible = len(questions) + sum(
+            coverage_analysis[artifact]["covered"] for artifact in coverage_analysis
+        )
         if total_possible > 0:
-            health_score = (sum(coverage_analysis[artifact]["covered"]
-                              for artifact in coverage_analysis) / total_possible) * 100
+            health_score = (
+                sum(
+                    coverage_analysis[artifact]["covered"]
+                    for artifact in coverage_analysis
+                )
+                / total_possible
+            ) * 100
         else:
             health_score = 100.0
 
@@ -471,7 +506,7 @@ class DialecticalAuditSystem:
             "coverage_percentages": {
                 artifact: coverage["percentage"]
                 for artifact, coverage in coverage_analysis.items()
-            }
+            },
         }
 
     def _store_audit_results(self, result: DialecticalAuditResult) -> None:
@@ -489,12 +524,12 @@ class DialecticalAuditSystem:
                     "inconsistencies": result.inconsistencies_found,
                     "questions": [q.question for q in result.questions_generated],
                     "coverage_analysis": result.coverage_analysis,
-                    "health_score": result.audit_summary["health_score"]
+                    "health_score": result.audit_summary["health_score"],
                 },
                 metadata={
                     "type": "dialectical_audit",
-                    "project_path": result.project_path
-                }
+                    "project_path": result.project_path,
+                },
             )
 
         except Exception:
@@ -502,10 +537,8 @@ class DialecticalAuditSystem:
             pass
 
     def validate_feature_consistency(
-        self,
-        feature_name: str,
-        project_root: Path
-    ) -> Dict[str, Any]:
+        self, feature_name: str, project_root: Path
+    ) -> dict[str, Any]:
         """
         Validate consistency of a specific feature across all artifacts.
 
@@ -519,7 +552,9 @@ class DialecticalAuditSystem:
         # Search for feature in all artifacts
         docs_locations = self._find_feature_in_docs(feature_name, project_root / "docs")
         code_locations = self._find_feature_in_code(feature_name, project_root / "src")
-        test_locations = self._find_feature_in_tests(feature_name, project_root / "tests")
+        test_locations = self._find_feature_in_tests(
+            feature_name, project_root / "tests"
+        )
 
         # Analyze consistency
         consistency_issues = []
@@ -536,10 +571,7 @@ class DialecticalAuditSystem:
 
         # Check for version consistency
         version_issues = self._check_version_consistency(
-            feature_name,
-            docs_locations,
-            code_locations,
-            test_locations
+            feature_name, docs_locations, code_locations, test_locations
         )
         consistency_issues.extend(version_issues)
 
@@ -549,10 +581,10 @@ class DialecticalAuditSystem:
             "code_locations": code_locations,
             "test_locations": test_locations,
             "consistency_issues": consistency_issues,
-            "overall_consistent": len(consistency_issues) == 0
+            "overall_consistent": len(consistency_issues) == 0,
         }
 
-    def _find_feature_in_docs(self, feature_name: str, docs_dir: Path) -> List[str]:
+    def _find_feature_in_docs(self, feature_name: str, docs_dir: Path) -> list[str]:
         """Find feature in documentation."""
         locations = []
 
@@ -572,7 +604,7 @@ class DialecticalAuditSystem:
 
         return locations
 
-    def _find_feature_in_code(self, feature_name: str, code_dir: Path) -> List[str]:
+    def _find_feature_in_code(self, feature_name: str, code_dir: Path) -> list[str]:
         """Find feature in code."""
         locations = []
 
@@ -592,7 +624,7 @@ class DialecticalAuditSystem:
 
         return locations
 
-    def _find_feature_in_tests(self, feature_name: str, tests_dir: Path) -> List[str]:
+    def _find_feature_in_tests(self, feature_name: str, tests_dir: Path) -> list[str]:
         """Find feature in tests."""
         locations = []
 
@@ -626,10 +658,10 @@ class DialecticalAuditSystem:
     def _check_version_consistency(
         self,
         feature_name: str,
-        docs_locations: List[str],
-        code_locations: List[str],
-        test_locations: List[str]
-    ) -> List[str]:
+        docs_locations: list[str],
+        code_locations: list[str],
+        test_locations: list[str],
+    ) -> list[str]:
         """Check version consistency across artifacts."""
         issues = []
 
@@ -647,10 +679,8 @@ class DialecticalAuditSystem:
         return issues
 
     def _extract_versions_from_locations(
-        self,
-        locations: List[str],
-        artifact_type: str
-    ) -> List[str]:
+        self, locations: list[str], artifact_type: str
+    ) -> list[str]:
         """Extract version information from artifact locations."""
         versions = []
 
@@ -658,7 +688,7 @@ class DialecticalAuditSystem:
         version_patterns = [
             r"v?(\d+\.\d+\.\d+)",
             r"version[:\s]*(\d+\.\d+)",
-            r"Version[:\s]*(\d+\.\d+)"
+            r"Version[:\s]*(\d+\.\d+)",
         ]
 
         for location in locations:
@@ -666,7 +696,7 @@ class DialecticalAuditSystem:
                 file_path, line_num_str = location.split(":", 1)
                 try:
                     line_num = int(line_num_str)
-                    with open(file_path, 'r') as f:
+                    with open(file_path) as f:
                         lines = f.readlines()
                         if 0 <= line_num - 1 < len(lines):
                             line = lines[line_num - 1]

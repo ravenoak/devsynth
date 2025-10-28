@@ -37,7 +37,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
         persist_directory: str,
         collection_name: str = "devsynth_vectors",
         *,
-        host: Optional[str] = None,
+        host: str | None = None,
         port: int = 8000,
     ):
         """
@@ -56,7 +56,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
         # rollback is requested.  This lightweight approach keeps the adapter
         # self-contained while providing predictable behaviour during
         # synchronization tests where transactions are required.
-        self._snapshots: Dict[str, Dict[str, Any]] = {}
+        self._snapshots: dict[str, dict[str, Any]] = {}
 
         os.makedirs(persist_directory, exist_ok=True)
 
@@ -109,7 +109,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
     # ------------------------------------------------------------------
     # Transaction helpers
     # ------------------------------------------------------------------
-    def begin_transaction(self, transaction_id: Optional[str] = None) -> str:
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
         """Begin a new transaction and return its identifier.
 
         ChromaDB does not expose native transactional semantics, so we
@@ -127,7 +127,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
         if tx_id in self._snapshots:
             raise MemoryStoreError(f"Transaction {tx_id} already active")
         try:
-            snapshot: Dict[str, Any] = {}
+            snapshot: dict[str, Any] = {}
             result = self.collection.get(include=["embeddings", "metadatas"])
             for vid, emb, meta in zip(
                 result.get("ids", []),
@@ -210,7 +210,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
 
     # ------------------------------------------------------------------
     @contextmanager
-    def transaction(self, transaction_id: Optional[str] = None):
+    def transaction(self, transaction_id: str | None = None):
         """Context manager providing transactional semantics.
 
         Parameters
@@ -235,7 +235,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
             self.prepare_commit(tx_id)
             self.commit_transaction(tx_id)
 
-    def _serialize_metadata(self, vector: MemoryVector) -> Dict[str, Any]:
+    def _serialize_metadata(self, vector: MemoryVector) -> dict[str, Any]:
         """
         Serialize the vector metadata for storage in ChromaDB.
 
@@ -261,7 +261,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
 
         return {"vector_data": json.dumps(serialized)}
 
-    def _deserialize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    def _deserialize_metadata(self, metadata: dict[str, Any]) -> dict[str, Any]:
         """
         Deserialize metadata from ChromaDB.
 
@@ -317,7 +317,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
             logger.error(f"Failed to store vector in ChromaDB: {e}")
             raise MemoryStoreError(f"Failed to store vector in ChromaDB: {e}")
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """
         Retrieve a vector from the vector store by ID.
 
@@ -370,8 +370,8 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
             raise MemoryStoreError(f"Failed to retrieve vector from ChromaDB: {e}")
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -501,7 +501,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
                 f"Failed to get collection statistics from ChromaDB: {exc}"
             )
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all stored :class:`MemoryVector` objects."""
 
         try:

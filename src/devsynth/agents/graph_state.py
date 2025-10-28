@@ -22,9 +22,9 @@ class AgentState(TypedDict):
     """
 
     input_request: str
-    processed_input: Optional[str]
-    llm_response: Optional[str]
-    intermediate_steps: Optional[list[str]]
-    final_output: Optional[str]
-    error: Optional[str]
-    available_tools: Optional[list[OpenAIToolDefinition]]
+    processed_input: str | None
+    llm_response: str | None
+    intermediate_steps: list[str] | None
+    final_output: str | None
+    error: str | None
+    available_tools: list[OpenAIToolDefinition] | None

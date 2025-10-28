@@ -23,7 +23,7 @@ class MultiLanguageCodeAgent(BaseAgent):
         "javascript": "console.log('Hello from JavaScript');\n",
     }
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Generate code in the requested language."""
         role_prompt = self.get_role_prompt()
         language = str(inputs.get("language", "python")).lower()
@@ -133,7 +133,7 @@ class MultiLanguageCodeAgent(BaseAgent):
             "language": language,
         }
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Return the capabilities for this agent."""
         capabilities = super().get_capabilities()
         if not capabilities:

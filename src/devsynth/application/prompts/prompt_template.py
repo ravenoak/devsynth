@@ -26,9 +26,9 @@ class PromptTemplateVersion:
     template_text: str
     version_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def render(self, variables: Dict[str, str]) -> str:
+    def render(self, variables: dict[str, str]) -> str:
         """
         Render the template with the provided variables.
 
@@ -63,12 +63,12 @@ class PromptTemplate:
 
     name: str
     description: str
-    versions: List[PromptTemplateVersion] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    edrr_phase: Optional[str] = None
+    versions: list[PromptTemplateVersion] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    edrr_phase: str | None = None
 
     def add_version(
-        self, template_text: str, metadata: Optional[Dict[str, Any]] = None
+        self, template_text: str, metadata: dict[str, Any] | None = None
     ) -> PromptTemplateVersion:
         """
         Add a new version of this template.
@@ -86,7 +86,7 @@ class PromptTemplate:
         self.versions.append(version)
         return version
 
-    def get_latest_version(self) -> Optional[PromptTemplateVersion]:
+    def get_latest_version(self) -> PromptTemplateVersion | None:
         """
         Get the latest version of this template.
 
@@ -97,7 +97,7 @@ class PromptTemplate:
             return None
         return self.versions[-1]
 
-    def get_version(self, version_id: str) -> Optional[PromptTemplateVersion]:
+    def get_version(self, version_id: str) -> PromptTemplateVersion | None:
         """
         Get a specific version of this template.
 
@@ -113,7 +113,7 @@ class PromptTemplate:
         return None
 
     def render(
-        self, variables: Dict[str, str], version_id: Optional[str] = None
+        self, variables: dict[str, str], version_id: str | None = None
     ) -> str:
         """
         Render the template with the provided variables.

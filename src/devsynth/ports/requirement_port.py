@@ -25,7 +25,7 @@ class RequirementRepositoryPort(ABC):
     """Port for requirement repository."""
 
     @abstractmethod
-    def get_requirement(self, requirement_id: UUID) -> Optional[Requirement]:
+    def get_requirement(self, requirement_id: UUID) -> Requirement | None:
         """
         Get a requirement by ID.
 
@@ -38,7 +38,7 @@ class RequirementRepositoryPort(ABC):
         return None
 
     @abstractmethod
-    def get_all_requirements(self) -> List[Requirement]:
+    def get_all_requirements(self) -> list[Requirement]:
         """
         Get all requirements.
 
@@ -74,7 +74,7 @@ class RequirementRepositoryPort(ABC):
         return False
 
     @abstractmethod
-    def get_requirements_by_status(self, status: str) -> List[Requirement]:
+    def get_requirements_by_status(self, status: str) -> list[Requirement]:
         """
         Get requirements by status.
 
@@ -87,7 +87,7 @@ class RequirementRepositoryPort(ABC):
         return []
 
     @abstractmethod
-    def get_requirements_by_type(self, type_: str) -> List[Requirement]:
+    def get_requirements_by_type(self, type_: str) -> list[Requirement]:
         """
         Get requirements by type.
 
@@ -104,7 +104,7 @@ class ChangeRepositoryPort(ABC):
     """Port for requirement change repository."""
 
     @abstractmethod
-    def get_change(self, change_id: UUID) -> Optional[RequirementChange]:
+    def get_change(self, change_id: UUID) -> RequirementChange | None:
         """
         Get a change by ID.
 
@@ -119,7 +119,7 @@ class ChangeRepositoryPort(ABC):
     @abstractmethod
     def get_changes_for_requirement(
         self, requirement_id: UUID
-    ) -> List[RequirementChange]:
+    ) -> list[RequirementChange]:
         """
         Get changes for a requirement.
 
@@ -162,7 +162,7 @@ class ImpactAssessmentRepositoryPort(ABC):
     """Port for impact assessment repository."""
 
     @abstractmethod
-    def get_impact_assessment(self, assessment_id: UUID) -> Optional[ImpactAssessment]:
+    def get_impact_assessment(self, assessment_id: UUID) -> ImpactAssessment | None:
         """
         Get an impact assessment by ID.
 
@@ -177,7 +177,7 @@ class ImpactAssessmentRepositoryPort(ABC):
     @abstractmethod
     def get_impact_assessment_for_change(
         self, change_id: UUID
-    ) -> Optional[ImpactAssessment]:
+    ) -> ImpactAssessment | None:
         """
         Get an impact assessment for a change.
 
@@ -207,7 +207,7 @@ class DialecticalReasoningRepositoryPort(ABC):
     """Port for dialectical reasoning repository."""
 
     @abstractmethod
-    def get_reasoning(self, reasoning_id: UUID) -> Optional[DialecticalReasoning]:
+    def get_reasoning(self, reasoning_id: UUID) -> DialecticalReasoning | None:
         """
         Get a dialectical reasoning by ID.
 
@@ -222,7 +222,7 @@ class DialecticalReasoningRepositoryPort(ABC):
     @abstractmethod
     def get_reasoning_for_change(
         self, change_id: UUID
-    ) -> Optional[DialecticalReasoning]:
+    ) -> DialecticalReasoning | None:
         """
         Get a dialectical reasoning for a change.
 
@@ -252,7 +252,7 @@ class ChatRepositoryPort(ABC):
     """Port for chat repository."""
 
     @abstractmethod
-    def get_session(self, session_id: UUID) -> Optional[ChatSession]:
+    def get_session(self, session_id: UUID) -> ChatSession | None:
         """
         Get a chat session by ID.
 
@@ -265,7 +265,7 @@ class ChatRepositoryPort(ABC):
         return None
 
     @abstractmethod
-    def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
+    def get_sessions_for_user(self, user_id: str) -> list[ChatSession]:
         """
         Get chat sessions for a user.
 
@@ -304,7 +304,7 @@ class ChatRepositoryPort(ABC):
         return message
 
     @abstractmethod
-    def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
+    def get_messages_for_session(self, session_id: UUID) -> list[ChatMessage]:
         """
         Get messages for a chat session.
 
@@ -357,7 +357,7 @@ class DialecticalReasonerPort(ABC):
 
     @abstractmethod
     def create_session(
-        self, user_id: str, change_id: Optional[UUID] = None
+        self, user_id: str, change_id: UUID | None = None
     ) -> ChatSession:
         """
         Create a new dialectical reasoning chat session.
@@ -456,7 +456,7 @@ class ChatPort(ABC):
 
     @abstractmethod
     def create_session(
-        self, user_id: str, change_id: Optional[UUID] = None
+        self, user_id: str, change_id: UUID | None = None
     ) -> ChatSession:
         """
         Create a new chat session.
@@ -471,7 +471,7 @@ class ChatPort(ABC):
         return ChatSession(user_id=user_id, change_id=change_id)
 
     @abstractmethod
-    def get_session(self, session_id: UUID) -> Optional[ChatSession]:
+    def get_session(self, session_id: UUID) -> ChatSession | None:
         """
         Get a chat session by ID.
 
@@ -484,7 +484,7 @@ class ChatPort(ABC):
         return None
 
     @abstractmethod
-    def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
+    def get_sessions_for_user(self, user_id: str) -> list[ChatSession]:
         """
         Get chat sessions for a user.
 
@@ -497,7 +497,7 @@ class ChatPort(ABC):
         return []
 
     @abstractmethod
-    def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
+    def get_messages_for_session(self, session_id: UUID) -> list[ChatMessage]:
         """
         Get messages for a chat session.
 

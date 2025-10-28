@@ -11,7 +11,8 @@ import threading
 import time
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
+from typing import Any, Dict, List, Optional, Set, Type, Union
+from collections.abc import Callable
 
 from devsynth.exceptions import DevSynthError
 
@@ -49,9 +50,9 @@ class CapabilityHandler:
         capability_name: str,
         handler_func: Callable,
         description: str,
-        parameters: Dict[str, str] = None,
-        tags: List[str] = None,
-        authorized_requesters: Set[str] = None,
+        parameters: dict[str, str] = None,
+        tags: list[str] = None,
+        authorized_requesters: set[str] = None,
     ):
         """
         Initialize a capability handler.
@@ -74,7 +75,7 @@ class CapabilityHandler:
         self.authorized_requesters = authorized_requesters
 
         # Holds active promises for this capability
-        self._active_promises: Dict[str, Promise] = {}
+        self._active_promises: dict[str, Promise] = {}
 
     def __call__(self, *args, **kwargs) -> Any:
         """
@@ -152,7 +153,7 @@ class PromiseAgentMixin:
     3. Track promise fulfillment
     """
 
-    def __init__(self, agent_id: str, broker: Optional[PromiseBroker] = None):
+    def __init__(self, agent_id: str, broker: PromiseBroker | None = None):
         """
         Initialize the Promise Agent Mixin.
 
@@ -164,13 +165,13 @@ class PromiseAgentMixin:
         self.broker = broker or PromiseBroker()
 
         # Dictionary of capability handlers by name
-        self._capability_handlers: Dict[str, CapabilityHandler] = {}
+        self._capability_handlers: dict[str, CapabilityHandler] = {}
 
         # Dictionary of capability IDs by name
-        self._capability_ids: Dict[str, str] = {}
+        self._capability_ids: dict[str, str] = {}
 
         # Pending promises requested from other agents
-        self._pending_requests: Dict[str, Promise] = {}
+        self._pending_requests: dict[str, Promise] = {}
 
         logger.debug(f"Agent {agent_id} initialized with Promise integration")
 
@@ -179,9 +180,9 @@ class PromiseAgentMixin:
         name: str,
         handler_func: Callable,
         description: str,
-        parameters: Dict[str, str] = None,
-        tags: List[str] = None,
-        authorized_requesters: Set[str] = None,
+        parameters: dict[str, str] = None,
+        tags: list[str] = None,
+        authorized_requesters: set[str] = None,
     ) -> str:
         """
         Register a capability that this agent provides.
@@ -261,9 +262,9 @@ class PromiseAgentMixin:
     def request_capability(
         self,
         name: str,
-        provider_id: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        timeout: Optional[float] = None,
+        provider_id: str | None = None,
+        tags: list[str] | None = None,
+        timeout: float | None = None,
         **kwargs,
     ) -> Promise:
         """
@@ -330,7 +331,7 @@ class PromiseAgentMixin:
         return promise
 
     def wait_for_capability(
-        self, promise: Promise, wait_timeout: Optional[float] = None
+        self, promise: Promise, wait_timeout: float | None = None
     ) -> Any:
         """
         Wait for a capability request to be fulfilled.
@@ -434,7 +435,7 @@ class PromiseAgentMixin:
 
         return handled_count
 
-    def get_available_capabilities(self) -> List[Dict[str, Any]]:
+    def get_available_capabilities(self) -> list[dict[str, Any]]:
         """
         Get a list of capabilities available to this agent.
 
@@ -444,7 +445,7 @@ class PromiseAgentMixin:
         capabilities = self.broker.get_capabilities_available_to(self.agent_id)
         return [cap.to_dict() for cap in capabilities]
 
-    def get_own_capabilities(self) -> List[Dict[str, Any]]:
+    def get_own_capabilities(self) -> list[dict[str, Any]]:
         """
         Get a list of capabilities provided by this agent.
 
@@ -463,7 +464,7 @@ class PromiseAgent:
     and provides a standard agent implementation with Promise support.
     """
 
-    def __init__(self, agent_id: str, broker: Optional[PromiseBroker] = None):
+    def __init__(self, agent_id: str, broker: PromiseBroker | None = None):
         """
         Initialize a Promise Agent.
 
@@ -491,7 +492,7 @@ class PromiseAgent:
         return self.mixin.request_capability(*args, **kwargs)
 
     def wait_for_capability(
-        self, promise: Promise, wait_timeout: Optional[float] = None
+        self, promise: Promise, wait_timeout: float | None = None
     ) -> Any:
         """Delegate to mixin's wait_for_capability."""
         return self.mixin.wait_for_capability(promise, wait_timeout)
@@ -500,21 +501,21 @@ class PromiseAgent:
         """Delegate to mixin's handle_pending_capabilities."""
         return self.mixin.handle_pending_capabilities()
 
-    def get_available_capabilities(self) -> List[Dict[str, Any]]:
+    def get_available_capabilities(self) -> list[dict[str, Any]]:
         """Delegate to mixin's get_available_capabilities."""
         return self.mixin.get_available_capabilities()
 
-    def get_own_capabilities(self) -> List[Dict[str, Any]]:
+    def get_own_capabilities(self) -> list[dict[str, Any]]:
         """Delegate to mixin's get_own_capabilities."""
         return self.mixin.get_own_capabilities()
 
     def create_promise(
         self,
         type: "PromiseType",
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         context_id: str,
-        tags: Optional[List[str]] = None,
-        parent_id: Optional[str] = None,
+        tags: list[str] | None = None,
+        parent_id: str | None = None,
         priority: int = 1,
     ) -> Promise:
         """
@@ -618,9 +619,9 @@ class PromiseAgent:
         self,
         parent_id: str,
         type: "PromiseType",
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         context_id: str,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         priority: int = 1,
     ) -> Promise:
         """

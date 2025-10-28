@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import Any
+from collections.abc import Mapping, Sequence
 
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
-
 
 BACK_COMMANDS: set[str] = {"back", "previous", "prev"}
 KEYBOARD_BACK_COMMANDS: set[str] = {
@@ -171,4 +171,3 @@ class TextualWizardViewModel:
 
 
 __all__ = ["TextualWizardViewModel", "is_back_command"]
-

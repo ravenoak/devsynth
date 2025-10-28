@@ -11,7 +11,7 @@ from devsynth.interface.ux_bridge import UXBridge
 bridge: UXBridge = CLIUXBridge()
 
 
-def reprioritize_issues_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def reprioritize_issues_cmd(*, bridge: UXBridge | None = None) -> None:
     """Recalculate priority fields for open issues."""
     ux_bridge = bridge or globals()["bridge"]
     counts = reprioritize_open_issues()

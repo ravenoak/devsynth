@@ -49,7 +49,7 @@ class MetricType(Enum):
 class PhaseTransitionMetrics:
     """Collect and analyze metrics for phase transitions."""
 
-    def __init__(self, thresholds: Optional[Dict[str, Dict[str, float]]] = None):
+    def __init__(self, thresholds: dict[str, dict[str, float]] | None = None):
         """Initialize the metrics collection.
 
         Args:
@@ -95,18 +95,18 @@ class PhaseTransitionMetrics:
                     default_thresholds[phase_key].update(values)
         self.thresholds = default_thresholds
 
-        self.start_times: Dict[str, datetime] = {}
-        self.history: List[Dict[str, Any]] = []
-        self.recovery_hooks: Dict[str, List[Any]] = {
+        self.start_times: dict[str, datetime] = {}
+        self.history: list[dict[str, Any]] = []
+        self.recovery_hooks: dict[str, list[Any]] = {
             phase: [] for phase in self.metrics
         }
-        self.failure_hooks: Dict[str, List[Any]] = {phase: [] for phase in self.metrics}
+        self.failure_hooks: dict[str, list[Any]] = {phase: [] for phase in self.metrics}
 
-    def configure_thresholds(self, phase: Phase, thresholds: Dict[str, float]) -> None:
+    def configure_thresholds(self, phase: Phase, thresholds: dict[str, float]) -> None:
         """Override thresholds for ``phase``."""
         self.thresholds.setdefault(phase.name, {}).update(thresholds)
 
-    def get_thresholds(self, phase: Phase) -> Dict[str, float]:
+    def get_thresholds(self, phase: Phase) -> dict[str, float]:
         """Return configured thresholds for ``phase``."""
         return self.thresholds.get(phase.name, {})
 
@@ -131,7 +131,7 @@ class PhaseTransitionMetrics:
             }
         )
 
-    def end_phase(self, phase: Phase, metrics: Dict[str, Any]) -> None:
+    def end_phase(self, phase: Phase, metrics: dict[str, Any]) -> None:
         """
         Record the end of a phase with metrics.
 
@@ -157,7 +157,7 @@ class PhaseTransitionMetrics:
             }
         )
 
-    def get_phase_metrics(self, phase: Phase) -> Dict[str, Any]:
+    def get_phase_metrics(self, phase: Phase) -> dict[str, Any]:
         """
         Get the metrics for a specific phase.
 
@@ -169,7 +169,7 @@ class PhaseTransitionMetrics:
         """
         return self.metrics.get(phase.name, {})
 
-    def get_all_metrics(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_metrics(self) -> dict[str, dict[str, Any]]:
         """
         Get all metrics for all phases.
 
@@ -178,7 +178,7 @@ class PhaseTransitionMetrics:
         """
         return self.metrics
 
-    def get_history(self) -> List[Dict[str, Any]]:
+    def get_history(self) -> list[dict[str, Any]]:
         """
         Get the history of phase transitions and metrics.
 
@@ -198,9 +198,9 @@ class PhaseTransitionMetrics:
         self.recovery_hooks.setdefault(phase.name, []).append(hook)
 
     def _check_thresholds(
-        self, metrics: Dict[str, Any], thresholds: Dict[str, Any]
-    ) -> Tuple[bool, Dict[str, Any]]:
-        reasons: Dict[str, Any] = {}
+        self, metrics: dict[str, Any], thresholds: dict[str, Any]
+    ) -> tuple[bool, dict[str, Any]]:
+        reasons: dict[str, Any] = {}
         all_met = True
         for metric_type, threshold in thresholds.items():
             if metric_type not in metrics:
@@ -231,10 +231,10 @@ class PhaseTransitionMetrics:
                     )
         return all_met, reasons
 
-    def _execute_recovery_hooks(self, phase: Phase) -> Dict[str, Any]:
+    def _execute_recovery_hooks(self, phase: Phase) -> dict[str, Any]:
         hooks = self.recovery_hooks.get(phase.name, [])
         metrics = self.metrics.get(phase.name, {})
-        info: Dict[str, Any] = {"recovered": False}
+        info: dict[str, Any] = {"recovered": False}
         for hook in hooks:
             try:
                 result = hook(metrics)
@@ -258,7 +258,7 @@ class PhaseTransitionMetrics:
             except Exception as e:  # pragma: no cover - defensive
                 logger.debug(f"Failure hook failed: {e}")
 
-    def should_transition(self, phase: Phase) -> Tuple[bool, Dict[str, Any]]:
+    def should_transition(self, phase: Phase) -> tuple[bool, dict[str, Any]]:
         """
         Determine if a phase should transition to the next phase based on metrics.
 
@@ -367,7 +367,7 @@ def calculate_enhanced_quality_score(result: Any) -> float:
         return 0.6  # Slightly above average as a safe default
 
 
-def _calculate_completeness_score(result: Dict[str, Any]) -> float:
+def _calculate_completeness_score(result: dict[str, Any]) -> float:
     """
     Calculate a completeness score for a result.
 
@@ -447,7 +447,7 @@ def _calculate_max_depth(obj: Any, current_depth: int = 0) -> int:
         return current_depth
 
 
-def _calculate_consistency_score(result: Dict[str, Any]) -> float:
+def _calculate_consistency_score(result: dict[str, Any]) -> float:
     """
     Calculate a consistency score for a result.
 
@@ -508,7 +508,7 @@ def _calculate_text_similarity(text1: str, text2: str) -> float:
     return intersection / union
 
 
-def _calculate_core_values_score(result: Dict[str, Any]) -> float:
+def _calculate_core_values_score(result: dict[str, Any]) -> float:
     """
     Calculate a score based on alignment with core values.
 
@@ -571,7 +571,7 @@ def _calculate_core_values_score(result: Dict[str, Any]) -> float:
         return 0.5
 
 
-def _extract_explicit_quality_score(result: Dict[str, Any]) -> float:
+def _extract_explicit_quality_score(result: dict[str, Any]) -> float:
     """
     Extract an explicit quality score from a result if available.
 
@@ -600,7 +600,7 @@ def _extract_explicit_quality_score(result: Dict[str, Any]) -> float:
     return 0.5
 
 
-def _calculate_error_penalty(result: Dict[str, Any]) -> float:
+def _calculate_error_penalty(result: dict[str, Any]) -> float:
     """
     Calculate an error penalty for a result.
 
@@ -637,7 +637,7 @@ def _calculate_error_penalty(result: Dict[str, Any]) -> float:
     return min(1.0, penalty)
 
 
-def collect_phase_metrics(phase: Phase, results: Dict[str, Any]) -> Dict[str, Any]:
+def collect_phase_metrics(phase: Phase, results: dict[str, Any]) -> dict[str, Any]:
     """
     Collect metrics for a phase based on its results.
 
@@ -726,7 +726,7 @@ def collect_phase_metrics(phase: Phase, results: Dict[str, Any]) -> Dict[str, An
     return metrics
 
 
-def _calculate_idea_diversity(results: Dict[str, Any]) -> float:
+def _calculate_idea_diversity(results: dict[str, Any]) -> float:
     """
     Calculate the diversity of ideas in Expand phase results.
 
@@ -765,7 +765,7 @@ def _calculate_idea_diversity(results: Dict[str, Any]) -> float:
     return 1.0 - avg_similarity
 
 
-def _calculate_categorization_quality(results: Dict[str, Any]) -> float:
+def _calculate_categorization_quality(results: dict[str, Any]) -> float:
     """
     Calculate the quality of categorization in Differentiate phase results.
 
@@ -803,7 +803,7 @@ def _calculate_categorization_quality(results: Dict[str, Any]) -> float:
     return 0.6 * category_count_score + 0.4 * items_per_category_score
 
 
-def _calculate_code_quality(results: Dict[str, Any]) -> float:
+def _calculate_code_quality(results: dict[str, Any]) -> float:
     """
     Calculate the quality of code in Refine phase results.
 
@@ -879,7 +879,7 @@ def _calculate_code_quality(results: Dict[str, Any]) -> float:
     return statistics.mean(quality_scores)
 
 
-def _calculate_test_coverage(results: Dict[str, Any]) -> Optional[float]:
+def _calculate_test_coverage(results: dict[str, Any]) -> float | None:
     """
     Calculate the test coverage in Refine phase results.
 
@@ -910,7 +910,7 @@ def _calculate_test_coverage(results: Dict[str, Any]) -> Optional[float]:
     return None  # No test information found
 
 
-def _calculate_retrospective_quality(results: Dict[str, Any]) -> float:
+def _calculate_retrospective_quality(results: dict[str, Any]) -> float:
     """
     Calculate the quality of retrospective in Retrospect phase results.
 

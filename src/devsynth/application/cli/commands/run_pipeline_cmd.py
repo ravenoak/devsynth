@@ -15,7 +15,7 @@ from ..ingest_models import JSONValue, PipelineReport
 from ..utils import _check_services, _env_flag, _handle_error, _resolve_bridge
 
 
-def _parse_report(value: Optional[str]) -> Optional[PipelineReport]:
+def _parse_report(value: str | None) -> PipelineReport | None:
     """Parse report data from JSON string."""
 
     if not value:
@@ -30,13 +30,13 @@ def _parse_report(value: Optional[str]) -> Optional[PipelineReport]:
 
 
 def run_pipeline_cmd(
-    target: Optional[str] = None,
-    report: Optional[str] = typer.Option(
+    target: str | None = None,
+    report: str | None = typer.Option(
         None, "--report", help="JSON string with additional report data"
     ),
     *,
-    auto_confirm: Optional[bool] = None,
-    bridge: Optional[UXBridge] = typer.Option(None, hidden=True),
+    auto_confirm: bool | None = None,
+    bridge: UXBridge | None = typer.Option(None, hidden=True),
 ) -> None:
     """Run the generated code or a specific target.
 
@@ -73,13 +73,11 @@ def run_pipeline_cmd(
         valid_targets = ["unit-tests", "integration-tests", "behavior-tests", "all"]
         if target and target not in valid_targets:
             bridge.display_result(
-                (
                     "[yellow]Warning: '"
                     + str(target)
                     + "' is not a standard target. Valid targets are: "
                     + ", ".join(valid_targets)
                     + "[/yellow]"
-                )
             )
             if not (
                 auto_confirm

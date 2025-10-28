@@ -12,7 +12,8 @@ import os
 from collections.abc import Mapping
 from datetime import datetime
 from functools import wraps
-from typing import Callable, ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar
+from collections.abc import Callable
 
 from devsynth.application.memory.dto import (
     MemoryMetadata,
@@ -170,7 +171,7 @@ class ChromaDBStore(MemoryStore):
 
         if os.path.exists(self._fallback_file):
             try:
-                with open(self._fallback_file, "r") as f:
+                with open(self._fallback_file) as f:
                     data = json.load(f)
                     for item_dict in data.get("items", []):
                         if not isinstance(item_dict, dict):
@@ -217,7 +218,7 @@ class ChromaDBStore(MemoryStore):
                 self._use_fallback = True
                 if os.path.exists(self._fallback_file):
                     try:
-                        with open(self._fallback_file, "r") as f:
+                        with open(self._fallback_file) as f:
                             data = json.load(f)
                             for item_dict in data.get("items", []):
                                 if not isinstance(item_dict, dict):

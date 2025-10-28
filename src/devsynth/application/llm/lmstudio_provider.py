@@ -8,6 +8,7 @@ import os
 from typing import Any, Dict, List
 from urllib.parse import urlparse
 
+from devsynth.exceptions import DevSynthError
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
 # Create a logger for this module
@@ -17,11 +18,11 @@ from devsynth.metrics import inc_provider
 # Import get_llm_settings lazily to avoid import issues during testing
 from ..utils.token_tracker import TokenLimitExceededError, TokenTracker
 from .providers import BaseLLMProvider
-from devsynth.exceptions import DevSynthError
 
 try:  # pragma: no cover - optional dependency for HTTP requests
     import requests  # type: ignore
 except Exception:  # pragma: no cover - allow tests to patch attribute even when missing
+
     class _RequestsUnavailable:  # type: ignore[too-few-public-methods]
         def __getattr__(self, name: str) -> object:
             raise DevSynthError(
@@ -162,7 +163,7 @@ class LMStudioProvider(BaseLLMProvider):
     Adds a lightweight health check and bounded handshake retry/backoff per docs/tasks.md Task 9/18.
     """
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         """Initialize the LM Studio provider.
 
         Args:
@@ -410,7 +411,7 @@ class LMStudioProvider(BaseLLMProvider):
 
         return _wrapped()
 
-    def list_available_models(self) -> List[Dict[str, Any]]:
+    def list_available_models(self) -> list[dict[str, Any]]:
         """List available models from LM Studio.
 
         Returns:
@@ -444,7 +445,7 @@ class LMStudioProvider(BaseLLMProvider):
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
 
-    def get_model_details(self, model_id: str) -> Dict[str, Any]:
+    def get_model_details(self, model_id: str) -> dict[str, Any]:
         """Get details for a specific model from LM Studio.
 
         Args:
@@ -470,7 +471,7 @@ class LMStudioProvider(BaseLLMProvider):
             # Re-raise the connection error
             raise e
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] = None) -> str:
         """Generate text from a prompt using LM Studio.
 
         Args:
@@ -519,8 +520,8 @@ class LMStudioProvider(BaseLLMProvider):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> str:
         """Generate text from a prompt with conversation context using LM Studio.
 
@@ -569,7 +570,7 @@ class LMStudioProvider(BaseLLMProvider):
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Get an embedding vector for the given text using LM Studio.
 
         Args:

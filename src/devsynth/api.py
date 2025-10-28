@@ -47,7 +47,7 @@ except ImportError:  # pragma: no cover - fallback for minimal environments
         def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
             pass
 
-        def labels(self, *args: object, **kwargs: object) -> "_NoopMetric":
+        def labels(self, *args: object, **kwargs: object) -> _NoopMetric:
             return self
 
         def inc(self, *args: object, **kwargs: object) -> None:

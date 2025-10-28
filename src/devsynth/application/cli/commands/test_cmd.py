@@ -26,8 +26,8 @@ from .spec_cmd import spec_cmd
 def test_cmd(
     spec_file: str = "specs.md",
     *,
-    auto_confirm: Optional[bool] = None,
-    bridge: Optional[UXBridge] = None,
+    auto_confirm: bool | None = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate tests based on specifications.
 

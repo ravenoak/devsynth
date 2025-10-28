@@ -8,7 +8,7 @@ from typing import Dict, List
 
 from .models import StoredPromptVariant
 
-PromptVariantsDocument = Dict[str, List[StoredPromptVariant]]
+PromptVariantsDocument = dict[str, list[StoredPromptVariant]]
 
 
 class PromptVariantStorageError(Exception):

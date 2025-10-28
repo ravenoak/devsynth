@@ -35,7 +35,7 @@ class ProgressManager:
 
     def __init__(self, bridge: SupportsProgress | UXBridge) -> None:
         self.bridge: SupportsProgress = bridge
-        self.indicators: Dict[str, ManagedProgress] = {}
+        self.indicators: dict[str, ManagedProgress] = {}
 
     def create_progress(
         self, task_id: str, description: str, total: int = 100
@@ -45,7 +45,7 @@ class ProgressManager:
         self.indicators[task_id] = ManagedProgress(indicator=indicator)
         return indicator
 
-    def get_progress(self, task_id: str) -> Optional[ProgressIndicator]:
+    def get_progress(self, task_id: str) -> ProgressIndicator | None:
         """Return the indicator for ``task_id`` if it exists."""
         managed = self.indicators.get(task_id)
         return managed.indicator if managed else None
@@ -54,8 +54,8 @@ class ProgressManager:
         self,
         task_id: str,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update the indicator associated with ``task_id``.
 

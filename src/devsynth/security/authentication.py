@@ -31,8 +31,8 @@ class _PasswordHasherProtocol(Protocol):
         """Verify a password against a stored hash."""
 
 
-_password_hasher: Optional[_PasswordHasherProtocol]
-_argon2_import_error: Optional[ImportError]
+_password_hasher: _PasswordHasherProtocol | None
+_argon2_import_error: ImportError | None
 
 try:
     from argon2 import PasswordHasher as _Argon2PasswordHasher
@@ -47,6 +47,7 @@ try:
     )
     _argon2_import_error = None
 except ImportError as argon2_exc:  # pragma: no cover - exercised via stub
+
     class VerifyMismatchError(Exception):
         """Fallback stub raised when Argon2 is unavailable."""
 
@@ -54,7 +55,7 @@ except ImportError as argon2_exc:  # pragma: no cover - exercised via stub
     _argon2_import_error = ImportError(
         "Argon2 support is required when authentication is enabled. "
         "Install the 'security' extra (for example, 'poetry install --with dev "
-        "--extras \"security\"') or install DevSynth with "
+        '--extras "security"\') or install DevSynth with '
         "'pip install devsynth[security]'."
     )
     _argon2_import_error.__cause__ = argon2_exc
@@ -86,7 +87,7 @@ def verify_password(stored_hash: str, password: str) -> bool:
         return False
 
 
-def authenticate(username: str, password: str, credentials: Dict[str, str]) -> bool:
+def authenticate(username: str, password: str, credentials: dict[str, str]) -> bool:
     """Authenticate a user using a dictionary of stored Argon2 hashes.
 
     Args:

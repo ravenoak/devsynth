@@ -46,7 +46,7 @@ def _load_transformer_deps() -> None:
 class OfflineProvider(LLMProvider):
     """Provider that loads a local model or returns deterministic strings."""
 
-    def __init__(self, config: Dict[str, Any] | None = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         self.config = config or {}
         provider_cfg = self.config.get("offline_provider", {})
         # Accept both dict and simple string forms. If a string is provided,
@@ -79,7 +79,7 @@ class OfflineProvider(LLMProvider):
                 self.model = None
                 self.tokenizer = None
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] | None = None) -> str:
         if self.model and self.tokenizer and torch:
             params = parameters or {}
             max_new_tokens = params.get("max_new_tokens", 20)
@@ -94,14 +94,14 @@ class OfflineProvider(LLMProvider):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] | None = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         context_text = " ".join(msg.get("content", "") for msg in context)
         combined_prompt = f"{context_text} {prompt}".strip()
         return self.generate(combined_prompt, parameters)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         digest = sha256(text.encode("utf-8")).digest()
         return [
             int.from_bytes(digest[i : i + 4], "big") / 2**32 for i in range(0, 32, 4)

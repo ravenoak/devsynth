@@ -7,7 +7,8 @@ derivations.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Generic, Iterable, List, Protocol, TypeVar, runtime_checkable
+from typing import Dict, Generic, List, Protocol, TypeVar, runtime_checkable
+from collections.abc import Iterable
 
 T_co = TypeVar("T_co", covariant=True)
 T = TypeVar("T")
@@ -31,7 +32,7 @@ class CacheLayerProtocol(Protocol[T_co]):
 class DictCacheLayer(Generic[T]):
     """Simple dictionary-backed cache layer."""
 
-    store: Dict[str, T] = field(default_factory=dict)
+    store: dict[str, T] = field(default_factory=dict)
 
     def get(self, key: str) -> T:
         return self.store[key]
@@ -54,11 +55,11 @@ class MultiLayeredMemory(Generic[T]):
     """Orchestrates multiple cache layers with promotion and statistics."""
 
     def __init__(self, layers: Iterable[CacheLayerProtocol[T]]):
-        self.layers: List[CacheLayerProtocol[T]] = list(layers)
+        self.layers: list[CacheLayerProtocol[T]] = list(layers)
         if not self.layers:
             raise ValueError("At least one cache layer is required")
         self._accesses = 0
-        self._hits: List[int] = [0 for _ in self.layers]
+        self._hits: list[int] = [0 for _ in self.layers]
 
     def set(self, key: str, value: T) -> None:
         """Write-through to all cache layers."""

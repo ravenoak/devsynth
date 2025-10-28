@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Package initialisation for the DevSynth CLI."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from devsynth.logging_setup import DevSynthLogger
 

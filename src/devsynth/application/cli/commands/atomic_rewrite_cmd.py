@@ -28,7 +28,7 @@ def atomic_rewrite_cmd(
         False, "--dry-run", help="Perform analysis without writing changes."
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Run minimal Atomic‑Rewrite flow.
 

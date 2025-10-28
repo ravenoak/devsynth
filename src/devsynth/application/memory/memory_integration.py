@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Mapping, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
+from collections.abc import Mapping
 
 from devsynth.application.memory.dto import (
     MemoryMetadata,

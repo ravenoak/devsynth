@@ -19,22 +19,22 @@ mvu_app = typer.Typer(help="MVU utilities")
 
 
 @mvu_app.command("init")
-def init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def init_cmd(*, bridge: UXBridge | None = None) -> None:
     mvu_init_cmd(bridge=bridge)
 
 
 @mvu_app.command("lint")
-def lint_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def lint_cmd(*, bridge: UXBridge | None = None) -> None:
     mvu_lint_cmd(bridge=bridge)
 
 
 @mvu_app.command("report")
 def report_cmd(
-    since: Optional[str] = typer.Option(None, help="Git revision to scan"),
+    since: str | None = typer.Option(None, help="Git revision to scan"),
     fmt: str = typer.Option("markdown", help="Output format"),
-    output: Optional[Path] = typer.Option(None, help="Optional output path"),
+    output: Path | None = typer.Option(None, help="Optional output path"),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     mvu_report_cmd(since=since, fmt=fmt, output=output, bridge=bridge)
 
@@ -45,7 +45,7 @@ def rewrite_cmd(
     branch_name: str = typer.Option("atomic", help="Target branch name"),
     dry_run: bool = typer.Option(False, help="Print actions without executing"),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     mvu_rewrite_cmd(
         target_path=target_path, branch_name=branch_name, dry_run=dry_run, bridge=bridge
@@ -54,11 +54,11 @@ def rewrite_cmd(
 
 @mvu_app.command("exec")
 def exec_cmd(
-    command: List[str] = typer.Argument(
+    command: list[str] = typer.Argument(
         ..., help="Shell command to run", allow_dash=True
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     bridge = bridge or CLIUXBridge()
     code = mvu_exec_cmd(command, bridge=bridge)

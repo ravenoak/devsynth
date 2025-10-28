@@ -25,7 +25,7 @@ logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
 
-def _resolve_bridge(b: Optional[UXBridge]) -> UXBridge:
+def _resolve_bridge(b: UXBridge | None) -> UXBridge:
     """Return the provided bridge or fall back to the module default."""
 
     return b if b is not None else bridge
@@ -34,9 +34,9 @@ def _resolve_bridge(b: Optional[UXBridge]) -> UXBridge:
 def prompt(
     message: str,
     *,
-    choices: Optional[Sequence[str]] = None,
-    default: Optional[str] = None,
-    bridge: Optional[UXBridge] = None,
+    choices: Sequence[str] | None = None,
+    default: str | None = None,
+    bridge: UXBridge | None = None,
 ) -> str:
     """Ask the user a question via the active bridge."""
     return _resolve_bridge(bridge).ask_question(
@@ -48,13 +48,13 @@ def confirm(
     message: str,
     *,
     default: bool = False,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> bool:
     """Ask the user to confirm an action via the active bridge."""
     return _resolve_bridge(bridge).confirm_choice(message, default=default)
 
 
-def _env_flag(name: str) -> Optional[bool]:
+def _env_flag(name: str) -> bool | None:
     """Return boolean value for ``name`` if set, otherwise ``None``."""
 
     val = os.environ.get(name)
@@ -102,7 +102,7 @@ def _parse_features(
     return {}
 
 
-def _check_services(bridge: Optional[UXBridge] = None) -> bool:
+def _check_services(bridge: UXBridge | None = None) -> bool:
     """Verify required services are available."""
 
     bridge = _resolve_bridge(bridge)
@@ -170,7 +170,7 @@ def _handle_error(bridge: UXBridge, error: BridgeErrorPayload) -> None:
     bridge.handle_error(_coerce_error_payload(error))
 
 
-def _validate_file_path(path: str, must_exist: bool = True) -> Optional[str]:
+def _validate_file_path(path: str, must_exist: bool = True) -> str | None:
     """Validate a file path.
 
     Args:

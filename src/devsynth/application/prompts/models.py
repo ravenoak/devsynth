@@ -5,9 +5,10 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Iterator, MutableMapping, Optional, Sequence, TypedDict
+from typing import Optional, TypedDict
+from collections.abc import Iterator, MutableMapping, Sequence
 
-from typing_extensions import Literal
+from typing import Literal
 
 
 class StoredPromptVariant(TypedDict):
@@ -19,7 +20,7 @@ class StoredPromptVariant(TypedDict):
     success_count: int
     failure_count: int
     feedback_scores: list[float]
-    last_used: Optional[str]
+    last_used: str | None
 
 
 SelectionStrategyName = Literal["performance", "exploration", "random"]
@@ -45,12 +46,12 @@ class PromptVariant:
     """Represents a variant of a prompt template with performance metrics."""
 
     template: str
-    variant_id: Optional[str] = None
+    variant_id: str | None = None
     usage_count: int = 0
     success_count: int = 0
     failure_count: int = 0
     feedback_scores: list[float] = field(default_factory=list)
-    last_used: Optional[str] = None
+    last_used: str | None = None
 
     def __post_init__(self) -> None:
         if self.variant_id is None:
@@ -83,7 +84,7 @@ class PromptVariant:
         )
 
     def record_usage(
-        self, success: Optional[bool] = None, feedback_score: Optional[float] = None
+        self, success: bool | None = None, feedback_score: float | None = None
     ) -> None:
         """Record usage of this prompt variant."""
 
@@ -113,7 +114,7 @@ class PromptVariant:
         }
 
     @classmethod
-    def from_dict(cls, data: StoredPromptVariant) -> "PromptVariant":
+    def from_dict(cls, data: StoredPromptVariant) -> PromptVariant:
         """Create a prompt variant from a :class:`StoredPromptVariant`."""
 
         return cls(

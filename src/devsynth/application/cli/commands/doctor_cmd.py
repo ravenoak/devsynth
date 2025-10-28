@@ -52,7 +52,7 @@ class DoctorBridge(Protocol):
     ) -> None: ...
 
 
-def _get_or_create_bridge(bridge: Optional[UXBridge] = None) -> DoctorBridge:
+def _get_or_create_bridge(bridge: UXBridge | None = None) -> DoctorBridge:
     """Get or create the CLI bridge, initializing lazily."""
     if bridge is not None:
         return bridge
@@ -78,7 +78,7 @@ def doctor_cmd(
     config_dir: Path = Path("config"),
     quick: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Validate environment configuration files and provide hints.
 
@@ -191,7 +191,7 @@ def doctor_cmd(
             "tinydb": "tinydb",
         }
         store_type = str(getattr(config, "memory_store_type", "memory") or "memory")
-        store_pkg: Optional[str] = store_pkgs.get(store_type)
+        store_pkg: str | None = store_pkgs.get(store_type)
         if store_pkg:
             if store_pkg == "faiss":
                 spec = importlib.util.find_spec("faiss") or importlib.util.find_spec(

@@ -5,7 +5,8 @@ and handles human intervention when needed.
 """
 
 import os
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import Callable
 from uuid import uuid4
 
 from rich.console import Console
@@ -55,7 +56,7 @@ class WorkflowManager:
         return response
 
     def _create_workflow_for_command(
-        self, command: str, args: Dict[str, Any]
+        self, command: str, args: dict[str, Any]
     ) -> Workflow:
         """Create a workflow for a specific command."""
         workflow = self.orchestration_port.create_workflow(
@@ -82,7 +83,7 @@ class WorkflowManager:
         return workflow
 
     def _add_inspect_workflow_steps(
-        self, workflow: Workflow, args: Dict[str, Any]
+        self, workflow: Workflow, args: dict[str, Any]
     ) -> None:
         """Add steps for the inspect command workflow."""
         if args.get("interactive"):
@@ -142,7 +143,7 @@ class WorkflowManager:
         )
 
     def _add_init_workflow_steps(
-        self, workflow: Workflow, args: Dict[str, Any]
+        self, workflow: Workflow, args: dict[str, Any]
     ) -> None:
         """Add steps for the init command workflow."""
         # Step 1: Validate project path
@@ -212,7 +213,7 @@ class WorkflowManager:
         )
 
     def _add_spec_workflow_steps(
-        self, workflow: Workflow, args: Dict[str, Any]
+        self, workflow: Workflow, args: dict[str, Any]
     ) -> None:
         """Add steps for the spec command workflow."""
         # Step 1: Read requirements
@@ -249,7 +250,7 @@ class WorkflowManager:
         )
 
     def _add_test_workflow_steps(
-        self, workflow: Workflow, args: Dict[str, Any]
+        self, workflow: Workflow, args: dict[str, Any]
     ) -> None:
         """Add steps for the test command workflow."""
         # Step 1: Read specifications
@@ -286,7 +287,7 @@ class WorkflowManager:
         )
 
     def _add_code_workflow_steps(
-        self, workflow: Workflow, args: Dict[str, Any]
+        self, workflow: Workflow, args: dict[str, Any]
     ) -> None:
         """Add steps for the code command workflow."""
         # Step 1: Read tests
@@ -333,7 +334,7 @@ class WorkflowManager:
             ),
         )
 
-    def _add_run_workflow_steps(self, workflow: Workflow, args: Dict[str, Any]) -> None:
+    def _add_run_workflow_steps(self, workflow: Workflow, args: dict[str, Any]) -> None:
         """Add steps for the run command workflow."""
         # Step 1: Prepare environment
         self.orchestration_port.add_step(
@@ -369,7 +370,7 @@ class WorkflowManager:
         )
 
     def _add_config_workflow_steps(
-        self, workflow: Workflow, args: Dict[str, Any]
+        self, workflow: Workflow, args: dict[str, Any]
     ) -> None:
         """Add steps for the config command workflow."""
         # Step 1: Read configuration
@@ -396,7 +397,7 @@ class WorkflowManager:
                 ),
             )
 
-    def execute_command(self, command: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_command(self, command: str, args: dict[str, Any]) -> dict[str, Any]:
         """Execute a command through the workflow system."""
         try:
             if command in {"edrr-cycle", "edrr_cycle"}:
@@ -475,11 +476,11 @@ class WorkflowManager:
         except Exception as e:
             return {"success": False, "message": f"Error: {str(e)}"}
 
-    def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:
+    def get_workflow_status(self, workflow_id: str) -> dict[str, Any]:
         """Get the status of a workflow."""
         return self.orchestration_port.get_workflow_status(workflow_id)
 
-    def _execute_edrr_cycle(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_edrr_cycle(self, args: dict[str, Any]) -> dict[str, Any]:
         """Validate the provided manifest and start an EDRR cycle."""
         manifest = args.get("manifest")
         if not manifest or not os.path.exists(manifest):

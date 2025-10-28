@@ -51,7 +51,7 @@ class UnifiedConfigLoader:
     """Unified configuration loader used by the CLI."""
 
     @staticmethod
-    def load(path: Optional[str | Path] = None) -> UnifiedConfig:
+    def load(path: str | Path | None = None) -> UnifiedConfig:
         root = Path(path or Path.cwd())
         cfg_path = _find_config_path(root)
         use_pyproject = False

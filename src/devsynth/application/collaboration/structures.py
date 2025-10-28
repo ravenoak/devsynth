@@ -7,17 +7,13 @@ from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Dict,
-    Iterable,
-    Mapping,
-    MutableMapping,
     Optional,
     Protocol,
-    Sequence,
     Union,
     runtime_checkable,
 )
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from uuid import uuid4
 
 from devsynth.domain.models.memory import MemoryItem
@@ -35,11 +31,11 @@ class ReviewCycleSpec:
     work_product: Any
     author: Any
     reviewers: Sequence[Any]
-    send_message: Optional[Callable[..., Any]] = None
-    acceptance_criteria: Optional[Sequence[str]] = None
-    quality_metrics: Optional[Mapping[str, Any]] = None
-    team: Optional[Any] = None
-    memory_manager: Optional["MemoryManager"] = None
+    send_message: Callable[..., Any] | None = None
+    acceptance_criteria: Sequence[str] | None = None
+    quality_metrics: Mapping[str, Any] | None = None
+    team: Any | None = None
+    memory_manager: MemoryManager | None = None
 
     def __post_init__(self) -> None:  # pragma: no cover - simple normalization
         object.__setattr__(self, "reviewers", tuple(self.reviewers))
@@ -64,7 +60,7 @@ class ReviewCycleState:
     quality_score: float = 0.0
     metrics_results: dict[str, Any] = field(default_factory=dict)
     consensus_result: dict[str, Any] = field(default_factory=dict)
-    consensus_outcome: Optional["ConsensusOutcome"] = None
+    consensus_outcome: ConsensusOutcome | None = None
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
@@ -97,17 +93,17 @@ class SubtaskSpec:
     parent_task_id: str
     status: str = "pending"
     priority: str = "medium"
-    assigned_to: Optional[str] = None
+    assigned_to: str | None = None
     progress: float = 0.0
-    expertise_score: Optional[float] = None
+    expertise_score: float | None = None
     reassigned: bool = False
-    previous_assignee: Optional[str] = None
+    previous_assignee: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_mapping(
-        cls, mapping: Mapping[str, Any], *, parent_task_id: Optional[str] = None
-    ) -> "SubtaskSpec":
+        cls, mapping: Mapping[str, Any], *, parent_task_id: str | None = None
+    ) -> SubtaskSpec:
         data = dict(mapping)
         subtask_id = data.pop("id", None) or str(uuid4())
         title = data.pop("title", f"Subtask {subtask_id}")
@@ -165,7 +161,7 @@ class TaskSpec:
 
     id: str
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     requirements: list[str] = field(default_factory=list)
     status: str = "pending"
     priority: str = "medium"
@@ -173,7 +169,7 @@ class TaskSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "TaskSpec":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> TaskSpec:
         data = dict(mapping)
         task_id = data.pop("id", None) or str(uuid4())
         title = data.pop("title", "Untitled task")
@@ -219,7 +215,7 @@ class TaskDelegationResult:
     """Structured record describing a subtask delegation."""
 
     subtask_id: str
-    assigned_to: Optional[str]
+    assigned_to: str | None
     expertise_score: float
     timestamp: str
 
@@ -237,8 +233,8 @@ class TaskReassignmentResult:
     """Structured record describing a subtask reassignment."""
 
     subtask_id: str
-    previous_assignee: Optional[str]
-    new_assignee: Optional[str]
+    previous_assignee: str | None
+    new_assignee: str | None
     expertise_score: float
     progress_at_reassignment: float
     timestamp: str
@@ -270,7 +266,7 @@ class TaskManagementContext(Protocol):
     agents: Sequence[TaskAgentProtocol]
     subtasks: MutableMapping[str, list[SubtaskSpec]]
     subtask_progress: MutableMapping[str, float]
-    contribution_metrics: MutableMapping[str, MutableMapping[str, Dict[str, Any]]]
+    contribution_metrics: MutableMapping[str, MutableMapping[str, dict[str, Any]]]
 
     def send_message(
         self,

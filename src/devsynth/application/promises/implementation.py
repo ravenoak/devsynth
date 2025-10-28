@@ -6,7 +6,8 @@ Provides a Promise class that implements the PromiseInterface.
 import logging
 import uuid
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
+from collections.abc import Callable
 
 from devsynth.application.promises.interface import PromiseInterface
 from devsynth.exceptions import DevSynthError
@@ -58,14 +59,14 @@ class Promise(PromiseInterface[T], Generic[T]):
     def __init__(self):
         """Initialize a new Promise in the pending state."""
         self._state: PromiseState = PromiseState.PENDING
-        self._value: Optional[T] = None
-        self._reason: Optional[Exception] = None
-        self._on_fulfilled: List[Callable] = []
-        self._on_rejected: List[Callable] = []
+        self._value: T | None = None
+        self._reason: Exception | None = None
+        self._on_fulfilled: list[Callable] = []
+        self._on_rejected: list[Callable] = []
         self._id: str = str(uuid.uuid4())
-        self._parent_id: Optional[str] = None
-        self._children_ids: List[str] = []
-        self._metadata: Dict[str, Any] = {
+        self._parent_id: str | None = None
+        self._children_ids: list[str] = []
+        self._metadata: dict[str, Any] = {
             "created_at": None,  # Will be set by calling code
             "resolved_at": None,
             "rejected_at": None,
@@ -136,7 +137,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return self._reason
 
     @property
-    def parent_id(self) -> Optional[str]:
+    def parent_id(self) -> str | None:
         """
         Get the ID of the parent promise, if any.
 
@@ -146,7 +147,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return self._parent_id
 
     @parent_id.setter
-    def parent_id(self, value: Optional[str]) -> None:
+    def parent_id(self, value: str | None) -> None:
         """
         Set the ID of the parent promise.
 
@@ -156,7 +157,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         self._parent_id = value
 
     @property
-    def children_ids(self) -> List[str]:
+    def children_ids(self) -> list[str]:
         """
         Get the IDs of the child promises, if any.
 
@@ -205,7 +206,7 @@ class Promise(PromiseInterface[T], Generic[T]):
     def then(
         self,
         on_fulfilled: Callable[[T], S],
-        on_rejected: Optional[Callable[[Exception], S]] = None,
+        on_rejected: Callable[[Exception], S] | None = None,
     ) -> "Promise[S]":
         """
         Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -367,7 +368,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return promise
 
     @staticmethod
-    def all(promises: List["Promise[Any]"]) -> "Promise[List[Any]]":
+    def all(promises: list["Promise[Any]"]) -> "Promise[List[Any]]":
         """
         Returns a promise that resolves when all of the promises in the iterable argument
         have resolved, or rejects with the reason of the first passed promise that rejects.
@@ -381,7 +382,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         if not promises:
             return Promise.resolve_value([])
 
-        result_promise = Promise[List[Any]]()
+        result_promise = Promise[list[Any]]()
         results = [None] * len(promises)
         pending_count = len(promises)
 
@@ -405,7 +406,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return result_promise
 
     @staticmethod
-    def race(promises: List["Promise[T]"]) -> "Promise[T]":
+    def race(promises: list["Promise[T]"]) -> "Promise[T]":
         """
         Returns a promise that resolves or rejects as soon as one of the promises in
         the iterable resolves or rejects, with the value or reason from that promise.

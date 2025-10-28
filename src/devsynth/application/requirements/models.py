@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from uuid import UUID
 
 from devsynth.domain.models.requirement import (

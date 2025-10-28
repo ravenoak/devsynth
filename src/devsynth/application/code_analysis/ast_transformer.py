@@ -7,7 +7,8 @@ import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import Iterable, List, Optional, Sequence, Set, Union, cast
+from typing import List, Optional, Set, Union, cast
+from collections.abc import Iterable, Sequence
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -26,7 +27,7 @@ try:
     import astor as _astor
 
     HAS_ASTOR = True
-    astor: Optional[ModuleType] = _astor
+    astor: ModuleType | None = _astor
 except ImportError:  # pragma: no cover - exercised when astor is absent
     logger.warning(
         "astor library not found. Using fallback implementation for to_source."
@@ -127,7 +128,7 @@ class UsedNameCollector(ast.NodeVisitor):
     """Collect names that are read from within an AST tree."""
 
     def __init__(self) -> None:
-        self.used_names: Set[str] = set()
+        self.used_names: set[str] = set()
 
     def visit_Name(self, node: ast.Name) -> None:  # noqa: N802
         if isinstance(node.ctx, ast.Load):
@@ -138,10 +139,10 @@ class UsedNameCollector(ast.NodeVisitor):
 class UnusedImportRemover(ast.NodeTransformer):
     """Remove import statements whose bindings are never referenced."""
 
-    def __init__(self, used_names: Set[str]) -> None:
+    def __init__(self, used_names: set[str]) -> None:
         self.used_names = used_names
 
-    def visit_Import(self, node: ast.Import) -> Union[ast.Import, None]:  # noqa: N802
+    def visit_Import(self, node: ast.Import) -> ast.Import | None:  # noqa: N802
         filtered = [alias for alias in node.names if self._alias_used(alias)]
         if not filtered:
             return None
@@ -150,7 +151,7 @@ class UnusedImportRemover(ast.NodeTransformer):
 
     def visit_ImportFrom(
         self, node: ast.ImportFrom
-    ) -> Union[ast.ImportFrom, None]:  # noqa: N802
+    ) -> ast.ImportFrom | None:  # noqa: N802
         filtered = [alias for alias in node.names if self._alias_used(alias)]
         if not filtered:
             return None
@@ -165,10 +166,10 @@ class UnusedImportRemover(ast.NodeTransformer):
 class UnusedVariableRemover(ast.NodeTransformer):
     """Remove assignments to variables that are never read."""
 
-    def __init__(self, used_names: Set[str]) -> None:
+    def __init__(self, used_names: set[str]) -> None:
         self.used_names = used_names
 
-    def visit_Assign(self, node: ast.Assign) -> Union[ast.Assign, None]:  # noqa: N802
+    def visit_Assign(self, node: ast.Assign) -> ast.Assign | None:  # noqa: N802
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
             target = node.targets[0].id
             if target not in self.used_names:
@@ -191,8 +192,8 @@ class RedundantAssignmentRemover(ast.NodeTransformer):
         node.body = self._prune_assignments(node.body)
         return node
 
-    def _prune_assignments(self, body: List[ast.stmt]) -> List[ast.stmt]:
-        result: List[ast.stmt] = []
+    def _prune_assignments(self, body: list[ast.stmt]) -> list[ast.stmt]:
+        result: list[ast.stmt] = []
         for statement in body:
             if isinstance(statement, ast.Assign) and _single_name_target(statement):
                 if (
@@ -263,8 +264,8 @@ def _flatten_string_concatenation(node: ast.AST) -> Iterable[ast.AST]:
         yield node
 
 
-def _to_joined_str(parts: Iterable[ast.AST]) -> List[ast.AST]:
-    joined: List[ast.AST] = []
+def _to_joined_str(parts: Iterable[ast.AST]) -> list[ast.AST]:
+    joined: list[ast.AST] = []
     for part in parts:
         if isinstance(part, ast.Constant) and isinstance(part.value, str):
             joined.append(ast.Constant(value=part.value))

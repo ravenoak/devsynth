@@ -1,6 +1,7 @@
 """Local LLM provider for offline mode."""
 
-from typing import Any, AsyncGenerator, Dict, List
+from typing import Any, Dict, List
+from collections.abc import AsyncGenerator
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -20,7 +21,7 @@ class LocalProviderError(DevSynthError):
 class LocalProvider(StreamingLLMProvider):
     """Simplified local provider used when offline_mode is enabled."""
 
-    def __init__(self, config: Dict[str, Any] | None = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         from ...config.settings import get_llm_settings
 
         default_settings = get_llm_settings()
@@ -35,7 +36,7 @@ class LocalProvider(StreamingLLMProvider):
         self.context_length = self.config.get("context_length", 2048)
         self.token_tracker = TokenTracker()
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] | None = None) -> str:
         """Generate a response for the given prompt."""
         self.token_tracker.ensure_token_limit(prompt, self.max_tokens)
         return f"[local] {prompt}"
@@ -43,8 +44,8 @@ class LocalProvider(StreamingLLMProvider):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] | None = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Generate a response using conversation context."""
         messages = context.copy()
@@ -56,12 +57,12 @@ class LocalProvider(StreamingLLMProvider):
             )
         return f"[local] {prompt}"
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Return a deterministic embedding vector for the text."""
         return [float(ord(c)) for c in text[:8]]
 
     async def generate_stream(
-        self, prompt: str, parameters: Dict[str, Any] | None = None
+        self, prompt: str, parameters: dict[str, Any] | None = None
     ) -> AsyncGenerator[str, None]:
         """Stream a generated response."""
 
@@ -73,8 +74,8 @@ class LocalProvider(StreamingLLMProvider):
     async def generate_with_context_stream(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] | None = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
     ) -> AsyncGenerator[str, None]:
         """Stream a generated response using conversation context."""
 

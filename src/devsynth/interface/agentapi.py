@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence, TypeVar, assert_never, cast
+from typing import Any, TypeVar, assert_never, cast
+from collections.abc import Callable, Mapping, Sequence
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
-from typing_extensions import ParamSpec, TypedDict, Unpack
+from typing_extensions import ParamSpec, TypedDict
+from typing import Unpack
 
 from devsynth.interface.agentapi_models import (
     APIMetrics,

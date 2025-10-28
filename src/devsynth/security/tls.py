@@ -33,10 +33,10 @@ class TLSConfig:
     """
 
     verify: bool = True
-    cert_file: Optional[str] = None
-    key_file: Optional[str] = None
-    ca_file: Optional[str] = None
-    timeout: Optional[float] = None
+    cert_file: str | None = None
+    key_file: str | None = None
+    ca_file: str | None = None
+    timeout: float | None = None
 
     def validate(self) -> None:
         """Validate TLS certificate and key file paths."""

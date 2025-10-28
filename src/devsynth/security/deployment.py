@@ -8,7 +8,7 @@ in application start-up to catch insecure deployment configurations.
 from __future__ import annotations
 
 import os
-from typing import Iterable
+from collections.abc import Iterable
 
 from .validation import parse_bool_env
 

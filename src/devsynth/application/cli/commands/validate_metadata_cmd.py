@@ -25,11 +25,11 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def validate_metadata_cmd(
-    directory: Optional[str] = None,
-    file: Optional[str] = None,
+    directory: str | None = None,
+    file: str | None = None,
     verbose: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Validate metadata in Markdown files.
 
@@ -157,7 +157,7 @@ def validate_metadata_cmd(
         bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def validate_file_metadata(file_path: pathlib.Path) -> Dict[str, Any]:
+def validate_file_metadata(file_path: pathlib.Path) -> dict[str, Any]:
     """
     Validate metadata in a single Markdown file.
 
@@ -171,7 +171,7 @@ def validate_file_metadata(file_path: pathlib.Path) -> Dict[str, Any]:
 
     try:
         # Read the file
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Extract front matter
@@ -198,7 +198,7 @@ def validate_file_metadata(file_path: pathlib.Path) -> Dict[str, Any]:
         return result
 
 
-def extract_front_matter(content: str) -> Optional[Dict[str, Any]]:
+def extract_front_matter(content: str) -> dict[str, Any] | None:
     """
     Extract front-matter metadata from Markdown content.
 
@@ -228,7 +228,7 @@ def extract_front_matter(content: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def validate_metadata(file_path: pathlib.Path, metadata: Dict[str, Any]) -> List[str]:
+def validate_metadata(file_path: pathlib.Path, metadata: dict[str, Any]) -> list[str]:
     """
     Validate metadata against requirements.
 
@@ -290,7 +290,7 @@ def validate_metadata(file_path: pathlib.Path, metadata: Dict[str, Any]) -> List
     return errors
 
 
-def validate_date(date_str: Any) -> Optional[str]:
+def validate_date(date_str: Any) -> str | None:
     """
     Validate a date string.
 
@@ -311,7 +311,7 @@ def validate_date(date_str: Any) -> Optional[str]:
         return f"Invalid date format: {date_str}. Expected format: YYYY-MM-DD"
 
 
-def validate_version(version_str: Any) -> Optional[str]:
+def validate_version(version_str: Any) -> str | None:
     """
     Validate a version string.
 

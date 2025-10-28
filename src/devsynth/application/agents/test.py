@@ -24,7 +24,7 @@ from devsynth.exceptions import DevSynthError
 __all__ = ["TestAgent", "scaffold_integration_tests", "write_scaffolded_tests"]
 
 
-def scaffold_integration_tests(test_names: List[str]) -> Dict[str, str]:
+def scaffold_integration_tests(test_names: list[str]) -> dict[str, str]:
     """Public hook for generating placeholder integration test modules.
 
     This function re-exports :func:`devsynth.testing.generation.scaffold_integration_tests`
@@ -36,7 +36,7 @@ def scaffold_integration_tests(test_names: List[str]) -> Dict[str, str]:
     return _scaffold_integration_tests(test_names)
 
 
-def write_scaffolded_tests(directory: Path, test_names: List[str]) -> Dict[Path, str]:
+def write_scaffolded_tests(directory: Path, test_names: list[str]) -> dict[Path, str]:
     """Public hook for writing placeholder integration test modules to disk."""
 
     return _write_scaffolded_tests(directory, test_names)
@@ -49,8 +49,8 @@ class TestAgent(BaseAgent):
     __test__ = False
 
     def scaffold_integration_tests(
-        self, test_names: List[str], output_dir: Path | None = None
-    ) -> Dict[str, str]:
+        self, test_names: list[str], output_dir: Path | None = None
+    ) -> dict[str, str]:
         """Create placeholder integration test modules and optionally write them.
 
         The generated scaffolds contain an executable assertion, providing a
@@ -75,8 +75,8 @@ class TestAgent(BaseAgent):
         return _scaffold_integration_tests(names)
 
     def scaffold_integration_scenarios(
-        self, scenarios: List[Any], output_dir: Path | None = None
-    ) -> Dict[str, str]:
+        self, scenarios: list[Any], output_dir: Path | None = None
+    ) -> dict[str, str]:
         """Create placeholder tests for the given integration scenarios.
 
         Each scaffolded test includes a trivial passing assertion.
@@ -90,7 +90,7 @@ class TestAgent(BaseAgent):
             Mapping of file names to placeholder test content.
         """
 
-        names: List[str] = []
+        names: list[str] = []
         for scenario in scenarios or ["placeholder"]:
             if isinstance(scenario, dict):
                 names.append(str(scenario.get("name", "scenario")))
@@ -137,7 +137,7 @@ class TestAgent(BaseAgent):
         return output
 
     @staticmethod
-    def _names_from_context(context: str) -> List[str]:
+    def _names_from_context(context: str) -> list[str]:
         """Derive integration test names from project context.
 
         The helper searches for tokens following ``module``, ``service``, or
@@ -157,14 +157,14 @@ class TestAgent(BaseAgent):
             r"(?:module|service|component)\s+([A-Za-z_][A-Za-z0-9_]*)",
             re.IGNORECASE,
         )
-        names: List[str] = []
+        names: list[str] = []
         for before, after in pattern.findall(context):
             candidate = before or after
             if candidate:
                 names.append(candidate)
         return names
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and produce tests."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
@@ -204,7 +204,7 @@ class TestAgent(BaseAgent):
             "integration_output_dir", "tests/integration/generated_tests"
         )
         output_dir = Path(output_dir_input)
-        integration_tests: Dict[str, str] = {}
+        integration_tests: dict[str, str] = {}
 
         # Handle multi-module projects by creating a scaffolded test for each module.
         modules = inputs.get("modules", [])
@@ -256,7 +256,7 @@ class TestAgent(BaseAgent):
             "integration_tests": integration_tests,
         }
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()
         if not capabilities:

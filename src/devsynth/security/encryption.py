@@ -34,8 +34,8 @@ def _validate_key_format(key_bytes: bytes) -> None:
         raise ValueError("Encryption key must decode to 32 bytes (Fernet format)")
 
 
-def _get_fernet(key: Optional[str] = None) -> Fernet:
-    key_source: Optional[str | bytes] = key
+def _get_fernet(key: str | None = None) -> Fernet:
+    key_source: str | bytes | None = key
     if key_source is None:
         key_source = os.environ.get(_DEFAULT_ENV_KEY)
     if key_source is None:
@@ -45,11 +45,11 @@ def _get_fernet(key: Optional[str] = None) -> Fernet:
     return Fernet(key_bytes)
 
 
-def encrypt_bytes(data: bytes, key: Optional[str] = None) -> bytes:
+def encrypt_bytes(data: bytes, key: str | None = None) -> bytes:
     """Encrypt bytes using Fernet."""
     return cast(bytes, _get_fernet(key).encrypt(data))
 
 
-def decrypt_bytes(token: bytes, key: Optional[str] = None) -> bytes:
+def decrypt_bytes(token: bytes, key: str | None = None) -> bytes:
     """Decrypt bytes using Fernet."""
     return cast(bytes, _get_fernet(key).decrypt(token))

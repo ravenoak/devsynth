@@ -16,7 +16,7 @@ except Exception:  # pragma: no cover - setup wizard is optional
 class WebUISetupWizard:
     """Expose the CLI :class:`SetupWizard` through a WebUI bridge."""
 
-    def __init__(self, bridge: Optional[UXBridge] = None) -> None:
+    def __init__(self, bridge: UXBridge | None = None) -> None:
         self.bridge = bridge or WebUIBridge()
 
     def run(self) -> None:

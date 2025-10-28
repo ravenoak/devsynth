@@ -13,7 +13,7 @@ PRIORITY_MAP = {
 }
 
 
-def reprioritize_open_issues(issues_dir: pathlib.Path = ISSUES_DIR) -> Dict[str, int]:
+def reprioritize_open_issues(issues_dir: pathlib.Path = ISSUES_DIR) -> dict[str, int]:
     """Update issue priorities according to milestone.
 
     Args:
@@ -22,7 +22,7 @@ def reprioritize_open_issues(issues_dir: pathlib.Path = ISSUES_DIR) -> Dict[str,
     Returns:
         Counts of issues updated for each priority level.
     """
-    counts: Dict[str, int] = {"high": 0, "medium": 0, "low": 0}
+    counts: dict[str, int] = {"high": 0, "medium": 0, "low": 0}
     for path in issues_dir.glob("*.md"):
         if path.name in {"README.md", "TEMPLATE.md"}:
             continue

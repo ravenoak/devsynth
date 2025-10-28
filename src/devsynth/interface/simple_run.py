@@ -16,7 +16,7 @@ class WorkflowResult:
     summary: str
 
 
-def run_workflow(bridge: UXBridge) -> Optional[Dict[str, Any]]:
+def run_workflow(bridge: UXBridge) -> dict[str, Any] | None:
     """Run a workflow selected via ``bridge``.
 
     This mirrors the pseudocode in ``docs/implementation/uxbridge_interaction_pseudocode.md``.

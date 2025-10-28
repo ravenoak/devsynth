@@ -12,13 +12,14 @@ import sys
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional
+from collections.abc import Mapping, Sequence
 
 if TYPE_CHECKING:
     from devsynth.release import publish_manifest as _publish_manifest_type
 else:
     # Handle circular import by making publish_manifest optional
-    publish_manifest: Optional[Any] = None
+    publish_manifest: Any | None = None
 
 try:
     from devsynth.release import (

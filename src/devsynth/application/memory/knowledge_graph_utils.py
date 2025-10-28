@@ -26,7 +26,7 @@ DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
 MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
 
 
-def find_related_items(store: RDFLibStore, item_id: str) -> List[MemoryItem]:
+def find_related_items(store: RDFLibStore, item_id: str) -> list[MemoryItem]:
     """
     Find all items related to the given item.
 
@@ -89,7 +89,7 @@ def find_related_items(store: RDFLibStore, item_id: str) -> List[MemoryItem]:
 
 def find_items_by_relationship(
     store: RDFLibStore, relationship: str
-) -> List[List[MemoryItem]]:
+) -> list[list[MemoryItem]]:
     """
     Find all pairs of items connected by the given relationship.
 
@@ -148,7 +148,7 @@ def find_items_by_relationship(
         )
 
 
-def get_item_relationships(store: RDFLibStore, item_id: str) -> List[Dict[str, Any]]:
+def get_item_relationships(store: RDFLibStore, item_id: str) -> list[dict[str, Any]]:
     """
     Get all relationships for the given item.
 
@@ -319,7 +319,7 @@ def delete_relationship(
         )
 
 
-def query_graph_pattern(store: RDFLibStore, pattern: str) -> List[Dict[str, Any]]:
+def query_graph_pattern(store: RDFLibStore, pattern: str) -> list[dict[str, Any]]:
     """
     Query the graph with a specific SPARQL pattern.
 
@@ -369,7 +369,7 @@ def query_graph_pattern(store: RDFLibStore, pattern: str) -> List[Dict[str, Any]
         )
 
 
-def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> Dict[str, Any]:
+def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> dict[str, Any]:
     """
     Get a subgraph centered on a specific item.
 

@@ -88,19 +88,19 @@ class IngestionMetrics:
 
     def __init__(self):
         self.start_time = time.time()
-        self.end_time: Optional[float] = None
+        self.end_time: float | None = None
         self.artifacts_discovered = 0
-        self.artifacts_by_type: Dict[ArtifactType, int] = {t: 0 for t in ArtifactType}
-        self.artifacts_by_status: Dict[ArtifactStatus, int] = {
+        self.artifacts_by_type: dict[ArtifactType, int] = {t: 0 for t in ArtifactType}
+        self.artifacts_by_status: dict[ArtifactStatus, int] = {
             s: 0 for s in ArtifactStatus
         }
         self.errors_encountered = 0
         self.warnings_generated = 0
-        self.phase_durations: Dict[IngestionPhase, float] = {
+        self.phase_durations: dict[IngestionPhase, float] = {
             p: 0.0 for p in IngestionPhase
         }
-        self.current_phase: Optional[IngestionPhase] = None
-        self.phase_start_time: Optional[float] = None
+        self.current_phase: IngestionPhase | None = None
+        self.phase_start_time: float | None = None
 
     def start_phase(self, phase: IngestionPhase):
         """Start timing for a specific phase."""
@@ -128,7 +128,7 @@ class IngestionMetrics:
         self.end_phase()  # End any ongoing phase
         self.end_time = time.time()
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Return a summary of the ingestion metrics."""
         total_duration = (self.end_time or time.time()) - self.start_time
 
@@ -162,9 +162,9 @@ class Ingestion:
 
     def __init__(
         self,
-        project_root: Union[str, Path],
-        manifest_path: Optional[Union[str, Path]] = None,
-        edrr_coordinator: Optional[EDRRCoordinator] = None,
+        project_root: str | Path,
+        manifest_path: str | Path | None = None,
+        edrr_coordinator: EDRRCoordinator | None = None,
         *,
         auto_phase_transitions: bool = True,
     ):
@@ -187,10 +187,10 @@ class Ingestion:
         self.project_graph = (
             nx.DiGraph()
         )  # Knowledge graph for project structure and relationships
-        self.manifest_data: Optional[Dict[str, Any]] = None
-        self.previous_state: Optional[Dict[str, Any]] = None
-        self.artifacts: Dict[str, Dict[str, Any]] = {}  # Discovered artifacts
-        self.project_structure: Optional[ProjectStructureType] = None
+        self.manifest_data: dict[str, Any] | None = None
+        self.previous_state: dict[str, Any] | None = None
+        self.artifacts: dict[str, dict[str, Any]] = {}  # Discovered artifacts
+        self.project_structure: ProjectStructureType | None = None
 
         # Set up EDRR coordinator for phase tracking
         if edrr_coordinator is not None:
@@ -224,7 +224,7 @@ class Ingestion:
 
         logger.info(f"Initialized ingestion for project at {self.project_root}")
 
-    def load_manifest(self) -> Dict[str, Any]:
+    def load_manifest(self) -> dict[str, Any]:
         """
         Load and validate the project manifest.
 
@@ -285,7 +285,7 @@ class Ingestion:
 
     def run_ingestion(
         self, dry_run: bool = False, verbose: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run the full ingestion process using the EDRR methodology.
 
@@ -391,7 +391,7 @@ class Ingestion:
                 "metrics": self.metrics.get_summary(),
             }
 
-    def analyze_project_structure(self, verbose: bool = False) -> Dict[str, Any]:
+    def analyze_project_structure(self, verbose: bool = False) -> dict[str, Any]:
         """Analyze the project structure using the Expand phase logic."""
 
         self._run_expand_phase(dry_run=True, verbose=verbose)
@@ -405,7 +405,7 @@ class Ingestion:
         )
         return result
 
-    def validate_artifacts(self, verbose: bool = False) -> Dict[str, Any]:
+    def validate_artifacts(self, verbose: bool = False) -> dict[str, Any]:
         """Validate discovered artifacts using the Differentiate phase logic."""
 
         self._run_differentiate_phase(dry_run=True, verbose=verbose)
@@ -426,7 +426,7 @@ class Ingestion:
 
     def remove_outdated_items(
         self, verbose: bool = False, dry_run: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Remove or mark outdated artifacts using the Refine phase logic."""
 
         self._run_refine_phase(dry_run=dry_run, verbose=verbose)
@@ -447,7 +447,7 @@ class Ingestion:
 
     def summarize_outcomes(
         self, verbose: bool = False, dry_run: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Summarize ingestion outcomes using the Retrospect phase logic."""
 
         self.metrics.start_phase(IngestionPhase.RETROSPECT)
@@ -681,7 +681,7 @@ class Ingestion:
                 self.metrics.artifacts_by_status[ArtifactStatus.MISSING] += 1
 
     def _is_artifact_changed(
-        self, current: Dict[str, Any], previous: Dict[str, Any]
+        self, current: dict[str, Any], previous: dict[str, Any]
     ) -> bool:
         """
         Determine if an artifact has changed since the previous state.
@@ -701,7 +701,7 @@ class Ingestion:
     def _resolve_conflicts(self, verbose: bool) -> None:
         """Resolve conflicts and inconsistencies in the artifact data."""
         # Check for artifacts with the same name but different paths
-        artifact_names: Dict[str, str] = {}
+        artifact_names: dict[str, str] = {}
         conflicts = []
 
         for path, artifact in self.artifacts.items():
@@ -829,7 +829,7 @@ class Ingestion:
                                     f"Identified test relationship: {test_path} tests {code_path}"
                                 )
 
-    def _save_refined_data(self, refined_data: Dict[str, Any], verbose: bool) -> None:
+    def _save_refined_data(self, refined_data: dict[str, Any], verbose: bool) -> None:
         """Save the refined data to disk."""
         # Create a directory for storing the refined data
         output_dir = self.project_root / ".devsynth" / "ingestion"
@@ -865,7 +865,7 @@ class Ingestion:
 
         ingestion_phases.run_retrospect_phase(self, dry_run, verbose)
 
-    def _evaluate_ingestion_process(self, verbose: bool) -> Dict[str, Any]:
+    def _evaluate_ingestion_process(self, verbose: bool) -> dict[str, Any]:
         """
         Evaluate the ingestion process based on metrics and outcomes.
 
@@ -928,7 +928,7 @@ class Ingestion:
 
         return evaluation
 
-    def _identify_improvement_areas(self, verbose: bool) -> List[Dict[str, str]]:
+    def _identify_improvement_areas(self, verbose: bool) -> list[dict[str, str]]:
         """
         Identify areas for improvement based on the ingestion process.
 
@@ -1031,7 +1031,7 @@ class Ingestion:
 
         return improvements
 
-    def _generate_recommendations(self, verbose: bool) -> List[Dict[str, str]]:
+    def _generate_recommendations(self, verbose: bool) -> list[dict[str, str]]:
         """
         Generate recommendations for the next iteration.
 
@@ -1109,7 +1109,7 @@ class Ingestion:
 
         return recommendations
 
-    def _save_retrospective(self, retrospective: Dict[str, Any], verbose: bool) -> None:
+    def _save_retrospective(self, retrospective: dict[str, Any], verbose: bool) -> None:
         """Save the retrospective report to disk."""
         # Create a directory for storing the retrospective
         output_dir = self.project_root / ".devsynth" / "ingestion" / "retrospectives"
@@ -1139,7 +1139,7 @@ class Ingestion:
             self.metrics.errors_encountered += 1
 
     def _generate_markdown_summary(
-        self, retrospective: Dict[str, Any], output_file: Path
+        self, retrospective: dict[str, Any], output_file: Path
     ) -> None:
         """Generate a markdown summary of the retrospective report."""
         try:

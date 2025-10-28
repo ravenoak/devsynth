@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Iterable, Mapping, Optional, Protocol, Sequence, runtime_checkable
+from typing import Optional, Protocol, runtime_checkable
+from collections.abc import Iterable, Mapping, Sequence
 from uuid import uuid4
 
 from devsynth.domain.models.wsde_core import WSDETeam
@@ -103,7 +104,7 @@ class MultidisciplinaryEngine:
         critic_agent: SupportsTeamAgent,
         disciplinary_knowledge: Mapping[str, Mapping[str, Sequence[str]]],
         disciplinary_agents: Sequence[SupportsTeamAgent],
-        memory_integration: Optional[SupportsDialecticalMemory] = None,
+        memory_integration: SupportsDialecticalMemory | None = None,
     ) -> MultidisciplinaryAnalysis | dict[str, object]:
         if not task or "solution" not in task:
             logger.warning(
@@ -352,7 +353,7 @@ def apply_multi_disciplinary_dialectical_reasoning(
     critic_agent: SupportsTeamAgent,
     disciplinary_knowledge: Mapping[str, Mapping[str, Sequence[str]]],
     disciplinary_agents: Sequence[SupportsTeamAgent],
-    memory_integration: Optional[SupportsDialecticalMemory] = None,
+    memory_integration: SupportsDialecticalMemory | None = None,
 ) -> dict[str, object]:
     result = _engine(self).apply(
         task,

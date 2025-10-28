@@ -22,10 +22,10 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def generate_docs_cmd(
-    path: Optional[str] = None,
-    output_dir: Optional[str] = None,
+    path: str | None = None,
+    output_dir: str | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate API reference documentation for a project.
 
@@ -72,7 +72,7 @@ def generate_docs_cmd(
 
         # Load the manifest.yaml file
         try:
-            with open(manifest_path, "r") as f:
+            with open(manifest_path) as f:
                 manifest = yaml.safe_load(f)
         except Exception as e:
             bridge.print(f"[red]Error loading manifest: {e}[/red]")

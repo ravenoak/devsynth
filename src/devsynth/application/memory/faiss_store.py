@@ -58,7 +58,7 @@ class _StoredVectorEntry(TypedDict, total=False):
 class _Snapshot:
     """Snapshot of index state captured for transactional rollbacks."""
 
-    index: "Index"
+    index: Index
     metadata: dict[str, _StoredVectorEntry]
 
 
@@ -118,7 +118,7 @@ class FAISSStore(VectorStore[MemoryRecord], SupportsTransactions):
         try:
             # Initialize metadata dictionary
             if os.path.exists(self.metadata_file):
-                with open(self.metadata_file, "r", encoding="utf-8") as fh:
+                with open(self.metadata_file, encoding="utf-8") as fh:
                     raw_metadata = json.load(fh)
                 self.metadata: dict[str, _StoredVectorEntry] = {
                     key: cast(_StoredVectorEntry, value)

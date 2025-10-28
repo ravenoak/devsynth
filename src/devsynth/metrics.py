@@ -13,7 +13,8 @@ runtime scraping.
 from __future__ import annotations
 
 from collections import Counter as DictCounter
-from typing import Callable, Dict, Optional, Protocol, Self, Sequence, cast
+from typing import Dict, Optional, Protocol, Self, cast
+from collections.abc import Callable, Sequence
 
 
 class CounterProtocol(Protocol):
@@ -40,7 +41,7 @@ class CounterFactory(Protocol):
 class _NoOpCounter(CounterProtocol):
     """In-memory counter used when ``prometheus_client`` is unavailable."""
 
-    def labels(self, *args: object, **kwargs: object) -> "_NoOpCounter":
+    def labels(self, *args: object, **kwargs: object) -> _NoOpCounter:
         return self
 
     def inc(self, *args: object, **kwargs: object) -> None:
@@ -102,7 +103,7 @@ _dashboard_metrics: DictCounter[str] = DictCounter()
 # Circuit breaker state metrics
 _circuit_breaker_metrics: DictCounter[str] = DictCounter()
 # Optional external dashboard hook
-_dashboard_hook: Optional[Callable[[str], None]] = None
+_dashboard_hook: Callable[[str], None] | None = None
 
 # ---------------------------------------------------------------------------
 # Prometheus counters
@@ -225,47 +226,47 @@ def clear_dashboard_hook() -> None:
     _dashboard_hook = None
 
 
-def get_memory_metrics() -> Dict[str, int]:
+def get_memory_metrics() -> dict[str, int]:
     """Return memory operation counters."""
     return dict(_memory_metrics)
 
 
-def get_provider_metrics() -> Dict[str, int]:
+def get_provider_metrics() -> dict[str, int]:
     """Return provider operation counters."""
     return dict(_provider_metrics)
 
 
-def get_retry_metrics() -> Dict[str, int]:
+def get_retry_metrics() -> dict[str, int]:
     """Return retry operation counters."""
     return dict(_retry_metrics)
 
 
-def get_retry_count_metrics() -> Dict[str, int]:
+def get_retry_count_metrics() -> dict[str, int]:
     """Return retry counts per function."""
     return dict(_retry_count_metrics)
 
 
-def get_retry_error_metrics() -> Dict[str, int]:
+def get_retry_error_metrics() -> dict[str, int]:
     """Return retry counts for each exception type."""
     return dict(_retry_error_metrics)
 
 
-def get_retry_condition_metrics() -> Dict[str, int]:
+def get_retry_condition_metrics() -> dict[str, int]:
     """Return retry counts grouped by failed condition name."""
     return dict(_retry_condition_metrics)
 
 
-def get_retry_stat_metrics() -> Dict[str, int]:
+def get_retry_stat_metrics() -> dict[str, int]:
     """Return retry outcome metrics grouped by function and status."""
     return dict(_retry_stat_metrics)
 
 
-def get_circuit_breaker_state_metrics() -> Dict[str, int]:
+def get_circuit_breaker_state_metrics() -> dict[str, int]:
     """Return circuit breaker state transition counts."""
     return dict(_circuit_breaker_metrics)
 
 
-def get_dashboard_metrics() -> Dict[str, int]:
+def get_dashboard_metrics() -> dict[str, int]:
     """Return dashboard event counters."""
     return dict(_dashboard_metrics)
 

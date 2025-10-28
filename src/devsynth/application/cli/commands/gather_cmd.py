@@ -14,7 +14,7 @@ from ..utils import _resolve_bridge
 
 
 def gather_cmd(
-    output_file: str = "requirements_plan.yaml", *, bridge: Optional[UXBridge] = None
+    output_file: str = "requirements_plan.yaml", *, bridge: UXBridge | None = None
 ) -> None:
     """Interactively gather project goals, constraints and priority.
 

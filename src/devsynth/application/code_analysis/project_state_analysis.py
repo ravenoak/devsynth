@@ -12,7 +12,7 @@ from typing import Any, Dict
 from .project_state_analyzer import ProjectStateAnalyzer
 
 
-def analyze_project_state(project_path: str) -> Dict[str, Any]:
+def analyze_project_state(project_path: str) -> dict[str, Any]:
     """Analyze the state of a project located at ``project_path``.
 
     Args:

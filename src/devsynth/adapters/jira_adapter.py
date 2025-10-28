@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any, Iterable, Protocol, TypedDict, cast, runtime_checkable
+from typing import Any, Protocol, TypedDict, cast, runtime_checkable
+from collections.abc import Iterable
 
 import requests
 

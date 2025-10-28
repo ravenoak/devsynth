@@ -64,10 +64,10 @@ class RepoAnalyzer:
         return result
 
     # ------------------------------------------------------------------
-    def _map_dependencies(self) -> Dict[str, List[str]]:
+    def _map_dependencies(self) -> dict[str, list[str]]:
         """Map Python file dependencies based on import statements."""
 
-        dependencies: Dict[str, List[str]] = {}
+        dependencies: dict[str, list[str]] = {}
         for file_path in self._find_python_files():
             imports = self._parse_imports(file_path)
             rel_path = os.path.relpath(os.fspath(file_path), os.fspath(self.root_path))
@@ -76,10 +76,10 @@ class RepoAnalyzer:
         return dependencies
 
     # ------------------------------------------------------------------
-    def _build_structure(self) -> Dict[str, List[str]]:
+    def _build_structure(self) -> dict[str, list[str]]:
         """Build a simple representation of the directory structure."""
 
-        structure: Dict[str, List[str]] = {}
+        structure: dict[str, list[str]] = {}
         root_str = os.fspath(self.root_path)
         for dirpath, dirnames, filenames in os.walk(root_str):
             rel = os.path.relpath(dirpath, root_str)
@@ -88,10 +88,10 @@ class RepoAnalyzer:
         return structure
 
     # ------------------------------------------------------------------
-    def _find_python_files(self) -> List[Path]:
+    def _find_python_files(self) -> list[Path]:
         """Return a list of all Python files under the root path."""
 
-        files: List[Path] = []
+        files: list[Path] = []
         root_str = os.fspath(self.root_path)
         for dirpath, _, filenames in os.walk(root_str):
             for name in filenames:
@@ -100,15 +100,15 @@ class RepoAnalyzer:
         return files
 
     # ------------------------------------------------------------------
-    def _parse_imports(self, file_path: Path) -> Set[str]:
+    def _parse_imports(self, file_path: Path) -> set[str]:
         """Parse import statements from a Python file.
 
         Only the top level module name is recorded for each import.
         """
 
-        imports: Set[str] = set()
+        imports: set[str] = set()
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 tree = ast.parse(f.read(), filename=str(file_path))
 
             for node in ast.walk(tree):

@@ -10,7 +10,6 @@ import os
 import re
 from typing import (
     Any,
-    Callable,
     Dict,
     List,
     NotRequired,
@@ -21,6 +20,7 @@ from typing import (
     Union,
     cast,
 )
+from collections.abc import Callable
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.domain.interfaces.code_analysis import (
@@ -68,7 +68,7 @@ class AstTransformer(ast.NodeTransformer):
     def __init__(self):
         """Initialize the transformer."""
         super().__init__()
-        self.changes: List[ChangeRecord] = []
+        self.changes: list[ChangeRecord] = []
 
     def record_change(self, node: ast.AST, description: str) -> None:
         """Record a change made to the AST."""
@@ -87,7 +87,7 @@ class AstTransformer(ast.NodeTransformer):
 class UnusedImportRemover(AstTransformer):
     """Transformer that removes unused imports."""
 
-    def __init__(self, symbol_usage: Dict[str, int]):
+    def __init__(self, symbol_usage: dict[str, int]):
         """
         Initialize the transformer.
 
@@ -95,11 +95,11 @@ class UnusedImportRemover(AstTransformer):
             symbol_usage: Dictionary mapping symbol names to their usage count
         """
         super().__init__()
-        self.symbol_usage: Dict[str, int] = symbol_usage
+        self.symbol_usage: dict[str, int] = symbol_usage
 
-    def visit_Import(self, node: ast.Import) -> Optional[ast.AST]:
+    def visit_Import(self, node: ast.Import) -> ast.AST | None:
         """Visit an Import node and remove unused imports."""
-        new_names: List[ast.alias] = []
+        new_names: list[ast.alias] = []
         for name in node.names:
             if name.name in self.symbol_usage and self.symbol_usage[name.name] > 0:
                 new_names.append(name)
@@ -114,9 +114,9 @@ class UnusedImportRemover(AstTransformer):
         node.names = new_names
         return node
 
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> Optional[ast.AST]:
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.AST | None:
         """Visit an ImportFrom node and remove unused imports."""
-        new_names: List[ast.alias] = []
+        new_names: list[ast.alias] = []
         for name in node.names:
             # Check if the imported name is used
             import_name = f"{node.module}.{name.name}" if node.module else name.name
@@ -141,7 +141,7 @@ class UnusedImportRemover(AstTransformer):
 class RedundantAssignmentRemover(AstTransformer):
     """Transformer that removes redundant variable assignments."""
 
-    def visit_Assign(self, node: ast.Assign) -> Optional[ast.AST]:
+    def visit_Assign(self, node: ast.Assign) -> ast.AST | None:
         """Visit an Assign node and remove redundant assignments."""
         # Check if this is a self-assignment (x = x)
         if (
@@ -195,7 +195,7 @@ class RedundantAssignmentRemover(AstTransformer):
 class UnusedVariableRemover(AstTransformer):
     """Transformer that removes unused variable assignments."""
 
-    def __init__(self, symbol_usage: Dict[str, int]):
+    def __init__(self, symbol_usage: dict[str, int]):
         """
         Initialize the transformer.
 
@@ -203,9 +203,9 @@ class UnusedVariableRemover(AstTransformer):
             symbol_usage: Dictionary mapping symbol names to their usage count
         """
         super().__init__()
-        self.symbol_usage: Dict[str, int] = symbol_usage
+        self.symbol_usage: dict[str, int] = symbol_usage
 
-    def visit_Assign(self, node: ast.Assign) -> Optional[ast.AST]:
+    def visit_Assign(self, node: ast.Assign) -> ast.AST | None:
         """Visit an Assign node and remove unused variable assignments."""
         # Only handle simple assignments to a single target
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
@@ -310,7 +310,7 @@ class CodeTransformer(CodeTransformationProvider):
     def __init__(self):
         """Initialize the code transformer."""
         self.analyzer = CodeAnalyzer()
-        self.transformers: Dict[str, Type[AstTransformer]] = {
+        self.transformers: dict[str, type[AstTransformer]] = {
             # Original names
             "unused_imports": UnusedImportRemover,
             "redundant_assignments": RedundantAssignmentRemover,
@@ -326,7 +326,7 @@ class CodeTransformer(CodeTransformationProvider):
         }
 
     def transform_code(
-        self, code: str, transformations: Optional[List[str]] = None
+        self, code: str, transformations: list[str] | None = None
     ) -> TransformationResult:
         """
         Transform the given code using the specified transformations.
@@ -346,7 +346,7 @@ class CodeTransformer(CodeTransformationProvider):
             analysis: FileAnalysisResult = self.analyzer.analyze_code(code)
 
             # Create symbol usage dictionary
-            symbol_usage: Dict[str, int] = {}
+            symbol_usage: dict[str, int] = {}
             for var in analysis.get_variables():
                 symbol_usage[var["name"]] = 0
 
@@ -364,7 +364,7 @@ class CodeTransformer(CodeTransformationProvider):
             symbol_counter.visit(tree)
 
             # Apply transformations
-            changes: List[ChangeRecord] = []
+            changes: list[ChangeRecord] = []
             if transformations is None:
                 transformations = list(self.transformers.keys())
 
@@ -375,7 +375,7 @@ class CodeTransformer(CodeTransformationProvider):
                     # Initialize the transformer with symbol usage if needed
                     if transform_name in ["unused_imports", "unused_variables"]:
                         transformer = cast(
-                            Callable[[Dict[str, int]], AstTransformer],
+                            Callable[[dict[str, int]], AstTransformer],
                             transformer_class,
                         )(symbol_counter.symbol_usage)
                     else:
@@ -402,7 +402,7 @@ class CodeTransformer(CodeTransformationProvider):
             )
 
     def transform_file(
-        self, file_path: str, transformations: Optional[List[str]] = None
+        self, file_path: str, transformations: list[str] | None = None
     ) -> TransformationResult:
         """
         Transform the code in the given file using the specified transformations.
@@ -417,7 +417,7 @@ class CodeTransformer(CodeTransformationProvider):
         try:
             file_path = os.fspath(file_path)
             # Read the file content
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 code = f.read()
 
             # Transform the code
@@ -436,8 +436,8 @@ class CodeTransformer(CodeTransformationProvider):
         self,
         dir_path: str,
         recursive: bool = True,
-        transformations: Optional[List[str]] = None,
-    ) -> Dict[str, TransformationResult]:
+        transformations: list[str] | None = None,
+    ) -> dict[str, TransformationResult]:
         """
         Transform all Python files in the given directory using the specified transformations.
 
@@ -450,10 +450,10 @@ class CodeTransformer(CodeTransformationProvider):
             A dictionary mapping file paths to TransformationResult objects
         """
         dir_path = os.fspath(dir_path)
-        results: Dict[str, TransformationResult] = {}
+        results: dict[str, TransformationResult] = {}
 
         # Find all Python files in the directory
-        python_files: List[str] = self._find_python_files(dir_path, recursive)
+        python_files: list[str] = self._find_python_files(dir_path, recursive)
 
         # Transform each file
         for file_path in python_files:
@@ -470,9 +470,9 @@ class CodeTransformer(CodeTransformationProvider):
 
         return results
 
-    def _find_python_files(self, dir_path: str, recursive: bool) -> List[str]:
+    def _find_python_files(self, dir_path: str, recursive: bool) -> list[str]:
         """Find all Python files in a directory."""
-        python_files: List[str] = []
+        python_files: list[str] = []
         dir_path = os.fspath(dir_path)
 
         if recursive:
@@ -491,16 +491,16 @@ class CodeTransformer(CodeTransformationProvider):
 class SymbolUsageCounter(ast.NodeVisitor):
     """AST visitor for counting symbol usage."""
 
-    def __init__(self, symbol_usage: Dict[str, int]):
+    def __init__(self, symbol_usage: dict[str, int]):
         """
         Initialize the counter.
 
         Args:
             symbol_usage: Dictionary mapping symbol names to their usage count
         """
-        self.symbol_usage: Dict[str, int] = symbol_usage
+        self.symbol_usage: dict[str, int] = symbol_usage
         # Keep track of variables being assigned to avoid counting them as used
-        self.being_assigned: Set[str] = set()
+        self.being_assigned: set[str] = set()
 
     def visit_Assign(self, node: ast.Assign) -> None:
         """Visit an Assign node and handle variable assignments."""

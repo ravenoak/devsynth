@@ -9,7 +9,12 @@ from .cli import CLIUXBridge
 from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 try:  # pragma: no cover - optional dependency import guard
-    from .textual_ui import LayoutPane, MultiPaneLayout, TextualUXBridge, TEXTUAL_AVAILABLE
+    from .textual_ui import (
+        TEXTUAL_AVAILABLE,
+        LayoutPane,
+        MultiPaneLayout,
+        TextualUXBridge,
+    )
 except Exception:  # pragma: no cover - degrade gracefully when Textual is unavailable
     TextualUXBridge = None  # type: ignore[assignment]
     MultiPaneLayout = None  # type: ignore[assignment]
@@ -47,4 +52,6 @@ __all__ = [
 ]
 
 if TextualUXBridge is not None:
-    __all__.extend(["TextualUXBridge", "MultiPaneLayout", "LayoutPane", "TEXTUAL_AVAILABLE"])
+    __all__.extend(
+        ["TextualUXBridge", "MultiPaneLayout", "LayoutPane", "TEXTUAL_AVAILABLE"]
+    )

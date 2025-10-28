@@ -53,14 +53,14 @@ class KuzuAdapter(VectorStore[MemoryVector]):
         self._data_file = os.path.join(
             self.persist_directory, f"{collection_name}.json"
         )
-        self._store: Dict[str, MemoryVector] = {}
+        self._store: dict[str, MemoryVector] = {}
         # Track snapshots for basic transaction support.  Each transaction
         # ID maps to a complete copy of the current store which can be
         # restored if a rollback is requested.
-        self._snapshots: Dict[str, Dict[str, MemoryVector]] = {}
+        self._snapshots: dict[str, dict[str, MemoryVector]] = {}
         # Track temporary directories created via ``create_ephemeral`` so they
         # can be removed in :meth:`cleanup`.
-        self._temp_dir: Optional[str] = None
+        self._temp_dir: str | None = None
         self._load()
 
     # ------------------------------------------------------------------
@@ -69,7 +69,7 @@ class KuzuAdapter(VectorStore[MemoryVector]):
         if not os.path.exists(self._data_file):
             return
         try:
-            with open(self._data_file, "r", encoding="utf-8") as f:
+            with open(self._data_file, encoding="utf-8") as f:
                 raw = json.load(f)
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to load persisted vectors: %s", exc)
@@ -117,12 +117,12 @@ class KuzuAdapter(VectorStore[MemoryVector]):
             self._persist()
         return vector.id
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         return self._store.get(vector_id)
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """Return vectors most similar to the query embedding."""
         results = []
         if np is not None:
@@ -138,7 +138,7 @@ class KuzuAdapter(VectorStore[MemoryVector]):
                 results.append((dist, vec))
         else:  # pragma: no cover - extremely rare fallback
 
-            def _distance(a: List[float], b: List[float]) -> float:
+            def _distance(a: list[float], b: list[float]) -> float:
                 return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
 
             for vec in self._store.values():
@@ -155,7 +155,7 @@ class KuzuAdapter(VectorStore[MemoryVector]):
             self._persist()
         return existed
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all stored vectors."""
 
         return list(self._store.values())
@@ -230,7 +230,7 @@ class KuzuAdapter(VectorStore[MemoryVector]):
     @classmethod
     def create_ephemeral(
         cls, collection_name: str = "devsynth_vectors"
-    ) -> "KuzuAdapter":
+    ) -> KuzuAdapter:
         """Create an ephemeral adapter backed by a temporary directory.
 
         The directory is created using :func:`tempfile.mkdtemp` and tracked so

@@ -58,7 +58,7 @@ class Sandbox(ContextDecorator):
             raise PermissionError("Shell commands are not permitted")
         return self._original_run(*args, **kwargs)
 
-    def __enter__(self) -> "Sandbox":  # pragma: no cover - trivial
+    def __enter__(self) -> Sandbox:  # pragma: no cover - trivial
         builtins.open = cast(Any, self._safe_open)
         setattr(subprocess, "Popen", cast(Any, self._blocked_popen))
         setattr(subprocess, "run", cast(Any, self._blocked_run))

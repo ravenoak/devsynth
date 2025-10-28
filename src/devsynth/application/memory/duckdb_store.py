@@ -11,7 +11,8 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Sequence, cast
+from typing import cast
+from collections.abc import Sequence
 
 import numpy as np  # type: ignore[import-not-found]
 import tiktoken

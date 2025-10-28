@@ -1,6 +1,7 @@
 """WSDE team proxy for consensus failure handling and structured logging."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from devsynth.exceptions import ConsensusError
 from devsynth.logging_setup import DevSynthLogger

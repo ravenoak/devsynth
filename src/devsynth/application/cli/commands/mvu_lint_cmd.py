@@ -13,7 +13,7 @@ from devsynth.interface.ux_bridge import UXBridge
 
 
 def mvu_lint_cmd(
-    message_file: Optional[Path] = typer.Option(
+    message_file: Path | None = typer.Option(
         None,
         "--message-file",
         help="Path to commit message file to lint.",
@@ -24,7 +24,7 @@ def mvu_lint_cmd(
         help="Git revision range to lint, e.g. origin/main..HEAD.",
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Lint commit messages for MVUU compliance."""
     ux_bridge = bridge or CLIUXBridge()

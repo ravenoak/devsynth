@@ -106,7 +106,7 @@ class SolutionsRegistry(MutableMapping[str, list[SolutionRecord]]):
         return self._solutions.setdefault(task_id, [])
 
     def setdefault(
-        self, task_id: str, default: Optional[list[SolutionRecord]] = None
+        self, task_id: str, default: list[SolutionRecord] | None = None
     ) -> list[SolutionRecord]:  # pragma: no cover - trivial
         if default is None:
             default = []
@@ -171,7 +171,7 @@ class AgentOpinionRegistry(MutableMapping[str, dict[str, str]]):
 
         self._opinions.setdefault(agent_name, {})[option_id] = opinion
 
-    def get_opinion(self, agent_name: str, option_id: str) -> Optional[str]:
+    def get_opinion(self, agent_name: str, option_id: str) -> str | None:
         """Retrieve a previously recorded opinion if available."""
 
         return self._opinions.get(agent_name, {}).get(option_id)
@@ -185,12 +185,12 @@ class WSDE:
     agents and stored in the memory system.
     """
 
-    id: Optional[str] = None
+    id: str | None = None
     content: str = ""
     content_type: str = "text"  # e.g. text, code, image
-    metadata: Optional[MutableMapping[str, Any]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    metadata: MutableMapping[str, Any] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.id is None:
@@ -214,8 +214,8 @@ class WSDETeam:
     def __init__(
         self,
         name: str,
-        description: Optional[str] = None,
-        agents: Optional[Iterable[SupportsTeamAgent]] = None,
+        description: str | None = None,
+        agents: Iterable[SupportsTeamAgent] | None = None,
     ) -> None:
         self.name = name
         self.description = description
@@ -227,11 +227,11 @@ class WSDETeam:
         self.agent_opinions = AgentOpinionRegistry()
         self.logger = logger
         self.primus_index = 0
-        self.message_protocol: Optional[object] = None
+        self.message_protocol: object | None = None
         self.peer_reviews: list[object] = []
         self.external_knowledge: dict[str, object] = {}
-        self._force_tie_for_task_id: Optional[str] = None
-        self._force_tie_options: Optional[list[str]] = None
+        self._force_tie_for_task_id: str | None = None
+        self._force_tie_options: list[str] | None = None
         self.tracked_decisions: dict[str, object] = {}
         self._knowledge_memory: dict[str, object] = {}
         if agents:
@@ -290,7 +290,7 @@ class WSDETeam:
         primus.has_been_primus = True
         self.roles[RoleName.PRIMUS] = primus
 
-    def get_primus(self) -> Optional[SupportsTeamAgent]:
+    def get_primus(self) -> SupportsTeamAgent | None:
         """Return the current primus agent, assigning a default if needed."""
 
         primus = self.roles.get(RoleName.PRIMUS)

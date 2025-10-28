@@ -63,10 +63,10 @@ class PeerReviewConsensusError(ConsensusError):
         self,
         message: str,
         *,
-        outcome: Optional[ConsensusOutcome] = None,
-        review_id: Optional[str] = None,
-        consensus_payload: Optional[Dict[str, Any]] = None,
-        error_code: Optional[str] = "PEER_REVIEW_CONSENSUS",
+        outcome: ConsensusOutcome | None = None,
+        review_id: str | None = None,
+        consensus_payload: dict[str, Any] | None = None,
+        error_code: str | None = "PEER_REVIEW_CONSENSUS",
     ) -> None:
         super().__init__(
             message,
@@ -84,8 +84,8 @@ class PeerReviewConsensusError(ConsensusError):
             return f"{base} [review_id={self.review_id}]"
         return base
 
-    def as_dict(self) -> Dict[str, Any]:
-        data: Dict[str, Any] = {"message": str(self)}
+    def as_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {"message": str(self)}
         if self.review_id:
             data["review_id"] = self.review_id
         if self.outcome is not None:

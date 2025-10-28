@@ -52,7 +52,7 @@ ERROR_CONDITIONS_PROMPT = _load_template("error_conditions")
 """Prompt guiding generation of failure-path assertions."""
 
 
-def build_edge_case_prompts() -> Dict[str, str]:
+def build_edge_case_prompts() -> dict[str, str]:
     """Return available edge-case prompt templates.
 
     The mapping keys correspond to template names such as ``boundary_values``
@@ -60,7 +60,7 @@ def build_edge_case_prompts() -> Dict[str, str]:
     the result.
     """
 
-    prompts: Dict[str, str] = {}
+    prompts: dict[str, str] = {}
     for key, content in {
         "boundary_values": BOUNDARY_VALUES_PROMPT,
         "error_conditions": ERROR_CONDITIONS_PROMPT,

@@ -13,7 +13,7 @@ from devsynth.config.loader import load_config
 
 
 @lru_cache(maxsize=1)
-def _feature_map() -> Dict[str, bool]:
+def _feature_map() -> dict[str, bool]:
     """Return the feature flag mapping from configuration.
 
     The configuration is loaded lazily and cached for future lookups. Use

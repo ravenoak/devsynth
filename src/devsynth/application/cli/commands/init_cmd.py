@@ -25,29 +25,29 @@ def init_cmd(
         bool, typer.Option(help="Run in interactive wizard mode")
     ] = False,
     *,
-    root: Annotated[Optional[str], typer.Option(help="Project root directory")] = None,
+    root: Annotated[str | None, typer.Option(help="Project root directory")] = None,
     language: Annotated[
-        Optional[str], typer.Option(help="Primary project language")
+        str | None, typer.Option(help="Primary project language")
     ] = None,
     goals: Annotated[
-        Optional[str], typer.Option(help="Project goals or description")
+        str | None, typer.Option(help="Project goals or description")
     ] = None,
     memory_backend: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(help="Memory backend (memory, file, kuzu, chromadb)"),
     ] = None,
     offline_mode: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option("--offline-mode/--no-offline-mode", help="Enable offline mode"),
     ] = None,
-    features: Optional[List[str]] = typer.Option(
+    features: list[str] | None = typer.Option(
         None,
         help=(
             "Features to enable. Provide multiple --features options or a JSON mapping string."
         ),
     ),
     auto_confirm: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option("--auto-confirm/--no-auto-confirm", help="Skip confirmations"),
     ] = None,
     defaults: Annotated[
@@ -64,7 +64,7 @@ def init_cmd(
             help="Show how to launch the optional MVUU metrics dashboard",
         ),
     ] = False,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Initialize a new project with fewer interactive steps."""
 
@@ -79,7 +79,7 @@ def init_cmd(
         prompt: str,
         default: str,
         *,
-        choices: Optional[List[str]] = None,
+        choices: list[str] | None = None,
     ) -> str:
         """Prompt the user only when interaction is required."""
 
