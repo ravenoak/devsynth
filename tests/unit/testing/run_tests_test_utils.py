@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from collections.abc import Iterable, Sequence
+from datetime import datetime, timezone
 
 import devsynth.testing.run_tests as rt
 
@@ -50,9 +50,7 @@ def build_segment_metadata(
     """Create aggregated metadata for segmented executions."""
 
     actual_segments: tuple[rt.BatchExecutionMetadata, ...] = (
-        tuple(segments)
-        if segments is not None
-        else tuple()
+        tuple(segments) if segments is not None else tuple()
     )
     if commands is not None:
         normalized_commands = tuple(tuple(command) for command in commands)

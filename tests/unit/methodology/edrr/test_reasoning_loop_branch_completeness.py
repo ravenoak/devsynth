@@ -309,7 +309,7 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
             def __init__(self) -> None:
                 self.syntheses: list[Any] = []
 
-            def with_solution(self, synthesis: Any) -> "TaskStub":
+            def with_solution(self, synthesis: Any) -> TaskStub:
                 self.syntheses.append(synthesis)
                 return self
 
@@ -580,7 +580,7 @@ def test_reasoning_loop_handles_dialectical_sequence(monkeypatch):
         def __init__(self) -> None:
             self.syntheses: list[dict[str, Any]] = []
 
-        def with_solution(self, synthesis: dict[str, Any]) -> "TaskStub":
+        def with_solution(self, synthesis: dict[str, Any]) -> TaskStub:
             self.syntheses.append(synthesis)
             return self
 
@@ -902,7 +902,7 @@ def test_reasoning_loop_branch_matrix(monkeypatch):
             def __init__(self) -> None:
                 self.syntheses: list[dict[str, Any]] = []
 
-            def with_solution(self, synthesis: dict[str, Any]) -> "TaskStub":
+            def with_solution(self, synthesis: dict[str, Any]) -> TaskStub:
                 self.syntheses.append(synthesis)
                 return self
 

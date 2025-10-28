@@ -12,7 +12,7 @@ pytestmark = [pytest.mark.usefixtures("force_webui_available")]
 
 
 @pytest.fixture
-def webui_module(monkeypatch: pytest.MonkeyPatch) -> Tuple[object, object]:
+def webui_module(monkeypatch: pytest.MonkeyPatch) -> tuple[object, object]:
     """Reload ``devsynth.interface.webui`` with a fresh Streamlit stub."""
 
     st = make_streamlit_mock()
@@ -26,7 +26,7 @@ def webui_module(monkeypatch: pytest.MonkeyPatch) -> Tuple[object, object]:
 
 @pytest.mark.fast
 def test_get_layout_config_respects_breakpoints(
-    webui_module: Tuple[object, object],
+    webui_module: tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
@@ -52,7 +52,7 @@ def test_get_layout_config_respects_breakpoints(
 
 @pytest.mark.fast
 def test_ask_question_and_confirm_choice_use_streamlit_controls(
-    webui_module: Tuple[object, object],
+    webui_module: tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
@@ -75,7 +75,7 @@ def test_ask_question_and_confirm_choice_use_streamlit_controls(
 
 @pytest.mark.fast
 def test_display_result_message_types_provide_guidance(
-    webui_module: Tuple[object, object],
+    webui_module: tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
@@ -103,7 +103,7 @@ def test_display_result_message_types_provide_guidance(
 
 @pytest.mark.fast
 def test_display_result_markup_and_keyword_routing(
-    webui_module: Tuple[object, object],
+    webui_module: tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
@@ -163,7 +163,7 @@ def test_display_result_markup_and_keyword_routing(
     ],
 )
 def test_get_error_type_matches_keywords(
-    webui_module: Tuple[object, object], message: str, expected: str
+    webui_module: tuple[object, object], message: str, expected: str
 ) -> None:
     webui, _ = webui_module
     ui = webui.WebUI()
@@ -173,7 +173,7 @@ def test_get_error_type_matches_keywords(
 
 @pytest.mark.fast
 def test_error_suggestions_and_docs_cover_known_and_unknown(
-    webui_module: Tuple[object, object],
+    webui_module: tuple[object, object],
 ) -> None:
     webui, _ = webui_module
     ui = webui.WebUI()

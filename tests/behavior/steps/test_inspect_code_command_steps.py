@@ -269,7 +269,7 @@ def report_contains_all_metrics(context):
     ), f"Report file does not exist at {context.report_path}"
 
     # Read the report file and check its contents
-    with open(context.report_path, "r") as f:
+    with open(context.report_path) as f:
         report_data = json.load(f)
 
     assert "architecture" in report_data, "Report does not contain architecture metrics"

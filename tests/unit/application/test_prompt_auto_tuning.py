@@ -248,7 +248,7 @@ class TestPromptAutoTuner:
             mutated != template
             or "**" in mutated
             or "_" in mutated
-            or any((word.isupper() for word in mutated.split()))
+            or any(word.isupper() for word in mutated.split())
         )
 
     @pytest.mark.medium
@@ -265,7 +265,7 @@ class TestPromptAutoTuner:
             )
             storage_file = os.path.join(temp_dir, "prompt_variants.json")
             assert os.path.exists(storage_file)
-            with open(storage_file, "r") as f:
+            with open(storage_file) as f:
                 data = json.load(f)
             assert "test-template" in data
             assert len(data["test-template"]) == 1

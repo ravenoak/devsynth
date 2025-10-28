@@ -124,7 +124,7 @@ This directory contains templates for different types of tests."""
             test_path = Path(test_dir) / "test_example.py"
             shutil.copy(template_path, test_path)
             assert test_path.exists(), "Failed to create test file from template"
-            with open(test_path, "r") as f:
+            with open(test_path) as f:
                 content = f.read()
                 assert (
                     "Unit Test Template for DevSynth" in content

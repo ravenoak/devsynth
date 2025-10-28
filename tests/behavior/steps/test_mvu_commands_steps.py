@@ -41,7 +41,7 @@ def _app() -> Typer:
             target_path=target_path, branch_name=branch_name, dry_run=dry_run
         )
 
-    def _exec_wrapper(command: List[str] = typer.Argument(..., allow_dash=True)):
+    def _exec_wrapper(command: list[str] = typer.Argument(..., allow_dash=True)):
         code = mvu_exec_cmd(command)
         raise typer.Exit(code)
 

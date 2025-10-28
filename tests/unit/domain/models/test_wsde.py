@@ -69,9 +69,9 @@ class TestWSDETeam:
         """Registered dialectical hooks should run when a solution is added.
 
         ReqID: N/A"""
-        called: Dict[str, Any] = {}
+        called: dict[str, Any] = {}
 
-        def hook(task: Dict[str, Any], solutions: List[Dict[str, Any]]):
+        def hook(task: dict[str, Any], solutions: list[dict[str, Any]]):
             called["task"] = task
             called["solutions"] = list(solutions)
 

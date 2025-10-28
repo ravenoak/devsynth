@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
+from typing import Any, Dict
+from collections.abc import Iterable
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,7 +26,7 @@ from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
-def _normalise_message(message: Any) -> Dict[str, Any]:
+def _normalise_message(message: Any) -> dict[str, Any]:
     """Return a serialisable message dictionary from protocol objects."""
 
     if isinstance(message, dict):
@@ -54,7 +55,7 @@ def _normalise_message(message: Any) -> Dict[str, Any]:
     return data
 
 
-def _iter_messages(messages: Iterable[Any]) -> Iterable[Dict[str, Any]]:
+def _iter_messages(messages: Iterable[Any]) -> Iterable[dict[str, Any]]:
     for message in messages:
         yield _normalise_message(message)
 
@@ -64,14 +65,14 @@ def context():
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()
-            self.agents: Dict[str, UnifiedAgent] = {}
-            self.teams: Dict[str, WSDETeam] = {}
+            self.agents: dict[str, UnifiedAgent] = {}
+            self.teams: dict[str, WSDETeam] = {}
             self.current_team_id: str | None = None
-            self.messages: list[Dict[str, Any]] = []
-            self.last_message: Dict[str, Any] | None = None
+            self.messages: list[dict[str, Any]] = []
+            self.last_message: dict[str, Any] | None = None
             self.last_peer_review = None
-            self.expected_structured_content: Dict[str, Any] = {}
-            self.priority_order_snapshot: list[Dict[str, Any]] = []
+            self.expected_structured_content: dict[str, Any] = {}
+            self.priority_order_snapshot: list[dict[str, Any]] = []
             self.consensus_threshold: float | None = None
             self.peer_review_routes: list[str] = []
             self.last_priority_value: str | None = None
@@ -292,7 +293,7 @@ def send_structured(context, sender, table=None):
 
         table = MockTable()
 
-    content: Dict[str, Any] = {}
+    content: dict[str, Any] = {}
     for row in table.rows:
         key = row["key"].strip()
         value = row["value"].strip()

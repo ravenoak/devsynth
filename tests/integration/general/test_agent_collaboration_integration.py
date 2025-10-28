@@ -45,11 +45,11 @@ class MockAgent(Agent):
         """Get the agent's capabilities."""
         return self.capabilities
 
-    def initialize(self, config: Dict[str, Any] = None) -> None:
+    def initialize(self, config: dict[str, Any] = None) -> None:
         """Initialize the agent with the given configuration."""
         pass
 
-    def process(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, task: dict[str, Any]) -> dict[str, Any]:
         """Process a task and return the result."""
         return self._process_mock(task)
 

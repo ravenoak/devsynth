@@ -10,7 +10,7 @@ from devsynth.logging_setup import DevSynthLogger, configure_logging
 class ListHandler(logging.Handler):
     def __init__(self) -> None:
         super().__init__()
-        self.records: List[logging.LogRecord] = []
+        self.records: list[logging.LogRecord] = []
 
     def emit(self, record: logging.LogRecord) -> None:
         self.records.append(record)

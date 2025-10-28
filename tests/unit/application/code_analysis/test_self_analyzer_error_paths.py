@@ -31,7 +31,7 @@ def test_self_analyzer_analyze_graceful_fallback(monkeypatch, tmp_path: Path):
 
     # Act
     analyzer = SelfAnalyzer(project_root=str(tmp_path))
-    result: Dict[str, Any] = analyzer.analyze()
+    result: dict[str, Any] = analyzer.analyze()
 
     after = set(os.listdir(tmp_path))
 

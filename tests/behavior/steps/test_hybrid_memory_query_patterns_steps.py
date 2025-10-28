@@ -28,10 +28,10 @@ def context():
     class Context:
         def __init__(self) -> None:
             self.temp_dir = tempfile.TemporaryDirectory()
-            self.adapters: Dict[str, Any] = {}
-            self.memory_manager: Union[MemoryManager, None] = None
+            self.adapters: dict[str, Any] = {}
+            self.memory_manager: MemoryManager | None = None
             self.results: Any = None
-            self.active_context: Dict[str, str] = {}
+            self.active_context: dict[str, str] = {}
 
         def cleanup(self) -> None:
             self.temp_dir.cleanup()

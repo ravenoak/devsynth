@@ -122,7 +122,7 @@ This is a summary of the requirements created for testing.
             )
 
     # Check that the summary file has content
-    with open(summary_file, "r") as f:
+    with open(summary_file) as f:
         content = f.read()
     assert content, "Summary file is empty"
 

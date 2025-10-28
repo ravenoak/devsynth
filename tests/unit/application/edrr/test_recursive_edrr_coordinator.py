@@ -225,12 +225,10 @@ class TestRecursiveEDRRCoordinator:
         coordinator.execute_current_phase()
         assert len(coordinator.child_cycles) == 3
         assert all(
-            (
                 cycle.parent_cycle_id == coordinator.cycle_id
                 for cycle in coordinator.child_cycles
-            )
         )
-        assert all((cycle.recursion_depth == 1 for cycle in coordinator.child_cycles))
+        assert all(cycle.recursion_depth == 1 for cycle in coordinator.child_cycles)
 
     @pytest.mark.medium
     def test_micro_edrr_within_differentiate_phase_has_expected(self, coordinator):
@@ -257,12 +255,10 @@ class TestRecursiveEDRRCoordinator:
         coordinator.execute_current_phase()
         assert len(coordinator.child_cycles) == 3
         assert all(
-            (
                 cycle.parent_cycle_id == coordinator.cycle_id
                 for cycle in coordinator.child_cycles
-            )
         )
-        assert all((cycle.recursion_depth == 1 for cycle in coordinator.child_cycles))
+        assert all(cycle.recursion_depth == 1 for cycle in coordinator.child_cycles)
 
     @pytest.mark.medium
     def test_micro_edrr_within_refine_phase_has_expected(self, coordinator):
@@ -289,12 +285,10 @@ class TestRecursiveEDRRCoordinator:
         coordinator.execute_current_phase()
         assert len(coordinator.child_cycles) == 3
         assert all(
-            (
                 cycle.parent_cycle_id == coordinator.cycle_id
                 for cycle in coordinator.child_cycles
-            )
         )
-        assert all((cycle.recursion_depth == 1 for cycle in coordinator.child_cycles))
+        assert all(cycle.recursion_depth == 1 for cycle in coordinator.child_cycles)
 
     @pytest.mark.medium
     def test_micro_edrr_within_retrospect_phase_has_expected(self, coordinator):
@@ -321,12 +315,10 @@ class TestRecursiveEDRRCoordinator:
         coordinator.execute_current_phase()
         assert len(coordinator.child_cycles) == 3
         assert all(
-            (
                 cycle.parent_cycle_id == coordinator.cycle_id
                 for cycle in coordinator.child_cycles
-            )
         )
-        assert all((cycle.recursion_depth == 1 for cycle in coordinator.child_cycles))
+        assert all(cycle.recursion_depth == 1 for cycle in coordinator.child_cycles)
 
     @pytest.mark.medium
     def test_granularity_threshold_check_succeeds(self, coordinator):

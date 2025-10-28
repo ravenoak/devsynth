@@ -32,7 +32,7 @@ class RecordingCursor:
     def __init__(
         self,
         fetchone_result: Any | None = None,
-        fetchall_result: List[Any] | None = None,
+        fetchall_result: list[Any] | None = None,
     ) -> None:
         self._fetchone_result = fetchone_result
         self._fetchall_result = fetchall_result or []
@@ -40,7 +40,7 @@ class RecordingCursor:
     def fetchone(self) -> Any:
         return self._fetchone_result
 
-    def fetchall(self) -> List[Any]:
+    def fetchall(self) -> list[Any]:
         return list(self._fetchall_result)
 
 
@@ -49,10 +49,10 @@ class RecordingConnection:
 
     def __init__(self, *, fail_vector_extension: bool = False) -> None:
         self.fail_vector_extension = fail_vector_extension
-        self.commands: List[Tuple[str, Any]] = []
+        self.commands: list[tuple[str, Any]] = []
 
     def execute(
-        self, sql: str, params: Tuple[Any, ...] | None = None
+        self, sql: str, params: tuple[Any, ...] | None = None
     ) -> RecordingCursor:
         normalized = " ".join(str(sql).split())
         self.commands.append((normalized, params))

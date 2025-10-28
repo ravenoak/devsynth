@@ -1,5 +1,6 @@
 import time
-from typing import Any, Callable, cast
+from typing import Any, cast
+from collections.abc import Callable
 
 import pytest
 

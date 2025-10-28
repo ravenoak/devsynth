@@ -22,7 +22,8 @@ Usage:
 import json
 import os
 import sys
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+from collections.abc import Callable
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -296,7 +297,7 @@ def mock_wizard_state(mock_streamlit):
     yield state, context
 
 
-def simulate_button_click(context: Dict[str, Any], button_key: str) -> None:
+def simulate_button_click(context: dict[str, Any], button_key: str) -> None:
     """
     Simulate clicking a button in the WebUI.
 
@@ -323,7 +324,7 @@ def simulate_button_click(context: Dict[str, Any], button_key: str) -> None:
             col.button.side_effect = button_side_effect
 
 
-def simulate_form_submission(context: Dict[str, Any], form_key: str) -> None:
+def simulate_form_submission(context: dict[str, Any], form_key: str) -> None:
     """
     Simulate submitting a form in the WebUI.
 
@@ -351,7 +352,7 @@ def simulate_form_submission(context: Dict[str, Any], form_key: str) -> None:
 
 
 def simulate_input(
-    context: Dict[str, Any], input_type: str, label: str, value: Any
+    context: dict[str, Any], input_type: str, label: str, value: Any
 ) -> None:
     """
     Simulate entering input in the WebUI.
@@ -382,7 +383,7 @@ def simulate_input(
         getattr(context["st"], input_type).side_effect = input_side_effect
 
 
-def simulate_wizard_navigation(wizard_state, navigation_steps: List[str]) -> int:
+def simulate_wizard_navigation(wizard_state, navigation_steps: list[str]) -> int:
     """
     Simulate navigation through a wizard.
 
@@ -408,7 +409,7 @@ def simulate_wizard_navigation(wizard_state, navigation_steps: List[str]) -> int
     return wizard_state.get_current_step()
 
 
-def set_wizard_data(wizard_state, data: Dict[str, Any]) -> None:
+def set_wizard_data(wizard_state, data: dict[str, Any]) -> None:
     """
     Set data in a wizard.
 
@@ -423,7 +424,7 @@ def set_wizard_data(wizard_state, data: Dict[str, Any]) -> None:
         wizard_state.set(key, value)
 
 
-def get_wizard_data(wizard_state, keys: List[str]) -> Dict[str, Any]:
+def get_wizard_data(wizard_state, keys: list[str]) -> dict[str, Any]:
     """
     Get data from a wizard.
 

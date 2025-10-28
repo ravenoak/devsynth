@@ -290,7 +290,7 @@ class _FakeContainer:
         self.success_messages: list[str] = []
         self.progress_bar = _FakeProgressBar()
 
-    def __enter__(self) -> "_FakeContainer":
+    def __enter__(self) -> _FakeContainer:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:  # type: ignore[override]

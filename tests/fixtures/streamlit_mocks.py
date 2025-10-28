@@ -13,7 +13,7 @@ class DummyContext:
     def __init__(self, submitted: bool = True):
         self.submitted = submitted
 
-    def __enter__(self) -> "DummyContext":
+    def __enter__(self) -> DummyContext:
         return self
 
     def __exit__(

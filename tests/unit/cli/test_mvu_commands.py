@@ -53,7 +53,7 @@ def test_mvu_init_creates_config_and_matches_schema(tmp_path, monkeypatch):
 
     storage = cfg["storage"]
     assert isinstance(storage, dict)
-    assert set(["path", "format"]).issubset(storage.keys())
+    assert {"path", "format"}.issubset(storage.keys())
     assert isinstance(storage["path"], str)
     assert storage["format"] in ("json",)
 
@@ -64,6 +64,6 @@ def test_mvu_init_creates_config_and_matches_schema(tmp_path, monkeypatch):
         if provider in issues:
             val = issues[provider]
             assert isinstance(val, dict)
-            assert set(["base_url", "token"]).issubset(val.keys())
+            assert {"base_url", "token"}.issubset(val.keys())
             assert isinstance(val["base_url"], str)
             assert isinstance(val["token"], str)

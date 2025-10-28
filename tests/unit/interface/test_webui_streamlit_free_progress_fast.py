@@ -7,7 +7,8 @@ from __future__ import annotations
 import importlib
 import sys
 from types import ModuleType
-from typing import Iterator, Tuple
+from typing import Tuple
+from collections.abc import Iterator
 from unittest.mock import MagicMock
 
 import pytest
@@ -18,7 +19,7 @@ from tests.unit.interface.test_webui_enhanced import _mock_streamlit
 @pytest.fixture
 def streamlit_free_webui(
     monkeypatch: pytest.MonkeyPatch,
-) -> Iterator[Tuple[ModuleType, ModuleType, dict[str, MagicMock]]]:
+) -> Iterator[tuple[ModuleType, ModuleType, dict[str, MagicMock]]]:
     """Reload :mod:`devsynth.interface.webui` with a deterministic Streamlit stub."""
 
     st = _mock_streamlit()
@@ -46,7 +47,7 @@ def streamlit_free_webui(
 @pytest.fixture
 def progress_webui(
     monkeypatch: pytest.MonkeyPatch,
-) -> Iterator[Tuple[ModuleType, ModuleType, MagicMock, MagicMock, MagicMock]]:
+) -> Iterator[tuple[ModuleType, ModuleType, MagicMock, MagicMock, MagicMock]]:
     """Provide a reloaded WebUI module with deterministic progress containers."""
 
     st = _mock_streamlit()
@@ -73,7 +74,7 @@ def progress_webui(
 @pytest.fixture
 def sanitized_webui(
     monkeypatch: pytest.MonkeyPatch,
-) -> Iterator[Tuple[ModuleType, ModuleType]]:
+) -> Iterator[tuple[ModuleType, ModuleType]]:
     """Yield a reloaded WebUI module for sanitization assertions."""
 
     st = _mock_streamlit()
@@ -92,7 +93,7 @@ def sanitized_webui(
 
 @pytest.mark.fast
 def test_webui_run_configures_dashboard_and_invokes_router(
-    streamlit_free_webui: Tuple[ModuleType, ModuleType, dict[str, MagicMock]],
+    streamlit_free_webui: tuple[ModuleType, ModuleType, dict[str, MagicMock]],
 ) -> None:
     """ReqID: WEBUI-DASH-TOGGLE-01 — Layout toggles wire routing without Streamlit."""
 
@@ -114,7 +115,7 @@ def test_webui_run_configures_dashboard_and_invokes_router(
 
 @pytest.mark.fast
 def test_progress_updates_emit_telemetry_and_sanitize_checkpoints(
-    progress_webui: Tuple[ModuleType, ModuleType, MagicMock, MagicMock, MagicMock],
+    progress_webui: tuple[ModuleType, ModuleType, MagicMock, MagicMock, MagicMock],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """ReqID: WEBUI-PROGRESS-TRACE-02 — Progress checkpoints sanitize and log telemetry."""
@@ -163,7 +164,7 @@ def test_progress_updates_emit_telemetry_and_sanitize_checkpoints(
 
 @pytest.mark.fast
 def test_display_result_sanitizes_message_before_render(
-    sanitized_webui: Tuple[ModuleType, ModuleType],
+    sanitized_webui: tuple[ModuleType, ModuleType],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """ReqID: WEBUI-SAN-03 — Bridge output sanitization precedes rendering hooks."""

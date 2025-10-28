@@ -100,7 +100,7 @@ def test_research_provenance_persists(tmp_path, content):
         artifact_path,
         title="Artifact",
         citation_url=f"file://{artifact_path}",
-        published_at=datetime.datetime.now(datetime.timezone.utc),
+        published_at=datetime.datetime.now(datetime.UTC),
         supports=[start_id],
         derived_from=[start_id],
     )

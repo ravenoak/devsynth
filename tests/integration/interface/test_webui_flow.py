@@ -1,7 +1,8 @@
 """Integration test for the WebUI using a stubbed Streamlit runtime."""
 
 from types import SimpleNamespace
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 import pytest
 

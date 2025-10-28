@@ -46,7 +46,7 @@ def fake_analyzers(monkeypatch):
         def __init__(self, path: str) -> None:
             self.path = path
 
-        def analyze(self) -> Dict[str, Any]:
+        def analyze(self) -> dict[str, Any]:
             return {
                 "insights": {
                     "architecture": {
@@ -84,7 +84,7 @@ def fake_analyzers(monkeypatch):
         def __init__(self, path: str) -> None:
             self.path = path
 
-        def analyze(self) -> Dict[str, Any]:
+        def analyze(self) -> dict[str, Any]:
             return {
                 "health_score": 7.2,
                 "recommendations": [unsafe],

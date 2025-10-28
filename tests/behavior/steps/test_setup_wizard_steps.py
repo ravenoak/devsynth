@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional
+from collections.abc import Sequence
 from unittest.mock import MagicMock
 
 import pytest
@@ -23,8 +24,8 @@ class DummyBridge(UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         return self.answers.pop(0)

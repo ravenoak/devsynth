@@ -145,7 +145,7 @@ def test_doctor_cmd_old_python_and_missing_env_warn_succeeds(monkeypatch):
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd("config")
-        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "No project configuration found" in output
         assert "Python 3.12 or higher" in output
         assert "Missing environment variables" in output
@@ -184,7 +184,7 @@ def test_doctor_cmd_success_is_valid(tmp_path, monkeypatch):
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "All configuration files are valid" in output
 
 
@@ -207,7 +207,7 @@ def test_doctor_cmd_invalid_config_is_valid(tmp_path, monkeypatch):
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "Configuration issues detected" in output
 
 
@@ -229,7 +229,7 @@ def test_doctor_cmd_missing_env_vars_succeeds(monkeypatch, missing):
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd("config")
-        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert missing in output
 
 
@@ -263,7 +263,7 @@ def test_doctor_cmd_warns_missing_optional_feature_pkg_succeeds(monkeypatch, tmp
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "langgraph" in output
 
 
@@ -304,7 +304,7 @@ def test_doctor_cmd_warns_missing_memory_store_pkg_succeeds(
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
     assert exc.value.code == 1
-    output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+    output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
     assert pkg in output
 
 
@@ -338,7 +338,7 @@ def test_doctor_cmd_warns_missing_uvicorn_succeeds(monkeypatch, tmp_path):
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "uvicorn" in output
 
 

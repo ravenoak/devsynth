@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import os
 from types import SimpleNamespace
-from typing import Iterable, List, Set
+from typing import List, Set
+from collections.abc import Iterable
 
 import pytest
 
@@ -24,7 +25,7 @@ class _FakeCoverageTracker:
     """Mimic coverage.Coverage for the reset invariant tests."""
 
     def __init__(self) -> None:
-        self.lines: Set[int] = set()
+        self.lines: set[int] = set()
 
     def load(self, executed: Iterable[int]) -> None:
         self.lines = set(executed)
@@ -65,7 +66,7 @@ def _invoke_reset() -> None:
     )
 )
 @settings(max_examples=50)
-def test_reset_clears_coverage_state(test_runs: List[Set[int]]) -> None:
+def test_reset_clears_coverage_state(test_runs: list[set[int]]) -> None:
     """Lemma: reset() empties the tracker between tests.
 
     ReqID: COV-RESET-INV-01
@@ -98,7 +99,7 @@ def test_reset_clears_coverage_state(test_runs: List[Set[int]]) -> None:
     )
 )
 @settings(max_examples=50)
-def test_reset_preserves_union_of_individual_runs(test_runs: List[Set[int]]) -> None:
+def test_reset_preserves_union_of_individual_runs(test_runs: list[set[int]]) -> None:
     """Theorem: total coverage equals the union of isolated test runs.
 
     ReqID: COV-RESET-INV-02
@@ -111,8 +112,8 @@ def test_reset_preserves_union_of_individual_runs(test_runs: List[Set[int]]) -> 
         conftest, "coverage", _fake_coverage_namespace(tracker), raising=False
     )
 
-    observed_union: Set[int] = set()
-    expected_union: Set[int] = set()
+    observed_union: set[int] = set()
+    expected_union: set[int] = set()
 
     try:
         for executed in test_runs:

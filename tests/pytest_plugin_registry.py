@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from importlib import import_module
 from importlib.util import find_spec
-from typing import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 
 __all__ = ["PYTEST_PLUGINS", "iter_pytest_plugins"]
 

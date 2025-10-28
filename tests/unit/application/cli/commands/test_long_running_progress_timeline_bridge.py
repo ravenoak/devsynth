@@ -31,7 +31,7 @@ class _Task:
     description: str
     total: float
     completed: float = 0.0
-    fields: Dict[str, Any] | None = None
+    fields: dict[str, Any] | None = None
 
 
 class _StubProgress:
@@ -39,7 +39,7 @@ class _StubProgress:
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: D401 - stub
         self._next_task_id = 0
-        self.tasks: Dict[int, _Task] = {}
+        self.tasks: dict[int, _Task] = {}
 
     def start(self) -> None:  # pragma: no cover - no-op for stub behaviour
         return None
@@ -70,7 +70,7 @@ class _StubProgress:
 class _Clock:
     def __init__(self) -> None:
         self.current = 0.0
-        self.calls: List[float] = []
+        self.calls: list[float] = []
 
     def __call__(self) -> float:
         self.current += 1.0
@@ -80,7 +80,7 @@ class _Clock:
 
 class _Console:
     def __init__(self) -> None:
-        self.messages: List[Any] = []
+        self.messages: list[Any] = []
 
     def print(self, *args: Any, **kwargs: Any) -> None:
         self.messages.append((args, kwargs))

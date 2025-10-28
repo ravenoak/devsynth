@@ -18,7 +18,7 @@ pytestmark = [pytest.mark.fast]
 class _ProgressRecorder:
     """Record percentage updates written to a Streamlit progress bar."""
 
-    def __init__(self, owner: "_HarnessStreamlit") -> None:
+    def __init__(self, owner: _HarnessStreamlit) -> None:
         self.owner = owner
         self.values: list[float] = []
 
@@ -30,7 +30,7 @@ class _ProgressRecorder:
 class _ContainerRecorder:
     """Capture markdown/info/empty/success calls routed through containers."""
 
-    def __init__(self, owner: "_HarnessStreamlit", label: str) -> None:
+    def __init__(self, owner: _HarnessStreamlit, label: str) -> None:
         self.owner = owner
         self.label = label
         self.markdown_calls: list[tuple[str, dict]] = []
@@ -60,7 +60,7 @@ class _ContainerRecorder:
         self.progress_bars.append(bar)
         return bar
 
-    def __enter__(self) -> "_ContainerRecorder":
+    def __enter__(self) -> _ContainerRecorder:
         self.owner.container_entries.append(self.label)
         return self
 

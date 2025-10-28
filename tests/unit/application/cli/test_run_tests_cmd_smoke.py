@@ -1,7 +1,8 @@
 """Smoke-mode behavior tests for run-tests CLI."""
 
 import os
-from typing import Any, Callable, cast
+from typing import Any, cast
+from collections.abc import Callable
 from unittest.mock import patch
 
 import pytest

@@ -27,7 +27,7 @@ class DummyCLI(CLIInterface):
 
     def configure(
         self, key: str | None = None, value: str | None = None
-    ) -> Dict[str, Any]:  # pragma: no cover - intentional
+    ) -> dict[str, Any]:  # pragma: no cover - intentional
         return super().configure(key, value)
 
 
@@ -69,7 +69,7 @@ class DummyOnnx(OnnxRuntime):
     def load_model(self, model_path: str) -> None:  # pragma: no cover - intentional
         super().load_model(model_path)
 
-    def run(self, inputs: Dict[str, Any]):  # pragma: no cover - intentional
+    def run(self, inputs: dict[str, Any]):  # pragma: no cover - intentional
         return super().run(inputs)
 
 

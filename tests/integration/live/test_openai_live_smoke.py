@@ -36,7 +36,7 @@ def test_openai_chat_completion_live_smoke():
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "model": model,
         "messages": [
             {"role": "system", "content": "You are a concise assistant."},

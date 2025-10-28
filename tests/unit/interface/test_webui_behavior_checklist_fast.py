@@ -33,7 +33,8 @@ import importlib
 from dataclasses import dataclass, field
 from itertools import count
 from types import SimpleNamespace
-from typing import Any, Callable, Sequence
+from typing import Any
+from collections.abc import Callable, Sequence
 
 import pytest
 
@@ -67,7 +68,7 @@ class ProgressBarRecorder:
 class ContainerRecorder:
     """Record container interactions for status and subtask updates."""
 
-    owner: "BehaviorStreamlitStub"
+    owner: BehaviorStreamlitStub
     label: str
     markdown_calls: list[str] = field(default_factory=list)
     info_calls: list[str] = field(default_factory=list)
@@ -98,7 +99,7 @@ class ContainerRecorder:
         self.owner.calls.append((f"{self.label}.progress", (value,), {}))
         return bar
 
-    def __enter__(self) -> "ContainerRecorder":
+    def __enter__(self) -> ContainerRecorder:
         self.owner.calls.append((f"{self.label}.__enter__", (), {}))
         return self
 
@@ -111,7 +112,7 @@ class ContainerRecorder:
 class SidebarRecorder:
     """Track sidebar title, markdown, and radio interactions."""
 
-    owner: "BehaviorStreamlitStub"
+    owner: BehaviorStreamlitStub
     title_calls: list[str] = field(default_factory=list)
     markdown_calls: list[str] = field(default_factory=list)
     radio_calls: list[tuple[str, tuple[str, ...], int]] = field(default_factory=list)
@@ -137,7 +138,7 @@ class SidebarRecorder:
 class ExpanderRecorder:
     """Track usage of expanders when rendering tracebacks."""
 
-    owner: "BehaviorStreamlitStub"
+    owner: BehaviorStreamlitStub
     label: str
     code_calls: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
 
@@ -145,7 +146,7 @@ class ExpanderRecorder:
         self.code_calls.append((text, kwargs))
         self.owner.calls.append((f"{self.label}.code", (text,), kwargs))
 
-    def __enter__(self) -> "ExpanderRecorder":
+    def __enter__(self) -> ExpanderRecorder:
         self.owner.calls.append((f"{self.label}.__enter__", (), {}))
         return self
 

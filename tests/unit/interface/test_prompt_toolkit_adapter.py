@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 
@@ -11,7 +11,6 @@ from devsynth.interface.prompt_toolkit_adapter import (
     PromptToolkitAdapter,
     PromptToolkitComponents,
 )
-
 
 pytestmark = [pytest.mark.fast]
 
@@ -26,7 +25,9 @@ class StubHistory:
 class StubSession:
     """Prompt session that replays predefined responses."""
 
-    def __init__(self, *, responses: list[str] | None = None, history: StubHistory | None = None) -> None:
+    def __init__(
+        self, *, responses: list[str] | None = None, history: StubHistory | None = None
+    ) -> None:
         self.history = history or StubHistory()
         self.responses = list(responses or [])
         self.prompt_calls: list[tuple[str, dict[str, object]]] = []
@@ -51,7 +52,7 @@ class StubStyle:
     """Simplistic style stub matching the prompt-toolkit API."""
 
     @classmethod
-    def from_dict(cls, mapping: dict[str, str]) -> "StubStyle":
+    def from_dict(cls, mapping: dict[str, str]) -> StubStyle:
         instance = cls()
         instance.mapping = mapping
         return instance

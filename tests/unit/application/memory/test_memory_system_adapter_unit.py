@@ -94,8 +94,8 @@ def test_chromadb_enabled_uses_adapter_and_store(
     settings.enable_chromadb = True
     settings.vector_store_enabled = True
 
-    store_instances: List[Dict[str, Any]] = []
-    adapter_instances: List[Dict[str, Any]] = []
+    store_instances: list[dict[str, Any]] = []
+    adapter_instances: list[dict[str, Any]] = []
 
     store_module = types.ModuleType("devsynth.application.memory.chromadb_store")
 
@@ -626,40 +626,40 @@ def test_initialize_memory_system_branches_execution(
 
 class _CacheAwareStore:
     def __init__(self) -> None:
-        self.records: Dict[str, Dict[str, Any]] = {}
-        self.transactions: Dict[str, str] = {}
-        self.query_history: List[Any] = []
-        self.metadata_history: List[Any] = []
-        self.search_history: List[Any] = []
+        self.records: dict[str, dict[str, Any]] = {}
+        self.transactions: dict[str, str] = {}
+        self.query_history: list[Any] = []
+        self.metadata_history: list[Any] = []
+        self.search_history: list[Any] = []
         self.flushed = False
         self.token_usage = 7
         self.tx_counter = 0
 
-    def store(self, item: Dict[str, Any]) -> str:
+    def store(self, item: dict[str, Any]) -> str:
         item_id = item["id"]
         self.records[item_id] = item
         return item_id
 
-    def query_by_type(self, memory_type: Any) -> List[Any]:
+    def query_by_type(self, memory_type: Any) -> list[Any]:
         self.query_history.append(memory_type)
         return [f"type:{memory_type}"]
 
-    def query_by_metadata(self, metadata: Dict[str, Any]) -> List[Any]:
+    def query_by_metadata(self, metadata: dict[str, Any]) -> list[Any]:
         self.metadata_history.append(metadata)
         return [metadata]
 
-    def search(self, query: Dict[str, Any]) -> List[Any]:
+    def search(self, query: dict[str, Any]) -> list[Any]:
         self.search_history.append(query)
         return [query]
 
-    def retrieve(self, item_id: str) -> Dict[str, Any] | None:
+    def retrieve(self, item_id: str) -> dict[str, Any] | None:
         return self.records.get(item_id)
 
     def delete(self, item_id: str) -> bool:
         self.records.pop(item_id, None)
         return True
 
-    def get_all(self) -> List[Dict[str, Any]]:
+    def get_all(self) -> list[dict[str, Any]]:
         return list(self.records.values())
 
     def get_token_usage(self) -> int:
@@ -693,8 +693,8 @@ class _CacheAwareStore:
 class _FakeTieredCache:
     def __init__(self, max_size: int) -> None:
         self.max_size = max_size
-        self.items: Dict[str, Any] = {}
-        self.removed: List[str] = []
+        self.items: dict[str, Any] = {}
+        self.removed: list[str] = []
         self.cleared = False
 
     def size(self) -> int:
@@ -771,7 +771,7 @@ def test_cache_and_transaction_workflow(memory_adapter_module, monkeypatch) -> N
     assert result == "item-2"
     assert "item-2" in store.records
 
-    fallback_called: List[str] = []
+    fallback_called: list[str] = []
 
     def failing_operation():
         raise RuntimeError("boom")
@@ -788,7 +788,7 @@ def test_cache_and_transaction_workflow(memory_adapter_module, monkeypatch) -> N
         def __init__(self) -> None:
             self.last_query = None
 
-        def search(self, query: Dict[str, Any]) -> List[str]:
+        def search(self, query: dict[str, Any]) -> list[str]:
             self.last_query = query
             return ["search-result"]
 

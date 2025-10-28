@@ -224,7 +224,9 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
     assert success
     assert output.count("segment for") == len(node_ids)
     assert os.environ["PYTEST_ADDOPTS"] == "-k smoke"
-    expected_suffix = "-p pytest_asyncio.plugin -k smoke -p pytest_cov -p pytest_bdd.plugin"
+    expected_suffix = (
+        "-p pytest_asyncio.plugin -k smoke -p pytest_cov -p pytest_bdd.plugin"
+    )
     assert snapshots == [expected_suffix, expected_suffix]
 
 

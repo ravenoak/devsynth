@@ -214,7 +214,7 @@ def test_reasoning_loop_applies_synthesis_to_task(
         def __init__(self) -> None:
             self.syntheses: list[dict[str, Any]] = []
 
-        def with_solution(self, synthesis: dict[str, Any]) -> "TaskRecorder":
+        def with_solution(self, synthesis: dict[str, Any]) -> TaskRecorder:
             self.syntheses.append(synthesis)
             return self
 

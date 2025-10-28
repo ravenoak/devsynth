@@ -19,8 +19,8 @@ pytestmark = [
 ]
 
 
-def _build_dataset(store: InMemoryStore, n: int = 2000) -> List[str]:
-    ids: List[str] = []
+def _build_dataset(store: InMemoryStore, n: int = 2000) -> list[str]:
+    ids: list[str] = []
     topics = ["alpha", "beta", "gamma", "delta", "epsilon"]
     for i in range(n):
         topic = random.choice(topics)

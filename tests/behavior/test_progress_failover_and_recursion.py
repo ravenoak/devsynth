@@ -62,7 +62,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 
 class _DummyConsole:
     def __init__(self) -> None:
-        self.messages: list[tuple[tuple[Any, ...], Dict[str, Any]]] = []
+        self.messages: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
 
     def print(self, *args: Any, **kwargs: Any) -> None:
         self.messages.append((args, kwargs))

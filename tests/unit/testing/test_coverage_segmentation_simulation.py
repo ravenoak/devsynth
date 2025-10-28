@@ -5,7 +5,7 @@ Issue: issues/coverage-below-threshold.md ReqID: COV-SEG-001
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 import pytest
 

@@ -93,10 +93,10 @@ def load_run_tests_cli_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
             self._values = dict(values or {})
 
         @classmethod
-        def from_env(cls) -> "_ProviderEnv":
+        def from_env(cls) -> _ProviderEnv:
             return cls()
 
-        def with_test_defaults(self) -> "_ProviderEnv":
+        def with_test_defaults(self) -> _ProviderEnv:
             return self
 
         def apply_to_env(self) -> None:

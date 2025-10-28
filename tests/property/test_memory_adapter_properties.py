@@ -4,7 +4,7 @@ Issue: issues/memory-adapter-integration.md ReqID: HMA-001, HMA-002
 """
 
 from copy import deepcopy
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 

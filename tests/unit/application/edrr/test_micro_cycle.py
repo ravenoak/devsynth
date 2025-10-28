@@ -2,7 +2,8 @@ import json
 import os
 import shutil
 import tempfile
-from typing import Any, Dict, Generator
+from typing import Any, Dict
+from collections.abc import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest

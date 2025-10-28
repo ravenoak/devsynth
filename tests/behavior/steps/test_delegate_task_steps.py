@@ -24,7 +24,7 @@ def _module_stub(name: str, **attributes: object) -> ModuleType:
     return module
 
 
-def _load_coordinator() -> "AgentCoordinatorImpl":
+def _load_coordinator() -> AgentCoordinatorImpl:
     """Import and return a fresh ``AgentCoordinatorImpl`` instance."""
 
     module_name = "devsynth.application.collaboration.coordinator"

@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import os
 import shutil
-from typing import Dict, Generator
+from typing import Dict
+from collections.abc import Generator
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -19,7 +20,7 @@ scenarios(feature_path(__file__, "general", "edrr_cycle.feature"))
 
 
 @pytest.fixture
-def context() -> Generator[Dict[str, object], None, None]:
+def context() -> Generator[dict[str, object]]:
     """Create a context dictionary for sharing state between steps.
 
     This fixture uses a generator pattern to provide teardown functionality.
@@ -34,7 +35,7 @@ def context() -> Generator[Dict[str, object], None, None]:
     if "manifest_path" in ctx and os.path.exists(ctx["manifest_path"]):
         try:
             os.remove(ctx["manifest_path"])
-        except (OSError, IOError):
+        except OSError:
             # If we can't remove the file, it's likely already gone
             pass
 
@@ -86,7 +87,7 @@ def run_edrr_cycle(context):
     # Simulate running the command
     if os.path.exists(manifest_path):
         try:
-            with open(manifest_path, "r") as f:
+            with open(manifest_path) as f:
                 try:
                     manifest_content = json.load(f)
                     context["output"] = "Starting EDRR cycle"

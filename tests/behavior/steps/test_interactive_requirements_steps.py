@@ -52,7 +52,7 @@ def run_wizard(tmp_project_dir):
 def check_file(tmp_project_dir):
     path = os.path.join(tmp_project_dir, "requirements_wizard.json")
     assert os.path.exists(path)
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     assert data.get("title") == "Sample title"
 

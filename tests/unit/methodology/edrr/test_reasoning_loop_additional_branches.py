@@ -220,7 +220,9 @@ def test_reasoning_loop_accepts_dialectical_sequence_payload(
 
     sequence = DialecticalSequence(sequence_id="seq-1", steps=())
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: lambda *_: sequence)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: lambda *_: sequence
+    )
 
     results = rl.reasoning_loop(
         wsde_team=NullWSDETeam(),

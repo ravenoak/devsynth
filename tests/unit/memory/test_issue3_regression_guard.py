@@ -15,7 +15,7 @@ class InMemoryStore:
     """Minimal MemoryStore implementation for SyncManager regression tests."""
 
     name: str
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
 
     def write(self, key: str, value: Any) -> None:
         self.data[key] = value
@@ -25,10 +25,10 @@ class InMemoryStore:
             raise KeyError(key)
         return self.data[key]
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return dict(self.data)
 
-    def restore(self, snapshot: Dict[str, Any]) -> None:
+    def restore(self, snapshot: dict[str, Any]) -> None:
         self.data = dict(snapshot)
 
 

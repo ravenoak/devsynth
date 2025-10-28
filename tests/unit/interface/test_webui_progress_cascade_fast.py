@@ -27,7 +27,7 @@ class _StubBlock:
 
 
 class _StubProgressBar:
-    def __init__(self, owner: "_StubSubtask" | None = None) -> None:
+    def __init__(self, owner: _StubSubtask | None = None) -> None:
         self._owner = owner
         self.values: list[float] = []
 
@@ -73,7 +73,7 @@ class _StubExpander:
         self.label = label
         self.records: list[tuple[str, object]] = []
 
-    def __enter__(self) -> "_StubExpander":
+    def __enter__(self) -> _StubExpander:
         return self
 
     def __exit__(
@@ -112,7 +112,7 @@ class _StubSidebar:
 
 
 class _StubComponents:
-    def __init__(self, owner: "_StubStreamlit") -> None:
+    def __init__(self, owner: _StubStreamlit) -> None:
         self._owner = owner
         self.calls: list[dict[str, object]] = []
         self.v1 = SimpleNamespace(html=self._html)

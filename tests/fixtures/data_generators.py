@@ -13,7 +13,8 @@ import tempfile
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+from collections.abc import Callable
 
 import pytest
 
@@ -44,7 +45,7 @@ def random_url() -> str:
 
 
 def random_date(
-    start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+    start_date: datetime | None = None, end_date: datetime | None = None
 ) -> datetime:
     """Generate a random date between start_date and end_date."""
     if start_date is None:
@@ -86,7 +87,7 @@ def random_python_code(num_lines: int = 10) -> str:
     return "\n".join(lines[:num_lines])
 
 
-def random_project_structure() -> Dict[str, Any]:
+def random_project_structure() -> dict[str, Any]:
     """Generate a random project structure."""
     return {
         "src": {
@@ -124,13 +125,13 @@ def random_id() -> str:
 
 
 @pytest.fixture
-def random_dict(size: int = 5) -> Dict[str, str]:
+def random_dict(size: int = 5) -> dict[str, str]:
     """Generate a random dictionary with string keys and values."""
     return {random_string(5): random_string(10) for _ in range(size)}
 
 
 @pytest.fixture
-def random_list(size: int = 5) -> List[str]:
+def random_list(size: int = 5) -> list[str]:
     """Generate a random list of strings."""
     return [random_string(10) for _ in range(size)]
 
@@ -157,7 +158,7 @@ def sample_python_file() -> Path:
 
 
 def _create_project_files(
-    base_dir: Union[str, Path], structure: Dict[str, Any]
+    base_dir: str | Path, structure: dict[str, Any]
 ) -> None:
     """
     Recursively create files and directories based on the given structure.
@@ -178,7 +179,7 @@ def _create_project_files(
                 f.write(content)
 
 
-def generate_test_user(user_id: Optional[str] = None) -> Dict[str, Any]:
+def generate_test_user(user_id: str | None = None) -> dict[str, Any]:
     """Generate a test user with random data."""
     return {
         "id": user_id or str(uuid.uuid4()),
@@ -192,8 +193,8 @@ def generate_test_user(user_id: Optional[str] = None) -> Dict[str, Any]:
 
 
 def generate_test_project(
-    project_id: Optional[str] = None, owner_id: Optional[str] = None
-) -> Dict[str, Any]:
+    project_id: str | None = None, owner_id: str | None = None
+) -> dict[str, Any]:
     """Generate a test project with random data."""
     return {
         "id": project_id or str(uuid.uuid4()),
@@ -207,7 +208,7 @@ def generate_test_project(
     }
 
 
-def generate_test_memory_item(item_id: Optional[str] = None) -> Dict[str, Any]:
+def generate_test_memory_item(item_id: str | None = None) -> dict[str, Any]:
     """Generate a test memory item with random data."""
     return {
         "id": item_id or str(uuid.uuid4()),
@@ -222,7 +223,7 @@ def generate_test_memory_item(item_id: Optional[str] = None) -> Dict[str, Any]:
 
 
 @pytest.fixture
-def test_user_succeeds() -> Dict[str, Any]:
+def test_user_succeeds() -> dict[str, Any]:
     """Generate a test user.
 
     ReqID: N/A"""
@@ -230,7 +231,7 @@ def test_user_succeeds() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def test_project_succeeds(test_user) -> Dict[str, Any]:
+def test_project_succeeds(test_user) -> dict[str, Any]:
     """Generate a test project owned by the test user.
 
     ReqID: N/A"""
@@ -238,7 +239,7 @@ def test_project_succeeds(test_user) -> Dict[str, Any]:
 
 
 @pytest.fixture
-def test_memory_items_succeeds(size: int = 5) -> List[Dict[str, Any]]:
+def test_memory_items_succeeds(size: int = 5) -> list[dict[str, Any]]:
     """Generate a list of test memory items.
 
     ReqID: N/A"""

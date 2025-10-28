@@ -39,9 +39,7 @@ def sample_file_path():
     ReqID: FR-1"""
     with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as temp_file:
         temp_file.write(
-            '\nimport os\nimport sys\nimport re  # This import is unused\n\ndef calculate_sum(a, b):\n    # Redundant assignment\n    result = a + b\n    return result\n\ndef main():\n    x = 5\n    y = 10\n    z = 15  # This variable is unused\n\n    # String concatenation that could be optimized\n    greeting = "Hello, " + "world!"\n\n    total = calculate_sum(x, y)\n    print(f"The sum is {total}")\n'.encode(
-                "utf-8"
-            )
+            b'\nimport os\nimport sys\nimport re  # This import is unused\n\ndef calculate_sum(a, b):\n    # Redundant assignment\n    result = a + b\n    return result\n\ndef main():\n    x = 5\n    y = 10\n    z = 15  # This variable is unused\n\n    # String concatenation that could be optimized\n    greeting = "Hello, " + "world!"\n\n    total = calculate_sum(x, y)\n    print(f"The sum is {total}")\n'
         )
         temp_path = temp_file.name
     yield temp_path
@@ -109,10 +107,8 @@ class TestUnusedImportRemover:
         assert "import os" in transformed_code
         assert "import sys" in transformed_code
         assert any(
-            (
                 "Removed unused import" in change["description"]
                 for change in transformer.changes
-            )
         )
 
 
@@ -132,10 +128,8 @@ class TestRedundantAssignmentRemover:
         assert "return a + b" in result.get_transformed_code()
         assert "result = a + b" not in result.get_transformed_code()
         assert any(
-            (
                 "Simplified redundant assignment" in change["description"]
                 for change in result.get_changes()
-            )
         )
 
 
@@ -165,10 +159,8 @@ class TestUnusedVariableRemover:
         assert "x = 5" in transformed_code
         assert "y = 10" in transformed_code
         assert any(
-            (
                 "Removed unused variable" in change["description"]
                 for change in transformer.changes
-            )
         )
 
 
@@ -192,10 +184,8 @@ class TestStringLiteralOptimizer:
             "Optimized string literal: removed extra whitespace",
         )
         assert any(
-            (
                 "Optimized string literal" in change["description"]
                 for change in transformer.changes
-            )
         )
 
 
@@ -213,10 +203,8 @@ class TestCodeStyleTransformer:
         result = transformer.transform_code(code, ["improve_code_style"])
         assert '"""' in result.get_transformed_code()
         assert any(
-            (
                 "Added missing docstring" in change["description"]
                 for change in result.get_changes()
-            )
         )
 
 
@@ -269,29 +257,23 @@ class TestCodeTransformer:
             assert hasattr(result, "get_changes")
             assert len(result.get_changes()) == 3
             assert any(
-                (
                     "Removed unused import" in change["description"]
                     for change in result.get_changes()
-                )
             )
             assert any(
-                (
                     "Removed unused variable" in change["description"]
                     for change in result.get_changes()
-                )
             )
             assert any(
-                (
                     "Optimized string literal" in change["description"]
                     for change in result.get_changes()
-                )
             )
 
     def test_transform_file_succeeds(self, sample_file_path):
         """Test transforming a file.
 
         ReqID: FR-1"""
-        with open(sample_file_path, "r", encoding="utf-8") as f:
+        with open(sample_file_path, encoding="utf-8") as f:
             file_content = f.read()
         transformed_code = file_content.replace("import re", "").replace("z = 15", "")
         mock_result = MagicMock()
@@ -317,16 +299,12 @@ class TestCodeTransformer:
             assert hasattr(result, "get_changes")
             assert len(result.get_changes()) == 2
             assert any(
-                (
                     "Removed unused import" in change["description"]
                     for change in result.get_changes()
-                )
             )
             assert any(
-                (
                     "Removed unused variable" in change["description"]
                     for change in result.get_changes()
-                )
             )
 
     def test_transform_directory_succeeds(self, sample_directory):
@@ -396,17 +374,17 @@ class TestCodeTransformer:
                 assert hasattr(result, "get_transformed_code")
                 assert hasattr(result, "get_changes")
             unused_imports_path = next(
-                (path for path in results.keys() if "unused_imports.py" in path)
+                path for path in results.keys() if "unused_imports.py" in path
             )
             unused_imports_result = results[unused_imports_path]
             assert "import re" not in unused_imports_result.get_transformed_code()
             unused_variables_path = next(
-                (path for path in results.keys() if "unused_variables.py" in path)
+                path for path in results.keys() if "unused_variables.py" in path
             )
             unused_variables_result = results[unused_variables_path]
             assert "count = 0" not in unused_variables_result.get_transformed_code()
             nested_file_path = next(
-                (path for path in results.keys() if "nested_file.py" in path)
+                path for path in results.keys() if "nested_file.py" in path
             )
             nested_file_result = results[nested_file_path]
             assert "y = 20" not in nested_file_result.get_transformed_code()
@@ -418,14 +396,14 @@ class TestCodeTransformer:
         transformer = CodeTransformer()
         files = transformer._find_python_files(sample_directory, recursive=True)
         assert len(files) == 3
-        assert any(("unused_imports.py" in f for f in files))
-        assert any(("unused_variables.py" in f for f in files))
-        assert any(("nested_file.py" in f for f in files))
+        assert any("unused_imports.py" in f for f in files)
+        assert any("unused_variables.py" in f for f in files)
+        assert any("nested_file.py" in f for f in files)
         files = transformer._find_python_files(sample_directory, recursive=False)
         assert len(files) == 2
-        assert any(("unused_imports.py" in f for f in files))
-        assert any(("unused_variables.py" in f for f in files))
-        assert not any(("nested_file.py" in f for f in files))
+        assert any("unused_imports.py" in f for f in files)
+        assert any("unused_variables.py" in f for f in files)
+        assert not any("nested_file.py" in f for f in files)
 
 
 class TestSymbolUsageCounter:
