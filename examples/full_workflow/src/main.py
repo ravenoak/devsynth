@@ -9,7 +9,7 @@ counter = Counter()
 def analyze(file: str):
     """Display counts for the given file."""
     try:
-        text = open(file, "r", encoding="utf-8").read()
+        text = open(file, encoding="utf-8").read()
     except FileNotFoundError as exc:
         typer.echo(f"Error: {exc}")
         raise
