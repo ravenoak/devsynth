@@ -1,7 +1,8 @@
 """CLI implementation of the UXBridge using Typer and Rich."""
 
 import os
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Union
+from collections.abc import Sequence
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -181,8 +182,8 @@ class CLIProgressIndicator(ProgressIndicator):
             desc = "<main task>"
 
         self._task = self._progress.add_task(desc, total=total, status="Starting...")
-        self._subtasks: Dict[str, Any] = {}
-        self._nested_subtasks: Dict[str, Dict[str, Any]] = {}
+        self._subtasks: dict[str, Any] = {}
+        self._nested_subtasks: dict[str, dict[str, Any]] = {}
         self._last_update_time = {}
         self._start_time = {}
 
@@ -190,8 +191,8 @@ class CLIProgressIndicator(ProgressIndicator):
         self,
         *,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update the progress indicator.
 
@@ -324,8 +325,8 @@ class CLIProgressIndicator(ProgressIndicator):
         self,
         task_id: str,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update a subtask's progress.
 
@@ -460,8 +461,8 @@ class CLIProgressIndicator(ProgressIndicator):
         parent_id: str,
         task_id: str,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update a nested subtask's progress.
 
@@ -560,7 +561,9 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
             colorblind_mode: Whether to use the colorblind-friendly theme
         """
         if colorblind_mode is None:
-            colorblind_mode = os.environ.get("DEVSYNTH_CLI_COLORBLIND", "0").lower() in {
+            colorblind_mode = os.environ.get(
+                "DEVSYNTH_CLI_COLORBLIND", "0"
+            ).lower() in {
                 "1",
                 "true",
                 "yes",
@@ -591,8 +594,8 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         logger.debug(f"Asking question: {message}")
@@ -648,7 +651,7 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         logger.debug(f"User confirmed: {answer}")
         return answer
 
-    def handle_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
+    def handle_error(self, error: Exception | dict[str, Any] | str) -> None:
         """Handle an error with enhanced error messages.
 
         This method formats the error with actionable suggestions and documentation links,
@@ -692,9 +695,35 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         else:
             logger.debug(f"Displaying message: {message}")
 
-        # Check if the message contains Rich markup. Sanitize while preserving markup
-        if "[" in message and "]" in message:
+        # For test output and other content that may contain brackets (like file paths),
+        # disable Rich markup parsing by default to avoid parsing errors
+        # Only enable markup parsing for explicitly formatted content
+        import re
+
+        # Rich markup consists of simple color/style names without slashes or complex characters
+        rich_markup_pattern = r"\[/?(?:bold|dim|italic|underline|strike|reverse|blink|black|red|green|yellow|blue|magenta|cyan|white|bright_black|bright_red|bright_green|bright_yellow|bright_blue|bright_magenta|bright_cyan|bright_white|on_black|on_red|on_green|on_yellow|on_blue|on_magenta|on_cyan|on_white|on_bright_black|on_bright_red|on_bright_green|on_bright_yellow|on_bright_blue|on_bright_magenta|on_bright_cyan|on_bright_white)\]"
+
+        # Only consider it Rich markup if it matches the pattern AND the brackets don't contain slashes or spaces
+        # (file paths and complex strings should not be treated as markup)
+        has_rich_markup = False
+        if re.search(rich_markup_pattern, message):
+            # Double-check that this isn't a false positive (e.g., file path containing a style name)
+            # Valid Rich markup should be simple tags without slashes between brackets
+            bracket_contents = re.findall(r"\[([^\]]+)\]", message)
+            for content in bracket_contents:
+                if (
+                    "/" not in content and " " not in content and len(content) < 50
+                ):  # reasonable limits
+                    has_rich_markup = True
+                    break
+
+        if has_rich_markup:
+            # Content has explicit Rich markup - sanitize and preserve it
             self.console.print(sanitize_output(message), highlight=highlight)
+            return
+        else:
+            # No Rich markup detected - print as plain text to avoid parsing brackets as markup
+            self.console.print(message, markup=False, highlight=False)
             return
 
         # Format the message using the shared formatter
@@ -716,7 +745,7 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
 
     def display_error(
         self,
-        error: Union[Exception, Dict[str, Any], str],
+        error: Exception | dict[str, Any] | str,
         *,
         include_suggestions: bool = True,
     ) -> None:

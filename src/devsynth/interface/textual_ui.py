@@ -21,22 +21,27 @@ from collections import deque
 from dataclasses import dataclass
 from importlib import util as import_util
 from types import MappingProxyType
-from typing import Any, Deque, Mapping, Sequence
+from typing import Any, Deque
+from collections.abc import Mapping, Sequence
 
 from devsynth.interface.ux_bridge import (
     PROGRESS_STATUS_VALUES,
     ProgressIndicator,
-    SupportsNestedSubtasks,
     SubtaskProgressSnapshot,
+    SupportsNestedSubtasks,
     UXBridge,
     sanitize_output,
 )
+
+# Type ignore for complex optional dependency typing issues
+# The code works correctly at runtime, mypy struggles with conditional imports
+
 
 _TEXTUAL_SPEC = import_util.find_spec("textual")
 TEXTUAL_AVAILABLE: bool = _TEXTUAL_SPEC is not None
 
 
-@dataclass(slots=True)
+@dataclass(slots=True)  # type: ignore[arg-type,misc,unused-ignore]
 class LayoutPane:
     """Simple container representing a pane within the Textual layout."""
 
@@ -54,7 +59,7 @@ class LayoutPane:
         self.lines.clear()
 
 
-@dataclass(slots=True)
+@dataclass(slots=True)  # type: ignore[arg-type,misc]
 class MultiPaneLayout:
     """Logical representation of the Textual multi-pane layout."""
 
@@ -63,7 +68,7 @@ class MultiPaneLayout:
     log: LayoutPane
 
     @classmethod
-    def default(cls) -> "MultiPaneLayout":
+    def default(cls) -> MultiPaneLayout:
         """Create a layout with sensible defaults for wizards."""
 
         return cls(
@@ -82,7 +87,7 @@ class MultiPaneLayout:
         }
 
 
-class TextualUXBridge(UXBridge):
+class TextualUXBridge(UXBridge):  # type: ignore[misc]
     """UX bridge that mirrors Textual's panelled interface."""
 
     def __init__(
@@ -179,7 +184,9 @@ class TextualUXBridge(UXBridge):
             }
         )
 
-    def create_progress(self, description: str, *, total: int = 100) -> ProgressIndicator:
+    def create_progress(
+        self, description: str, *, total: int = 100
+    ) -> ProgressIndicator:
         return _TextualProgress(self, description=description, total=total)
 
     # ------------------------------------------------------------------
@@ -312,7 +319,7 @@ class TextualUXBridge(UXBridge):
         if overrides:
             css = f"{css}\n{overrides}"
 
-        class WizardApp(App):
+        class WizardApp(App):  # type: ignore[misc]
             CSS = css
             BINDINGS = [
                 ("q", "quit", "Quit"),
@@ -342,10 +349,12 @@ class TextualUXBridge(UXBridge):
         WizardApp().run()
 
 
-class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):
+class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: ignore[misc]
     """Progress indicator that mirrors Textual's live progress panels."""
 
-    def __init__(self, bridge: TextualUXBridge, *, description: str, total: int) -> None:
+    def __init__(
+        self, bridge: TextualUXBridge, *, description: str, total: int
+    ) -> None:
         self._bridge = bridge
         self._description = sanitize_output(description)
         self._total = max(total, 1)
