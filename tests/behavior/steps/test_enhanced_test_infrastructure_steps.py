@@ -45,7 +45,7 @@ def test_project(tmp_path):
 
     # Create behavior tests
     (project_dir / "tests" / "behavior" / "features" / "example.feature").write_text(
-        'Feature: Example Feature\n  Scenario: Example scenario\n    Given something\n    When I do something\n    Then something should happen'
+        "Feature: Example Feature\n  Scenario: Example scenario\n    Given something\n    When I do something\n    Then something should happen"
     )
 
     return project_dir
@@ -83,7 +83,7 @@ def project_with_tests(test_project, context):
     context["test_results"] = {
         "unit_tests": ["test_example.py", "test_another_example.py"],
         "integration_tests": ["test_integration.py"],
-        "behavior_tests": ["example.feature"]
+        "behavior_tests": ["example.feature"],
     }
 
 
@@ -93,11 +93,11 @@ def test_results_multiple_categories(context):
     context["test_results"] = {
         "unit_tests": {"fast": 10, "medium": 5, "slow": 2},
         "integration_tests": {"fast": 3, "medium": 8, "slow": 15},
-        "behavior_tests": {"fast": 5, "medium": 10, "slow": 3}
+        "behavior_tests": {"fast": 5, "medium": 10, "slow": 3},
     }
     context["isolation_issues"] = [
         {"file": "test_example.py", "issue": "global_state", "severity": "medium"},
-        {"file": "test_integration.py", "issue": "shared_resource", "severity": "low"}
+        {"file": "test_integration.py", "issue": "shared_resource", "severity": "low"},
     ]
 
 
@@ -106,7 +106,11 @@ def tests_with_improvements(context):
     """Set up tests with potential improvements."""
     context["test_improvements"] = [
         {"file": "test_example.py", "improvement": "add_assertion", "impact": "high"},
-        {"file": "test_integration.py", "improvement": "improve_isolation", "impact": "medium"}
+        {
+            "file": "test_integration.py",
+            "improvement": "improve_isolation",
+            "impact": "medium",
+        },
     ]
 
 
@@ -114,9 +118,12 @@ def tests_with_improvements(context):
 def project_incomplete_coverage(context):
     """Set up a project with incomplete test coverage."""
     context["coverage_gaps"] = [
-        {"module": "user_service", "untested_functions": ["create_user", "delete_user"]},
+        {
+            "module": "user_service",
+            "untested_functions": ["create_user", "delete_user"],
+        },
         {"module": "auth_service", "untested_functions": ["login", "logout"]},
-        {"module": "data_service", "untested_functions": ["save", "load"]}
+        {"module": "data_service", "untested_functions": ["save", "load"]},
     ]
 
 
@@ -133,7 +140,7 @@ def existing_pytest_tests(context):
     context["existing_tests"] = [
         "tests/unit/test_basic.py",
         "tests/integration/test_api.py",
-        "tests/behavior/features/basic.feature"
+        "tests/behavior/features/basic.feature",
     ]
 
 
@@ -146,7 +153,7 @@ def large_project_many_tests(context):
         "collection_time": 2.0,
         "analysis_time": 5.0,
         "enhancement_time": 10.0,
-        "report_time": 3.0
+        "report_time": 3.0,
     }
 
 
@@ -182,9 +189,21 @@ def security_monitoring_enabled(context):
 def project_with_vulnerabilities(context):
     """Set up a project with security vulnerabilities."""
     context["vulnerabilities"] = [
-        {"id": "CVE-2023-1234", "severity": "high", "description": "SQL injection vulnerability"},
-        {"id": "CVE-2023-5678", "severity": "medium", "description": "XSS vulnerability"},
-        {"id": "CVE-2023-9012", "severity": "low", "description": "Information disclosure"}
+        {
+            "id": "CVE-2023-1234",
+            "severity": "high",
+            "description": "SQL injection vulnerability",
+        },
+        {
+            "id": "CVE-2023-5678",
+            "severity": "medium",
+            "description": "XSS vulnerability",
+        },
+        {
+            "id": "CVE-2023-9012",
+            "severity": "low",
+            "description": "Information disclosure",
+        },
     ]
 
 
@@ -195,7 +214,7 @@ def security_compliance_requirements(context):
         "OWASP Top 10 compliance",
         "Input validation standards",
         "Authentication security",
-        "Session management"
+        "Session management",
     ]
 
 
@@ -203,9 +222,21 @@ def security_compliance_requirements(context):
 def security_gaps_in_code(context):
     """Set up code with security gaps."""
     context["security_gaps"] = [
-        {"type": "input_validation", "severity": "high", "description": "Missing input sanitization"},
-        {"type": "authentication", "severity": "medium", "description": "Weak password policy"},
-        {"type": "session", "severity": "low", "description": "Session timeout not configured"}
+        {
+            "type": "input_validation",
+            "severity": "high",
+            "description": "Missing input sanitization",
+        },
+        {
+            "type": "authentication",
+            "severity": "medium",
+            "description": "Weak password policy",
+        },
+        {
+            "type": "session",
+            "severity": "low",
+            "description": "Session timeout not configured",
+        },
     ]
 
 
@@ -213,9 +244,24 @@ def security_gaps_in_code(context):
 def requirements_traceability_matrix(context):
     """Set up requirements traceability matrix."""
     context["traceability_matrix"] = [
-        {"requirement": "FR-001", "specification": "user_auth.md", "code": "auth_service.py", "test": "test_auth.py"},
-        {"requirement": "FR-002", "specification": "user_mgmt.md", "code": "user_service.py", "test": "test_user.py"},
-        {"requirement": "FR-003", "specification": "data_storage.md", "code": "storage_service.py", "test": "test_storage.py"}
+        {
+            "requirement": "FR-001",
+            "specification": "user_auth.md",
+            "code": "auth_service.py",
+            "test": "test_auth.py",
+        },
+        {
+            "requirement": "FR-002",
+            "specification": "user_mgmt.md",
+            "code": "user_service.py",
+            "test": "test_user.py",
+        },
+        {
+            "requirement": "FR-003",
+            "specification": "data_storage.md",
+            "code": "storage_service.py",
+            "test": "test_storage.py",
+        },
     ]
 
 
@@ -225,7 +271,7 @@ def project_specifications(context):
     context["specifications"] = [
         "docs/specifications/user_authentication.md",
         "docs/specifications/data_management.md",
-        "docs/specifications/api_design.md"
+        "docs/specifications/api_design.md",
     ]
 
 
@@ -235,12 +281,12 @@ def specs_code_tests_with_references(context):
     context["cross_references"] = {
         "valid_references": [
             {"source": "spec.md", "target": "code.py", "valid": True},
-            {"source": "test.py", "target": "spec.md", "valid": True}
+            {"source": "test.py", "target": "spec.md", "valid": True},
         ],
         "broken_references": [
             {"source": "spec.md", "target": "missing.py", "valid": False},
-            {"source": "test.py", "target": "deleted_spec.md", "valid": False}
-        ]
+            {"source": "test.py", "target": "deleted_spec.md", "valid": False},
+        ],
     }
 
 
@@ -251,7 +297,7 @@ def quality_analysis_results(context):
         "audit_findings": ["Missing documentation", "Inconsistent naming"],
         "traceability_status": "85% complete",
         "improvements_made": ["Added docstrings", "Fixed imports"],
-        "quality_metrics": {"score": 87, "trend": "improving"}
+        "quality_metrics": {"score": 87, "trend": "improving"},
     }
 
 
@@ -264,8 +310,8 @@ def run_test_isolation_analysis(context):
         "recommendations": [
             "Use fixtures for shared state",
             "Mock external dependencies",
-            "Avoid global variables in tests"
-        ]
+            "Avoid global variables in tests",
+        ],
     }
 
 
@@ -276,7 +322,7 @@ def generate_comprehensive_test_report(context):
         "test_counts": context["test_results"],
         "marker_distribution": {"fast": 18, "medium": 23, "slow": 20},
         "isolation_issues": context.get("isolation_issues", []),
-        "formats": ["html", "json", "markdown"]
+        "formats": ["html", "json", "markdown"],
     }
 
 
@@ -289,8 +335,8 @@ def run_test_enhancement(context):
         "functionality_preserved": True,
         "changes_reported": [
             "Enhanced assertions in test_example.py",
-            "Improved isolation in test_integration.py"
-        ]
+            "Improved isolation in test_integration.py",
+        ],
     }
 
 
@@ -301,7 +347,7 @@ def collect_tests_enhanced(context):
         "unit_tests": ["test_example.py", "test_another_example.py"],
         "integration_tests": ["test_integration.py"],
         "behavior_tests": ["example.feature"],
-        "collection_time": 0.5  # seconds
+        "collection_time": 0.5,  # seconds
     }
 
 
@@ -313,8 +359,8 @@ def analyze_test_coverage_gaps(context):
         "prioritized_gaps": [
             {"module": "user_service", "priority": "high", "effort": "medium"},
             {"module": "auth_service", "priority": "high", "effort": "low"},
-            {"module": "data_service", "priority": "medium", "effort": "high"}
-        ]
+            {"module": "data_service", "priority": "medium", "effort": "high"},
+        ],
     }
 
 
@@ -328,8 +374,8 @@ def request_test_quality_metrics(context):
         "coverage_suggestions": [
             "Add tests for error paths",
             "Increase integration test coverage",
-            "Add property-based tests"
-        ]
+            "Add property-based tests",
+        ],
     }
 
 
@@ -340,7 +386,7 @@ def initiate_test_enhancement_task(context):
         "analysis_phase": "Enhanced analysis completed",
         "design_phase": "Isolation analysis completed",
         "refinement_phase": "Automated enhancement applied",
-        "memory_stored": True
+        "memory_stored": True,
     }
 
 
@@ -359,7 +405,7 @@ def run_enhanced_operations(context):
         "analysis_time": 3.2,
         "enhancement_time": 7.5,
         "report_time": 2.1,
-        "resource_usage": {"memory": 128, "cpu": 25}  # MB, %
+        "resource_usage": {"memory": 128, "cpu": 25},  # MB, %
     }
 
 
@@ -367,14 +413,17 @@ def run_enhanced_operations(context):
 def request_test_health_report(context):
     """Request test infrastructure health report."""
     context["health_report"] = {
-        "collection_performance": {"status": "good", "metrics": context["performance_results"]["collection_time"]},
+        "collection_performance": {
+            "status": "good",
+            "metrics": context["performance_results"]["collection_time"],
+        },
         "analysis_accuracy": {"status": "excellent", "score": 0.95},
         "enhancement_success": {"status": "good", "rate": 0.87},
         "recommendations": [
             "Consider parallel processing for large test suites",
             "Implement caching for repeated analyses",
-            "Add more granular performance monitoring"
-        ]
+            "Add more granular performance monitoring",
+        ],
     }
 
 
@@ -386,9 +435,9 @@ def run_dialectical_audit(context):
         "inconsistencies_found": 2,
         "questions_generated": [
             "Feature 'user_authentication' has tests but is not documented in specifications",
-            "Feature 'data_management' is documented but has no corresponding tests"
+            "Feature 'data_management' is documented but has no corresponding tests",
         ],
-        "audit_logged": True
+        "audit_logged": True,
     }
 
 
@@ -400,9 +449,7 @@ def verify_requirements_traceability(context):
         "missing_links": 1,
         "specification_links_verified": 2,
         "bdd_features_verified": 3,
-        "missing_links_report": [
-            {"requirement": "FR-003", "missing": "test coverage"}
-        ]
+        "missing_links_report": [{"requirement": "FR-003", "missing": "test coverage"}],
     }
 
 
@@ -416,8 +463,8 @@ def run_quality_enhancement(context):
         "changes_reported": [
             "Enhanced documentation completeness",
             "Fixed code organization issues",
-            "Improved error handling"
-        ]
+            "Improved error handling",
+        ],
     }
 
 
@@ -432,8 +479,8 @@ def generate_comprehensive_quality_report(context):
             "overall_score": 87,
             "audit_score": 85,
             "traceability_score": 90,
-            "enhancement_score": 88
-        }
+            "enhancement_score": 88,
+        },
     }
 
 
@@ -441,11 +488,16 @@ def generate_comprehensive_quality_report(context):
 def validate_specification_completeness(context):
     """Validate specification completeness."""
     context["completeness_results"] = {
-        "required_sections": ["Introduction", "Requirements", "Implementation", "Testing"],
+        "required_sections": [
+            "Introduction",
+            "Requirements",
+            "Implementation",
+            "Testing",
+        ],
         "sections_found": 3,
         "cross_references_verified": 8,
         "formatting_validated": True,
-        "completeness_percentage": 85
+        "completeness_percentage": 85,
     }
 
 
@@ -455,12 +507,12 @@ def code_changes_made(context):
     context["code_changes"] = [
         {"file": "user_service.py", "type": "add", "impact": "medium"},
         {"file": "auth_service.py", "type": "modify", "impact": "high"},
-        {"file": "test_user.py", "type": "add", "impact": "low"}
+        {"file": "test_user.py", "type": "add", "impact": "low"},
     ]
     context["quality_impact"] = {
         "positive_changes": 2,
         "negative_changes": 1,
-        "quality_trend": "stable"
+        "quality_trend": "stable",
     }
 
 
@@ -472,8 +524,11 @@ def validate_bdd_feature_consistency(context):
         "step_definitions_found": 15,
         "scenarios_validated": 8,
         "consistency_issues": [
-            {"feature": "user_auth.feature", "issue": "missing step definition for 'I should be authenticated'"}
-        ]
+            {
+                "feature": "user_auth.feature",
+                "issue": "missing step definition for 'I should be authenticated'",
+            }
+        ],
     }
 
 
@@ -484,7 +539,7 @@ def initiate_quality_assurance_task(context):
         "analysis_phase": "Audit analysis completed",
         "design_phase": "Traceability verification completed",
         "refinement_phase": "Automated enhancement applied",
-        "memory_stored": True
+        "memory_stored": True,
     }
 
 
@@ -493,13 +548,28 @@ def request_improvement_suggestions(context):
     """Request improvement suggestions."""
     context["improvement_suggestions"] = {
         "prioritized_suggestions": [
-            {"type": "documentation", "impact": "high", "effort": "low", "description": "Add missing API documentation"},
-            {"type": "testing", "impact": "high", "effort": "medium", "description": "Add integration tests for auth module"},
-            {"type": "security", "impact": "medium", "effort": "low", "description": "Add input validation to user endpoints"}
+            {
+                "type": "documentation",
+                "impact": "high",
+                "effort": "low",
+                "description": "Add missing API documentation",
+            },
+            {
+                "type": "testing",
+                "impact": "high",
+                "effort": "medium",
+                "description": "Add integration tests for auth module",
+            },
+            {
+                "type": "security",
+                "impact": "medium",
+                "effort": "low",
+                "description": "Add input validation to user endpoints",
+            },
         ],
         "implementation_guidance": "Focus on high-impact, low-effort improvements first",
         "effort_estimates": {"total": 8, "remaining": 6},
-        "predicted_outcomes": {"quality_score": 92, "coverage_improvement": 15}
+        "predicted_outcomes": {"quality_score": 92, "coverage_improvement": 15},
     }
 
 
@@ -510,7 +580,7 @@ def run_comprehensive_quality_assurance(context):
         "audit_operations": {"status": "completed", "time": 25},
         "traceability_verification": {"status": "completed", "time": 12},
         "enhancement_operations": {"status": "completed", "time": 45},
-        "resource_usage": {"memory": 200, "cpu": 25, "storage": 25}
+        "resource_usage": {"memory": 200, "cpu": 25, "storage": 25},
     }
 
 
@@ -518,10 +588,18 @@ def run_comprehensive_quality_assurance(context):
 def run_comprehensive_security_audit(context):
     """Run comprehensive security audit."""
     context["security_audit_results"] = {
-        "bandit_analysis": {"status": "completed", "issues": 2, "severity": {"high": 0, "medium": 1, "low": 1}},
-        "dependency_scan": {"status": "completed", "vulnerabilities": 1, "severity": {"high": 0, "medium": 0, "low": 1}},
+        "bandit_analysis": {
+            "status": "completed",
+            "issues": 2,
+            "severity": {"high": 0, "medium": 1, "low": 1},
+        },
+        "dependency_scan": {
+            "status": "completed",
+            "vulnerabilities": 1,
+            "severity": {"high": 0, "medium": 0, "low": 1},
+        },
         "policy_validation": {"status": "completed", "compliance": 95},
-        "comprehensive_report": {"generated": True, "format": "json"}
+        "comprehensive_report": {"generated": True, "format": "json"},
     }
 
 
@@ -533,14 +611,14 @@ def scan_security_vulnerabilities(context):
         "prioritized_vulnerabilities": [
             {"id": "CVE-2023-1234", "priority": "high", "risk_score": 8.5},
             {"id": "CVE-2023-5678", "priority": "medium", "risk_score": 6.2},
-            {"id": "CVE-2023-9012", "priority": "low", "risk_score": 3.1}
+            {"id": "CVE-2023-9012", "priority": "low", "risk_score": 3.1},
         ],
         "remediation_plan": {
             "immediate_actions": 2,
             "short_term_fixes": 1,
-            "long_term_improvements": 0
+            "long_term_improvements": 0,
         },
-        "resolution_tracked": True
+        "resolution_tracked": True,
     }
 
 
@@ -551,7 +629,7 @@ def validate_security_compliance(context):
         "owasp_compliance": {"score": 88, "issues": 3},
         "access_controls": {"status": "validated", "issues": 1},
         "encryption_usage": {"status": "validated", "issues": 0},
-        "compliance_report": {"generated": True, "format": "html"}
+        "compliance_report": {"generated": True, "format": "html"},
     }
 
 
@@ -565,8 +643,8 @@ def run_security_enhancement(context):
         "improvements_reported": [
             "Enhanced input validation",
             "Strengthened authentication",
-            "Improved session security"
-        ]
+            "Improved session security",
+        ],
     }
 
 
@@ -576,14 +654,22 @@ def detect_security_impacts(context):
     context["security_impact"] = {
         "impacts_detected": 2,
         "alerts_generated": [
-            {"type": "vulnerability_introduced", "severity": "high", "file": "auth_service.py"},
-            {"type": "policy_violation", "severity": "medium", "file": "user_service.py"}
+            {
+                "type": "vulnerability_introduced",
+                "severity": "high",
+                "file": "auth_service.py",
+            },
+            {
+                "type": "policy_violation",
+                "severity": "medium",
+                "file": "user_service.py",
+            },
         ],
         "improvements_suggested": [
             "Add input validation to new endpoints",
-            "Review authentication implementation"
+            "Review authentication implementation",
         ],
-        "trends_tracked": {"security_score": 82, "trend": "stable"}
+        "trends_tracked": {"security_score": 82, "trend": "stable"},
     }
 
 
@@ -595,7 +681,7 @@ def verify_requirements_traceability_comprehensive(context):
         "specification_links_verified": len(context["specifications"]),
         "code_implementation_verified": 2,
         "test_coverage_validated": 3,
-        "missing_links_reported": 1
+        "missing_links_reported": 1,
     }
 
 
@@ -607,13 +693,23 @@ def analyze_traceability_gaps(context):
         "missing_tests": 1,
         "missing_documentation": 0,
         "prioritized_gaps": [
-            {"requirement": "FR-003", "gap_type": "test_coverage", "priority": "high", "impact": "functionality"},
-            {"requirement": "FR-004", "gap_type": "implementation", "priority": "medium", "impact": "feature"}
+            {
+                "requirement": "FR-003",
+                "gap_type": "test_coverage",
+                "priority": "high",
+                "impact": "functionality",
+            },
+            {
+                "requirement": "FR-004",
+                "gap_type": "implementation",
+                "priority": "medium",
+                "impact": "feature",
+            },
         ],
         "remediation_actions": [
             "Add unit tests for FR-003",
-            "Implement FR-004 functionality"
-        ]
+            "Implement FR-004 functionality",
+        ],
     }
 
 
@@ -621,14 +717,17 @@ def analyze_traceability_gaps(context):
 def generate_traceability_report(context):
     """Generate traceability report."""
     context["traceability_report"] = {
-        "coverage_analysis": {"overall": 85, "by_category": {"requirements": 90, "specifications": 80, "tests": 85}},
+        "coverage_analysis": {
+            "overall": 85,
+            "by_category": {"requirements": 90, "specifications": 80, "tests": 85},
+        },
         "gap_analysis": context["gap_analysis"],
         "compliance_status": "85% compliant",
         "improvements_suggested": [
             "Complete test coverage for FR-003",
             "Add implementation for FR-004",
-            "Update documentation links"
-        ]
+            "Update documentation links",
+        ],
     }
 
 
@@ -638,15 +737,23 @@ def requirements_specifications_change(context):
     context["change_impact"] = {
         "traceability_impacts": 3,
         "alerts_generated": [
-            {"type": "requirement_updated", "requirement": "FR-002", "impact": "medium"},
+            {
+                "type": "requirement_updated",
+                "requirement": "FR-002",
+                "impact": "medium",
+            },
             {"type": "specification_modified", "spec": "user_auth.md", "impact": "low"},
-            {"type": "link_broken", "link": "test_user.py -> user_auth.md", "impact": "low"}
+            {
+                "type": "link_broken",
+                "link": "test_user.py -> user_auth.md",
+                "impact": "low",
+            },
         ],
         "updates_needed": [
             "Update test_user.py to match FR-002 changes",
-            "Verify specification links are still valid"
+            "Verify specification links are still valid",
         ],
-        "trends_tracked": {"traceability_score": 83, "trend": "declining"}
+        "trends_tracked": {"traceability_score": 83, "trend": "declining"},
     }
 
 
@@ -659,12 +766,16 @@ def validate_cross_references(context):
         "bidirectional_links": 2,
         "broken_references_identified": [
             {"source": "spec.md", "target": "missing.py", "error": "target_not_found"},
-            {"source": "test.py", "target": "deleted_spec.md", "error": "target_not_found"}
+            {
+                "source": "test.py",
+                "target": "deleted_spec.md",
+                "error": "target_not_found",
+            },
         ],
         "fixes_suggested": [
             "Remove reference to missing.py in spec.md",
-            "Update reference in test.py to current specification"
-        ]
+            "Update reference in test.py to current specification",
+        ],
     }
 
 
@@ -677,9 +788,17 @@ def verify_specification_completeness(context):
         "implementation_references": 2,
         "completeness_status": "85% complete",
         "missing_elements": [
-            {"type": "requirement_reference", "element": "FR-004", "description": "Missing implementation reference"},
-            {"type": "bdd_link", "element": "user_mgmt.feature", "description": "Missing feature file link"}
-        ]
+            {
+                "type": "requirement_reference",
+                "element": "FR-004",
+                "description": "Missing implementation reference",
+            },
+            {
+                "type": "bdd_link",
+                "element": "user_mgmt.feature",
+                "description": "Missing feature file link",
+            },
+        ],
     }
 
 
@@ -691,9 +810,17 @@ def validate_bdd_feature_consistency_detailed(context):
         "scenario_specifications": 8,
         "step_definition_coverage": 15,
         "consistency_issues": [
-            {"feature": "user_auth.feature", "issue": "missing_step_definition", "step": "I should be authenticated"},
-            {"feature": "data_mgmt.feature", "issue": "missing_specification_link", "scenario": "data persistence"}
-        ]
+            {
+                "feature": "user_auth.feature",
+                "issue": "missing_step_definition",
+                "step": "I should be authenticated",
+            },
+            {
+                "feature": "data_mgmt.feature",
+                "issue": "missing_specification_link",
+                "scenario": "data persistence",
+            },
+        ],
     }
 
 
@@ -704,7 +831,7 @@ def initiate_traceability_verification_task(context):
         "analysis_phase": "Gap analysis completed",
         "design_phase": "Link validation completed",
         "refinement_phase": "Automated improvement applied",
-        "memory_stored": True
+        "memory_stored": True,
     }
 
 
@@ -713,13 +840,28 @@ def request_traceability_improvement_suggestions(context):
     """Request traceability improvement suggestions."""
     context["traceability_suggestions"] = {
         "prioritized_suggestions": [
-            {"type": "test_coverage", "impact": "high", "effort": "medium", "description": "Add tests for FR-003"},
-            {"type": "implementation", "impact": "high", "effort": "low", "description": "Implement FR-004"},
-            {"type": "documentation", "impact": "medium", "effort": "low", "description": "Add specification links"}
+            {
+                "type": "test_coverage",
+                "impact": "high",
+                "effort": "medium",
+                "description": "Add tests for FR-003",
+            },
+            {
+                "type": "implementation",
+                "impact": "high",
+                "effort": "low",
+                "description": "Implement FR-004",
+            },
+            {
+                "type": "documentation",
+                "impact": "medium",
+                "effort": "low",
+                "description": "Add specification links",
+            },
         ],
         "implementation_guidance": "Focus on high-impact requirements first",
         "effort_estimates": {"total": 6, "remaining": 4},
-        "predicted_outcomes": {"traceability_score": 95, "coverage_improvement": 20}
+        "predicted_outcomes": {"traceability_score": 95, "coverage_improvement": 20},
     }
 
 
@@ -730,7 +872,7 @@ def run_comprehensive_traceability_verification(context):
         "verification_time": 35,
         "gap_analysis_time": 22,
         "report_generation_time": 8,
-        "resource_usage": {"memory": 180, "cpu": 20, "storage": 15}
+        "resource_usage": {"memory": 180, "cpu": 20, "storage": 15},
     }
 
 
@@ -887,7 +1029,9 @@ def system_prioritizes_coverage_gaps(context):
     """Verify system prioritizes coverage gaps by importance."""
     assert "prioritized_gaps" in context["coverage_analysis"]
     assert len(context["coverage_analysis"]["prioritized_gaps"]) > 0
-    assert all("priority" in gap for gap in context["coverage_analysis"]["prioritized_gaps"])
+    assert all(
+        "priority" in gap for gap in context["coverage_analysis"]["prioritized_gaps"]
+    )
 
 
 @then("the system should provide test organization metrics")
@@ -977,19 +1121,28 @@ def new_features_opt_in(context):
 def test_collection_performance(context):
     """Verify test collection completes within performance targets."""
     assert "performance_results" in context
-    assert context["performance_results"]["collection_time"] <= context["performance_targets"]["collection_time"]
+    assert (
+        context["performance_results"]["collection_time"]
+        <= context["performance_targets"]["collection_time"]
+    )
 
 
 @then("test analysis should complete within performance targets")
 def test_analysis_performance(context):
     """Verify test analysis completes within performance targets."""
-    assert context["performance_results"]["analysis_time"] <= context["performance_targets"]["analysis_time"]
+    assert (
+        context["performance_results"]["analysis_time"]
+        <= context["performance_targets"]["analysis_time"]
+    )
 
 
 @then("report generation should complete within performance targets")
 def report_generation_performance(context):
     """Verify report generation completes within performance targets."""
-    assert context["performance_results"]["report_time"] <= context["performance_targets"]["report_time"]
+    assert (
+        context["performance_results"]["report_time"]
+        <= context["performance_targets"]["report_time"]
+    )
 
 
 @then("resource usage should remain within specified limits")
@@ -1305,14 +1458,18 @@ def system_scans_dependencies(context):
 def system_validates_security_policies(context):
     """Verify system validates security policies."""
     assert "policy_validation" in context["security_audit_results"]
-    assert context["security_audit_results"]["policy_validation"]["status"] == "completed"
+    assert (
+        context["security_audit_results"]["policy_validation"]["status"] == "completed"
+    )
 
 
 @then("the system should generate a comprehensive security report")
 def system_generates_security_report(context):
     """Verify system generates comprehensive security report."""
     assert "comprehensive_report" in context["security_audit_results"]
-    assert context["security_audit_results"]["comprehensive_report"]["generated"] is True
+    assert (
+        context["security_audit_results"]["comprehensive_report"]["generated"] is True
+    )
 
 
 @then("the system should identify all vulnerabilities")
@@ -1328,7 +1485,10 @@ def system_prioritizes_vulnerabilities(context):
     """Verify system prioritizes vulnerabilities by risk."""
     assert "prioritized_vulnerabilities" in context["vulnerability_scan"]
     assert len(context["vulnerability_scan"]["prioritized_vulnerabilities"]) > 0
-    assert all("priority" in vuln for vuln in context["vulnerability_scan"]["prioritized_vulnerabilities"])
+    assert all(
+        "priority" in vuln
+        for vuln in context["vulnerability_scan"]["prioritized_vulnerabilities"]
+    )
 
 
 @then("the system should generate a remediation plan")
@@ -1664,26 +1824,35 @@ def system_estimates_traceability_effort(context):
 def system_predicts_traceability_outcomes(context):
     """Verify system predicts traceability improvement outcomes."""
     assert "predicted_outcomes" in context["traceability_suggestions"]
-    assert "traceability_score" in context["traceability_suggestions"]["predicted_outcomes"]
+    assert (
+        "traceability_score"
+        in context["traceability_suggestions"]["predicted_outcomes"]
+    )
 
 
 @then("traceability verification should complete within performance targets")
 def traceability_verification_performance(context):
     """Verify traceability verification completes within performance targets."""
     assert "comprehensive_traceability_results" in context
-    assert context["comprehensive_traceability_results"]["verification_time"] <= 45  # seconds
+    assert (
+        context["comprehensive_traceability_results"]["verification_time"] <= 45
+    )  # seconds
 
 
 @then("gap analysis should complete within targets")
 def gap_analysis_performance(context):
     """Verify gap analysis completes within targets."""
-    assert context["comprehensive_traceability_results"]["gap_analysis_time"] <= 30  # seconds
+    assert (
+        context["comprehensive_traceability_results"]["gap_analysis_time"] <= 30
+    )  # seconds
 
 
 @then("report generation should complete within targets")
 def report_generation_traceability_performance(context):
     """Verify report generation completes within targets."""
-    assert context["comprehensive_traceability_results"]["report_generation_time"] <= 15  # seconds
+    assert (
+        context["comprehensive_traceability_results"]["report_generation_time"] <= 15
+    )  # seconds
 
 
 @then("resource usage should remain within specified limits")

@@ -4,7 +4,8 @@ Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
 """
 
 import time
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 import pytest
 from hypothesis import given, settings

@@ -18,7 +18,7 @@ import pytest
 from devsynth.application.testing.enhanced_test_collector import (
     EnhancedTestCollector,
     TestCollectionResult,
-    TestInfo
+    TestInfo,
 )
 
 
@@ -44,7 +44,7 @@ def temp_project(tmp_path):
 
     # Create behavior tests
     (project_dir / "tests" / "behavior" / "features" / "example.feature").write_text(
-        'Feature: Example Feature\n  Scenario: Example scenario\n    Given something\n    When I do something\n    Then something should happen'
+        "Feature: Example Feature\n  Scenario: Example scenario\n    Given something\n    When I do something\n    Then something should happen"
     )
 
     return project_dir
@@ -163,7 +163,9 @@ class TestEnhancedTestCollector:
 
         # Wait and force refresh
         time.sleep(0.1)
-        tests2 = collector.collect_tests_by_category("unit", use_cache=True, force_refresh=True)
+        tests2 = collector.collect_tests_by_category(
+            "unit", use_cache=True, force_refresh=True
+        )
 
         assert tests1 == tests2
 
@@ -248,7 +250,7 @@ class TestEnhancedTestCollector:
 
         test_files = [
             str(temp_project / "tests" / "unit" / "test_example.py"),
-            str(temp_project / "tests" / "integration" / "test_integration.py")
+            str(temp_project / "tests" / "integration" / "test_integration.py"),
         ]
 
         marker_counts = collector._analyze_markers(test_files)
@@ -315,7 +317,9 @@ class TestEnhancedTestCollector:
         tests = collector.collect_tests_by_category("nonexistent")
         assert len(tests) == 0
 
-        isolation_report = collector._isolation_analyzer.analyze_test_isolation("nonexistent")
+        isolation_report = collector._isolation_analyzer.analyze_test_isolation(
+            "nonexistent"
+        )
         assert isolation_report.total_issues == 0
         assert isolation_report.files_analyzed == 0
 
@@ -345,7 +349,7 @@ class TestTestCollectionResult:
             collection_time=1.5,
             total_tests=1,
             categories={"unit": 1},
-            markers={"fast": 1}
+            markers={"fast": 1},
         )
 
         assert result.total_tests == 1
@@ -361,7 +365,7 @@ class TestTestCollectionResult:
             collection_time=1.5,
             total_tests=1,
             categories={"unit": 1},
-            markers={"fast": 1}
+            markers={"fast": 1},
         )
 
         result_dict = result.__dict__
@@ -378,7 +382,7 @@ class TestTestInfo:
             name="test_example",
             file_path="tests/unit/test_example.py",
             line_number=5,
-            markers={"fast"}
+            markers={"fast"},
         )
 
         assert info.name == "test_example"
@@ -396,7 +400,7 @@ class TestTestInfo:
             file_path="tests/unit/test_example.py",
             line_number=5,
             markers={"fast"},
-            docstring="Test example function"
+            docstring="Test example function",
         )
 
         assert info.docstring == "Test example function"
@@ -433,8 +437,8 @@ class TestErrorHandling:
         collector = EnhancedTestCollector()
 
         # Create a file with invalid encoding
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
-            f.write(b'\xff\xfe\x00\x00')  # Invalid UTF-8
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as f:
+            f.write(b"\xff\xfe\x00\x00")  # Invalid UTF-8
             invalid_file = f.name
 
         try:
@@ -450,7 +454,9 @@ class TestErrorHandling:
         collector = EnhancedTestCollector()
 
         # Try to read from a directory (should fail)
-        assert not collector._is_valid_test_file(Path("/root"))  # Permission denied on most systems
+        assert not collector._is_valid_test_file(
+            Path("/root")
+        )  # Permission denied on most systems
 
         # Try to access non-existent file
         assert not collector._test_has_marker("/nonexistent/file.py", "fast")

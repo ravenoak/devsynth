@@ -14,7 +14,8 @@ import os
 import shutil
 import sys
 from io import StringIO
-from typing import Any, Dict, Generator
+from typing import Any, Dict
+from collections.abc import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -33,7 +34,7 @@ scenarios(feature_path(__file__, "general", "test_metrics.feature"))
 
 # Define fixtures and step definitions
 @pytest.fixture
-def command_context() -> Generator[Dict[str, Any], None, None]:
+def command_context() -> Generator[dict[str, Any], None, None]:
     """
     Store context about the command being executed.
 
@@ -56,7 +57,7 @@ def command_context() -> Generator[Dict[str, Any], None, None]:
     ):
         try:
             os.remove(ctx["output_file"])
-        except (OSError, IOError):
+        except OSError:
             # If we can't remove the file, it's likely already gone
             pass
 
@@ -66,7 +67,7 @@ def command_context() -> Generator[Dict[str, Any], None, None]:
             if os.path.exists(file_path):
                 try:
                     os.remove(file_path)
-                except (OSError, IOError):
+                except OSError:
                     # If we can't remove the file, it's likely already gone
                     pass
 
@@ -76,7 +77,7 @@ def command_context() -> Generator[Dict[str, Any], None, None]:
             if os.path.exists(dir_path):
                 try:
                     shutil.rmtree(dir_path)
-                except (OSError, IOError):
+                except OSError:
                     # If we can't remove the directory, it's likely already gone
                     pass
 

@@ -84,7 +84,7 @@ def test_alignment_metrics_cmd_failure(monkeypatch):
         lambda p: (_ for _ in ()).throw(RuntimeError("boom")),
     )
     assert align_mod.alignment_metrics_cmd(path=".") is False
-    assert any(("Error collecting alignment metrics" in o for o in outputs))
+    assert any("Error collecting alignment metrics" in o for o in outputs)
 
 
 def _dummy_console():
@@ -121,7 +121,7 @@ def test_test_metrics_cmd_writes_report(monkeypatch, tmp_path):
     monkeypatch.setattr(test_mod, "generate_metrics_report", lambda m: "report")
     test_mod.test_metrics_cmd(days=1, output_file=str(out_file))
     assert out_file.read_text() == "report"
-    assert any(("Metrics report written to" in str(p) for p in prints))
+    assert any("Metrics report written to" in str(p) for p in prints)
 
 
 @pytest.mark.medium
@@ -133,4 +133,4 @@ def test_test_metrics_cmd_no_commits(monkeypatch):
     monkeypatch.setattr(test_mod, "Console", _dummy_console)
     monkeypatch.setattr(test_mod, "get_commit_history", lambda d: [])
     test_mod.test_metrics_cmd(days=1)
-    assert any(("No commits" in str(p) for p in prints))
+    assert any("No commits" in str(p) for p in prints)

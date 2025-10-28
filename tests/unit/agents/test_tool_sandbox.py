@@ -40,7 +40,7 @@ pytestmark = pytest.mark.fast
 
 
 def bad_file_tool() -> None:
-    with open(Path("/etc/passwd"), "r", encoding="utf-8"):
+    with open(Path("/etc/passwd"), encoding="utf-8"):
         pass
 
 

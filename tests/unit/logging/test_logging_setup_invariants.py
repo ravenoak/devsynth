@@ -8,7 +8,7 @@ import logging
 from collections.abc import Iterator, Mapping
 from pathlib import Path
 from types import ModuleType
-from typing import Sequence
+from collections.abc import Sequence
 
 import pytest
 

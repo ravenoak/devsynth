@@ -87,8 +87,8 @@ def test_extract_key_insights_succeeds(coordinator):
     }
     insights = coordinator._extract_key_insights(expand_results)
     assert insights
-    assert any(("A" in i for i in insights))
-    assert any(("5" in i for i in insights))
+    assert any("A" in i for i in insights)
+    assert any("5" in i for i in insights)
 
 
 @pytest.mark.medium
@@ -146,8 +146,8 @@ def test_generate_next_steps_succeeds(coordinator):
     }
     steps = coordinator._generate_next_steps(cycle_data)
     assert steps
-    assert any(("Implement" in s for s in steps))
-    assert any(("improvement" in s for s in steps))
+    assert any("Implement" in s for s in steps)
+    assert any("improvement" in s for s in steps)
 
 
 @pytest.mark.medium
@@ -158,8 +158,8 @@ def test_extract_future_considerations_succeeds(coordinator):
     retrospect_results = {"patterns": [1, 2], "improvement_suggestions": [1]}
     considerations = coordinator._extract_future_considerations(retrospect_results)
     assert considerations
-    assert any(("pattern" in c for c in considerations))
-    assert any(("improvement" in c for c in considerations))
+    assert any("pattern" in c for c in considerations)
+    assert any("improvement" in c for c in considerations)
 
 
 @pytest.mark.medium

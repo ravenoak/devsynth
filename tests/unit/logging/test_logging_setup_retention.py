@@ -67,7 +67,7 @@ def test_configure_logging_retention_matrix(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     create_dir: bool,
-    no_file_env: Optional[str],
+    no_file_env: str | None,
     expected_effective: bool,
 ) -> None:
     """Exercise retention decisions across create_dir and environment flags."""
@@ -81,10 +81,10 @@ def test_configure_logging_retention_matrix(
         monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", no_file_env)
 
     log_dir_argument = "relative/logs"
-    ensure_calls: list[Optional[str]] = []
+    ensure_calls: list[str | None] = []
     real_ensure = logging_setup.ensure_log_dir_exists
 
-    def tracking(log_dir: Optional[str] = None) -> str:
+    def tracking(log_dir: str | None = None) -> str:
         ensure_calls.append(log_dir)
         return real_ensure(log_dir)
 
@@ -160,10 +160,10 @@ def test_configure_logging_relocates_absolute_paths(
 
     log_file_input = log_dir_input / log_file_name
 
-    ensure_calls: list[Optional[str]] = []
+    ensure_calls: list[str | None] = []
     real_ensure = logging_setup.ensure_log_dir_exists
 
-    def tracking(log_dir: Optional[str] = None) -> str:
+    def tracking(log_dir: str | None = None) -> str:
         ensure_calls.append(log_dir)
         return real_ensure(log_dir)
 

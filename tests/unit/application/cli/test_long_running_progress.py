@@ -78,8 +78,8 @@ class FakeClock:
     def __init__(self, start: float = 0.0, default_step: float = 1.0) -> None:
         self.current = start
         self.default_step = default_step
-        self._queued_steps: List[float] = []
-        self.history: List[float] = []
+        self._queued_steps: list[float] = []
+        self.history: list[float] = []
 
     def __call__(self) -> float:
         step = self._queued_steps.pop(0) if self._queued_steps else self.default_step
@@ -101,14 +101,14 @@ class FakeTask:
     description: str
     total: float
     completed: float = 0.0
-    fields: Dict[str, Any] = field(default_factory=dict)
+    fields: dict[str, Any] = field(default_factory=dict)
 
 
 class FakeProgress:
     """Minimal stub mimicking Rich's Progress API used by the indicator."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self.tasks: Dict[int, FakeTask] = {}
+        self.tasks: dict[int, FakeTask] = {}
         self._next_task_id = 0
         self.started = False
         self.stopped = False
@@ -143,7 +143,7 @@ class FakeProgress:
         return task
 
     # Helpers for inspecting subtask state in tests -----------------------
-    def child_tasks(self, parent_id: int) -> Dict[int, FakeTask]:
+    def child_tasks(self, parent_id: int) -> dict[int, FakeTask]:
         """Return a mapping of child task IDs to their FakeTask instances."""
 
         return {
@@ -152,7 +152,7 @@ class FakeProgress:
             if task.fields.get("parent") == parent_id
         }
 
-    def snapshot(self, task_id: int) -> Dict[str, Any]:
+    def snapshot(self, task_id: int) -> dict[str, Any]:
         """Produce a serialisable snapshot for nested completion assertions."""
 
         task = self.tasks[task_id]
@@ -173,7 +173,7 @@ class FakeProgress:
 
 class DummyConsole:
     def __init__(self) -> None:
-        self.messages: List[Any] = []
+        self.messages: list[Any] = []
 
     def print(self, *args: Any, **kwargs: Any) -> None:
         self.messages.append((args, kwargs))
@@ -655,7 +655,7 @@ def test_simulation_timeline_remains_deterministic_after_reload(
 ) -> None:
     """Reloading the module preserves deterministic simulation outputs."""
 
-    def build_events() -> List[Dict[str, object]]:
+    def build_events() -> list[dict[str, object]]:
         return [
             {
                 "action": "update",

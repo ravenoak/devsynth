@@ -197,7 +197,7 @@ class TestPromise:
         """Test the Promise.all static method.
 
         ReqID: N/A"""
-        promises: List[Promise[Any]] = [
+        promises: list[Promise[Any]] = [
             Promise[int](),
             Promise[str](),
             Promise[float](),
@@ -215,7 +215,7 @@ class TestPromise:
         """Test Promise.all with a rejection.
 
         ReqID: N/A"""
-        promises: List[Promise[Any]] = [
+        promises: list[Promise[Any]] = [
             Promise[int](),
             Promise[str](),
             Promise[float](),
@@ -235,7 +235,7 @@ class TestPromise:
         """Test the Promise.race static method.
 
         ReqID: N/A"""
-        promises: List[Promise[Any]] = [
+        promises: list[Promise[Any]] = [
             Promise[int](),
             Promise[str](),
             Promise[float](),

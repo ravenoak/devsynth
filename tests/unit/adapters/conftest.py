@@ -5,7 +5,7 @@ import sys
 import types
 from collections import deque
 from types import MethodType, SimpleNamespace
-from typing import Callable
+from collections.abc import Callable
 from unittest.mock import MagicMock
 
 import pytest

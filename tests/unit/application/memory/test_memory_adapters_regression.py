@@ -32,7 +32,7 @@ def test_store_retrieve_search_update(adapter_cls, tmp_path):
     assert retrieved is not None
     assert retrieved.content["foo"] == "bar"
     results = adapter.search({"tag": "t"})
-    assert any((r.id == item_id for r in results))
+    assert any(r.id == item_id for r in results)
     item.content = {"foo": "baz"}
     adapter.store(item)
     updated = adapter.retrieve(item_id)

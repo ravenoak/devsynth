@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 import pytest
 
@@ -62,7 +62,9 @@ def _snapshot_directory(root: Path) -> dict[str, str]:
     return snapshot
 
 
-def test_setup_wizard_cli_and_textual_outputs_match(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_setup_wizard_cli_and_textual_outputs_match(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Setup wizard should produce identical artifacts via CLI and Textual bridges."""
 
     project_dir = tmp_path / "demo"
@@ -122,7 +124,9 @@ def test_setup_wizard_cli_and_textual_outputs_match(tmp_path: Path, monkeypatch:
     assert _payload(cli_config) == _payload(textual_config)
 
 
-def test_requirements_wizard_cli_and_textual_match(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_requirements_wizard_cli_and_textual_match(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Requirements wizard should persist the same data through both bridges."""
 
     monkeypatch.chdir(tmp_path)

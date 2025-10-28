@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Optional
+from typing import List, Optional
+from collections.abc import Iterable
 from uuid import UUID, uuid4
 
 import pytest
@@ -41,7 +42,7 @@ class _RequirementRepositoryStub:
         self.requirements: dict[UUID, Requirement] = {}
         self.changes: dict[UUID, RequirementChange] = {}
 
-    def get_all_requirements(self) -> List[Requirement]:
+    def get_all_requirements(self) -> list[Requirement]:
         return list(self.requirements.values())
 
     def get_requirement(self, requirement_id: UUID) -> Requirement | None:
@@ -53,7 +54,7 @@ class _RequirementRepositoryStub:
 
 class _ReasoningRepositoryStub:
     def __init__(self) -> None:
-        self.saved_reasoning: Optional[DialecticalReasoning] = None
+        self.saved_reasoning: DialecticalReasoning | None = None
 
     def get_reasoning_for_change(self, change_id: UUID) -> DialecticalReasoning | None:
         return None
@@ -68,7 +69,7 @@ class _ReasoningRepositoryStub:
 
 class _ImpactRepositoryStub:
     def __init__(self) -> None:
-        self.saved_assessment: Optional[ImpactAssessment] = None
+        self.saved_assessment: ImpactAssessment | None = None
 
     def get_impact_assessment_for_change(
         self, change_id: UUID

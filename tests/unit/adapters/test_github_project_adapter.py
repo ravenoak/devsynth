@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass
-from typing import Iterator, Mapping
+from collections.abc import Iterator, Mapping
 
 import pytest
 import responses

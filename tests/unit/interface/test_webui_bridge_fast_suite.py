@@ -3,7 +3,8 @@ from __future__ import annotations
 import importlib
 import sys
 from types import ModuleType, SimpleNamespace
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Dict, Tuple
+from collections.abc import Callable
 
 import pytest
 
@@ -20,7 +21,7 @@ class StreamlitRecorder(ModuleType):
         self.success_messages: list[Any] = []
         self.info_messages: list[Any] = []
         self.write_messages: list[Any] = []
-        self.markdown_calls: list[Tuple[Any, Tuple[Any, ...], Dict[str, Any]]] = []
+        self.markdown_calls: list[tuple[Any, tuple[Any, ...], dict[str, Any]]] = []
 
     def error(self, message: Any, *args: Any, **kwargs: Any) -> None:
         self.error_messages.append(message)
@@ -188,10 +189,10 @@ def test_display_result_appends_documentation_links(
         highlight: bool = False,
         message_type: str | None = None,
     ) -> str:
-        resolver: Callable[[str], Dict[str, str]] | None = getattr(
+        resolver: Callable[[str], dict[str, str]] | None = getattr(
             self, "error_type_resolver", None
         )
-        doc_links: Dict[str, str] = {}
+        doc_links: dict[str, str] = {}
         if message_type == "error" and callable(resolver):
             doc_links = resolver(message)
         if doc_links:

@@ -110,19 +110,17 @@ class TestKnowledgeGraphUtils:
         related_items = find_related_items(store, sample_items[0])
         assert len(related_items) == 2
         assert any(
-            (item.metadata.get("name") == "authenticate" for item in related_items)
+            item.metadata.get("name") == "authenticate" for item in related_items
         )
         assert any(
-            (
                 item.metadata.get("name") == "test_user_authentication"
                 for item in related_items
-            )
         )
         related_items = find_related_items(store, sample_items[1])
         assert len(related_items) == 2
-        assert any((item.metadata.get("name") == "User" for item in related_items))
+        assert any(item.metadata.get("name") == "User" for item in related_items)
         assert any(
-            (item.metadata.get("name") == "hash_password" for item in related_items)
+            item.metadata.get("name") == "hash_password" for item in related_items
         )
 
     @pytest.mark.medium
@@ -137,12 +135,10 @@ class TestKnowledgeGraphUtils:
         related_items = find_items_by_relationship(store, "tests")
         assert len(related_items) == 2
         assert any(
-            (
                 item.metadata.get("name") == "test_user_authentication"
                 for item in related_items[0]
-            )
         )
-        assert any((item.metadata.get("name") == "User" for item in related_items[1]))
+        assert any(item.metadata.get("name") == "User" for item in related_items[1])
 
     @pytest.mark.medium
     def test_get_item_relationships_succeeds(self, store, sample_items):
@@ -151,12 +147,12 @@ class TestKnowledgeGraphUtils:
         ReqID: N/A"""
         relationships = get_item_relationships(store, sample_items[0])
         assert len(relationships) == 2
-        assert any((rel["relationship"] == "has_method" for rel in relationships))
-        assert any((rel["relationship"] == "tests" for rel in relationships))
+        assert any(rel["relationship"] == "has_method" for rel in relationships)
+        assert any(rel["relationship"] == "tests" for rel in relationships)
         relationships = get_item_relationships(store, sample_items[1])
         assert len(relationships) == 2
-        assert any((rel["relationship"] == "has_method" for rel in relationships))
-        assert any((rel["relationship"] == "calls" for rel in relationships))
+        assert any(rel["relationship"] == "has_method" for rel in relationships)
+        assert any(rel["relationship"] == "calls" for rel in relationships)
 
     @pytest.mark.medium
     def test_create_and_delete_relationship_succeeds(self, store, sample_items):
@@ -165,11 +161,11 @@ class TestKnowledgeGraphUtils:
         ReqID: N/A"""
         create_relationship(store, sample_items[0], sample_items[3], "documented_by")
         relationships = get_item_relationships(store, sample_items[0])
-        assert any((rel["relationship"] == "documented_by" for rel in relationships))
+        assert any(rel["relationship"] == "documented_by" for rel in relationships)
         delete_relationship(store, sample_items[0], sample_items[3], "documented_by")
         relationships = get_item_relationships(store, sample_items[0])
         assert not any(
-            (rel["relationship"] == "documented_by" for rel in relationships)
+            rel["relationship"] == "documented_by" for rel in relationships
         )
 
     @pytest.mark.medium

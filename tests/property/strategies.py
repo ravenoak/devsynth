@@ -10,7 +10,8 @@ Style: follows project guidelines (PEP 8, type hints, clear docs).
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any, Dict, List, Tuple
+from collections.abc import Mapping
 from uuid import uuid4
 
 from hypothesis import strategies as st
@@ -291,7 +292,7 @@ def consensus_outcome_strategy() -> st.SearchStrategy[ConsensusOutcome]:
         synthesis_artifact: SynthesisArtifact,
         majority_opinion: str,
         timestamp: Any,
-        participant_ids: Tuple[str, ...],
+        participant_ids: tuple[str, ...],
         metadata_payload: Mapping[str, Any],
         achieved: bool,
         confidence: float,
@@ -299,7 +300,7 @@ def consensus_outcome_strategy() -> st.SearchStrategy[ConsensusOutcome]:
         rationale_value: str | None,
         explanation_value: str | None,
     ) -> ConsensusOutcome:
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "consensus_id": consensus_id,
             "task_id": task_id,
             "method": method,

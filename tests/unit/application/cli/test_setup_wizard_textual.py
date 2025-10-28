@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 import pytest
 
@@ -13,9 +13,8 @@ from devsynth.application.cli.config import CLIConfig
 from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.application.requirements.wizard import requirements_wizard
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
-from devsynth.interface.ux_bridge import UXBridge
 from devsynth.interface.textual_ui import TextualUXBridge
-
+from devsynth.interface.ux_bridge import UXBridge
 
 pytestmark = [pytest.mark.fast]
 
@@ -115,7 +114,9 @@ def test_textual_and_cli_payloads_match(tmp_path, monkeypatch) -> None:
     assert _payload_from_config(cli_config) == _payload_from_config(textual_config)
 
 
-def test_requirements_wizard_supports_shortcut_navigation(tmp_path, monkeypatch) -> None:
+def test_requirements_wizard_supports_shortcut_navigation(
+    tmp_path, monkeypatch
+) -> None:
     """Arrow-key style responses should navigate backwards when supported."""
 
     workdir = tmp_path / "requirements"

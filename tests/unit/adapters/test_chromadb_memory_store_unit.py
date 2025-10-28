@@ -6,7 +6,8 @@ import importlib
 import sys
 import types
 import uuid
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, List
+from collections.abc import Iterable
 
 import pytest
 
@@ -17,14 +18,14 @@ class _FakeCollection:
     """Lightweight in-memory collection used by the tests."""
 
     def __init__(self) -> None:
-        self.records: Dict[str, Dict[str, Any]] = {}
+        self.records: dict[str, dict[str, Any]] = {}
 
     def add(
         self,
         documents: Iterable[str],
-        metadatas: Iterable[Dict[str, Any]],
+        metadatas: Iterable[dict[str, Any]],
         ids: Iterable[str],
-        embeddings: Iterable[List[float]],
+        embeddings: Iterable[list[float]],
     ) -> None:
         for doc, meta, item_id, embedding in zip(documents, metadatas, ids, embeddings):
             self.records[item_id] = {
@@ -35,11 +36,11 @@ class _FakeCollection:
 
     def get(
         self, ids: Iterable[str] | None = None, include: Iterable[str] | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if ids:
-            docs: List[str] = []
-            metas: List[Dict[str, Any]] = []
-            found_ids: List[str] = []
+            docs: list[str] = []
+            metas: list[dict[str, Any]] = []
+            found_ids: list[str] = []
             for item_id in ids:
                 record = self.records.get(item_id)
                 if record is not None:
@@ -56,11 +57,11 @@ class _FakeCollection:
         return {"documents": docs, "metadatas": metas, "ids": ids_list}
 
     def query(
-        self, query_embeddings: Iterable[List[float]], n_results: int
-    ) -> Dict[str, Any]:
-        docs: List[str] = []
-        metas: List[Dict[str, Any]] = []
-        ids: List[str] = []
+        self, query_embeddings: Iterable[list[float]], n_results: int
+    ) -> dict[str, Any]:
+        docs: list[str] = []
+        metas: list[dict[str, Any]] = []
+        ids: list[str] = []
         for item_id, record in list(self.records.items())[:n_results]:
             docs.append(record["document"])
             metas.append(record["metadata"])
@@ -77,7 +78,7 @@ class _FakeClientAPI:
 
     def __init__(self, settings: Any) -> None:
         self.settings = settings
-        self.collections: Dict[str, _FakeCollection] = {}
+        self.collections: dict[str, _FakeCollection] = {}
         self.closed = False
 
     def get_or_create_collection(self, name: str) -> _FakeCollection:
@@ -98,7 +99,7 @@ class _FakeSettings:
 class _FakeEmbeddingFunction:
     """Simple deterministic embedding function used by fallbacks."""
 
-    def __call__(self, text: Any) -> List[float] | List[List[float]]:
+    def __call__(self, text: Any) -> list[float] | list[list[float]]:
         if isinstance(text, str):
             return [0.1, 0.2, 0.3]
         return [[0.1, 0.2, 0.3] for _ in text]

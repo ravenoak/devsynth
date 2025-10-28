@@ -45,7 +45,7 @@ def load_spec_file(webui_context):
 
     # Directly simulate the effect of clicking the Load Spec button
     spec_path = webui_context["spec_path"]
-    with open(spec_path, "r", encoding="utf-8") as f:
+    with open(spec_path, encoding="utf-8") as f:
         webui_context["st"].session_state["spec_content"] = f.read()
 
     webui_context["ui"].run()

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import importlib
 from types import SimpleNamespace
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 import pytest
 
@@ -29,7 +30,7 @@ class SessionState(dict):
 class ProgressBarStub:
     """Capture values written to a Streamlit progress bar."""
 
-    def __init__(self, owner: "StreamlitStub", label: str) -> None:
+    def __init__(self, owner: StreamlitStub, label: str) -> None:
         self.owner = owner
         self.label = label
         self.values: list[float] = []
@@ -42,7 +43,7 @@ class ProgressBarStub:
 class ContainerStub:
     """Track markdown/info/success calls routed through containers."""
 
-    def __init__(self, owner: "StreamlitStub", label: str) -> None:
+    def __init__(self, owner: StreamlitStub, label: str) -> None:
         self.owner = owner
         self.label = label
         self.records: list[tuple[str, Any, dict[str, Any]]] = []
@@ -70,7 +71,7 @@ class ContainerStub:
         self.owner.progress_bars.append(bar)
         return bar
 
-    def __enter__(self) -> "ContainerStub":
+    def __enter__(self) -> ContainerStub:
         self.owner.calls.append((f"{self.label}.__enter__", (), {}))
         return self
 
@@ -82,12 +83,12 @@ class ContainerStub:
 class ExpanderStub:
     """Record usage of expandable debug panels."""
 
-    def __init__(self, owner: "StreamlitStub", label: str) -> None:
+    def __init__(self, owner: StreamlitStub, label: str) -> None:
         self.owner = owner
         self.label = label
         self.records: list[tuple[str, Any, dict[str, Any]]] = []
 
-    def __enter__(self) -> "ExpanderStub":
+    def __enter__(self) -> ExpanderStub:
         self.owner.calls.append((f"{self.label}.__enter__", (), {}))
         return self
 
@@ -103,7 +104,7 @@ class ExpanderStub:
 class SidebarStub:
     """Capture sidebar interactions including navigation state."""
 
-    def __init__(self, owner: "StreamlitStub") -> None:
+    def __init__(self, owner: StreamlitStub) -> None:
         self.owner = owner
         self.calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
 

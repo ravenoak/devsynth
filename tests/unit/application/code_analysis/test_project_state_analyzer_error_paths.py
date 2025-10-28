@@ -28,7 +28,7 @@ def test_project_state_analyzer_analyze_graceful_fallback(monkeypatch, tmp_path:
     analyzer = ProjectStateAnalyzer(str(tmp_path))
 
     # Act
-    result: Dict[str, Any] = analyzer.analyze()
+    result: dict[str, Any] = analyzer.analyze()
 
     after = set(os.listdir(tmp_path))
 

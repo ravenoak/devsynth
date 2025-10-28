@@ -95,7 +95,7 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
             self._total = 100
 
     class DummyBridge:
-        instance: "DummyBridge" | None = None
+        instance: DummyBridge | None = None
 
         def __init__(self) -> None:
             DummyBridge.instance = self
@@ -207,7 +207,7 @@ def test_requirements_wizard_dialog(tmp_path, monkeypatch):
     bridge = FakeBridge()
     dpg_ui._requirements_wizard_dialog(bridge)
 
-    with open(tmp_path / "requirements_wizard.json", "r", encoding="utf-8") as fh:
+    with open(tmp_path / "requirements_wizard.json", encoding="utf-8") as fh:
         data = json.load(fh)
 
     assert data["title"] == "My title"

@@ -127,7 +127,7 @@ def check_graph_serialization(context):
         # This is because some test environments might not allow file writing
         if os.path.exists(graph_file):
             # Check that the file contains Turtle syntax
-            with open(graph_file, "r") as f:
+            with open(graph_file) as f:
                 content = f.read()
                 assert (
                     "@prefix" in content

@@ -100,7 +100,7 @@ def _install_interface_stubs() -> None:
             def complete(self) -> None:
                 pass
 
-            def get_summary(self) -> Dict[str, object]:  # type: ignore[override]
+            def get_summary(self) -> dict[str, object]:  # type: ignore[override]
                 return {}
 
         class UXBridge:  # pragma: no cover - simple stub
@@ -210,7 +210,7 @@ class CountingClock:
 
     def __init__(self, start: float = 0.0, step: float = 1.0) -> None:
         self._iterator = itertools.count(start=start, step=step)
-        self.history: List[float] = []
+        self.history: list[float] = []
 
     def __call__(self) -> float:
         value = float(next(self._iterator))
@@ -378,7 +378,7 @@ def test_subtask_flow_preserves_mappings_and_progress(
         )
     )
 
-    child_tasks: Dict[int, FakeTask] = indicator._progress.child_tasks(indicator._task)
+    child_tasks: dict[int, FakeTask] = indicator._progress.child_tasks(indicator._task)
     assert set(child_tasks.keys()) == {renamed_id, indicator._subtasks[phase_two]}
 
 
@@ -394,7 +394,7 @@ def test_run_with_progress_completes_after_exception(
 
     bridge = DummyBridge(console)
 
-    captured: Dict[str, long_running_progress.LongRunningProgressIndicator] = {}
+    captured: dict[str, long_running_progress.LongRunningProgressIndicator] = {}
     original_create = long_running_progress.create_long_running_progress
 
     def capturing_create(*args, **kwargs):

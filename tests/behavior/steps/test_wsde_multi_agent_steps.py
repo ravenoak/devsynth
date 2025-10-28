@@ -61,7 +61,7 @@ def graph_with_research_artifacts(context: _Context, tmp_path: Path) -> None:
         summary="Summary of traversal guarantees",
         citation_url="file://artifacts/traversal.txt",
         evidence_hash="hash123",
-        published_at=datetime.datetime.now(datetime.timezone.utc),
+        published_at=datetime.datetime.now(datetime.UTC),
         supports=("node2",),
         derived_from=("node1",),
         metadata={"roles": ("Research Lead", "Critic", "Test Writer")},

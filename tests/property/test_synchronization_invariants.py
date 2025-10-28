@@ -25,7 +25,7 @@ class _DummyMemoryStore:
     """Minimal in-memory store implementing the MemoryStore protocol."""
 
     def __init__(self) -> None:
-        self._items: Dict[str, MemoryItem] = {}
+        self._items: dict[str, MemoryItem] = {}
         self._active_transactions: set[str] = set()
 
     # MemoryStore protocol -------------------------------------------------
@@ -67,17 +67,17 @@ class _DummyMemoryStore:
         return transaction_id in self._active_transactions
 
     # Helpers --------------------------------------------------------------
-    def snapshot(self) -> Dict[str, Tuple[object, Tuple[Tuple[str, object], ...]]]:
+    def snapshot(self) -> dict[str, tuple[object, tuple[tuple[str, object], ...]]]:
         """Return deterministic state for equality checks."""
 
-        snapshot: Dict[str, Tuple[object, Tuple[Tuple[str, object], ...]]] = {}
+        snapshot: dict[str, tuple[object, tuple[tuple[str, object], ...]]] = {}
         for item in self._items.values():
             metadata_items = tuple(sorted(item.metadata.items()))
             snapshot[item.id] = (item.content, metadata_items)
         return snapshot
 
 
-def _build_store(data: Dict[str, object]) -> _DummyMemoryStore:
+def _build_store(data: dict[str, object]) -> _DummyMemoryStore:
     store = _DummyMemoryStore()
     for key, value in data.items():
         store.store(
@@ -88,8 +88,8 @@ def _build_store(data: Dict[str, object]) -> _DummyMemoryStore:
 
 def _pending_updates(
     source: _DummyMemoryStore, target: _DummyMemoryStore
-) -> Dict[str, Tuple[object, object | None]]:
-    pending: Dict[str, Tuple[object, object | None]] = {}
+) -> dict[str, tuple[object, object | None]]:
+    pending: dict[str, tuple[object, object | None]] = {}
     for item in source.search({}):
         candidate = target.retrieve(item.id)
         if candidate is None or candidate.content != item.content:
@@ -101,7 +101,7 @@ def _pending_updates(
 
 
 @st.composite
-def _store_states(draw: st.DrawFn) -> Tuple[Dict[str, int], Dict[str, int]]:
+def _store_states(draw: st.DrawFn) -> tuple[dict[str, int], dict[str, int]]:
     keys = draw(
         st.lists(
             st.text(
@@ -117,7 +117,7 @@ def _store_states(draw: st.DrawFn) -> Tuple[Dict[str, int], Dict[str, int]]:
     values = draw(st.lists(st.integers(), min_size=len(keys), max_size=len(keys)))
     source = dict(zip(keys, values))
 
-    target: Dict[str, int] = {}
+    target: dict[str, int] = {}
     for key in keys:
         if draw(st.booleans()):
             if draw(st.booleans()):
@@ -134,7 +134,7 @@ def _store_states(draw: st.DrawFn) -> Tuple[Dict[str, int], Dict[str, int]]:
 @given(states=_store_states())
 @settings(max_examples=50)
 def test_synchronize_clears_pending_updates(
-    states: Tuple[Dict[str, int], Dict[str, int]],
+    states: tuple[dict[str, int], dict[str, int]],
 ) -> None:
     """Invariant: synchronize(A, B) yields B == A and P_A = ∅.
 

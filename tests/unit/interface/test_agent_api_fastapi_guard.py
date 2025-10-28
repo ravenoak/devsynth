@@ -1,7 +1,7 @@
 """Regression tests verifying FastAPI TestClient guards."""
 
-from typing import Any, cast
 from collections.abc import Callable
+from typing import Any, cast
 
 import pytest
 

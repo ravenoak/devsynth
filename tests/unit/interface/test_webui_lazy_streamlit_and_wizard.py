@@ -44,7 +44,7 @@ def test_lazy_streamlit_import_is_cached(monkeypatch: pytest.MonkeyPatch) -> Non
 
     from devsynth.interface import webui
 
-    call_log: List[str] = []
+    call_log: list[str] = []
     streamlit_stub = make_streamlit_mock()
 
     original_import = importlib.import_module

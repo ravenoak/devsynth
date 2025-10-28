@@ -37,7 +37,7 @@ def test_lmstudio_models_ping_live_smoke():
         assert (
             resp.status_code == 200
         ), f"unexpected status: {resp.status_code}, body={resp.text[:200]}"
-        data: Dict[str, Any] = resp.json()
+        data: dict[str, Any] = resp.json()
         # Expect either {"data": [...]} (OpenAI-like) or a list-based structure; accept subset
         if isinstance(data, dict) and "data" in data:
             assert isinstance(data["data"], list)

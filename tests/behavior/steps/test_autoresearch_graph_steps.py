@@ -31,7 +31,7 @@ class _Context:
         )
         self.artifact_path: Path | None = None
         self.artifact_id: str | None = None
-        self.traversal_result: Set[str] = set()
+        self.traversal_result: set[str] = set()
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ def stored_research_artifact(context: _Context) -> None:
         artifact_path,
         title="Traversal Paper",
         citation_url="file://" + str(artifact_path),
-        published_at=datetime.datetime.now(datetime.timezone.utc),
+        published_at=datetime.datetime.now(datetime.UTC),
         supports=["node2"],
         derived_from=["node1"],
     )

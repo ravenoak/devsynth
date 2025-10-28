@@ -6,13 +6,21 @@ including Enhanced GraphRAG, Automata Synthesis, Hybrid LLM Architecture,
 Metacognitive Training, and Contextual Prompting.
 """
 
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
+from unittest.mock import Mock, patch
 
-from devsynth.application.memory.phase3_integration_system import Phase3IntegrationSystem
+import pytest
+
 from devsynth.application.memory.enhanced_knowledge_graph import EnhancedKnowledgeGraph
-from devsynth.domain.models.memory import MemeticUnit, MemeticMetadata, MemeticSource, CognitiveType
+from devsynth.application.memory.phase3_integration_system import (
+    Phase3IntegrationSystem,
+)
+from devsynth.domain.models.memory import (
+    CognitiveType,
+    MemeticMetadata,
+    MemeticSource,
+    MemeticUnit,
+)
 
 
 class TestPhase3IntegrationSystem:
@@ -22,7 +30,9 @@ class TestPhase3IntegrationSystem:
         """Set up test fixtures."""
         self.memory_manager = Mock()
         self.enhanced_graph = EnhancedKnowledgeGraph()
-        self.integration_system = Phase3IntegrationSystem(self.memory_manager, self.enhanced_graph)
+        self.integration_system = Phase3IntegrationSystem(
+            self.memory_manager, self.enhanced_graph
+        )
 
     def test_initialization(self):
         """Test system initialization."""
@@ -31,12 +41,12 @@ class TestPhase3IntegrationSystem:
         assert self.integration_system.system_status == "initialized"
 
         # Check all components are initialized
-        assert hasattr(self.integration_system, 'execution_learning')
-        assert hasattr(self.integration_system, 'enhanced_graphrag')
-        assert hasattr(self.integration_system, 'automata_synthesis')
-        assert hasattr(self.integration_system, 'hybrid_llm')
-        assert hasattr(self.integration_system, 'metacognitive_training')
-        assert hasattr(self.integration_system, 'contextual_prompting')
+        assert hasattr(self.integration_system, "execution_learning")
+        assert hasattr(self.integration_system, "enhanced_graphrag")
+        assert hasattr(self.integration_system, "automata_synthesis")
+        assert hasattr(self.integration_system, "hybrid_llm")
+        assert hasattr(self.integration_system, "metacognitive_training")
+        assert hasattr(self.integration_system, "contextual_prompting")
 
     def test_process_advanced_reasoning_task(self):
         """Test processing of complex reasoning tasks."""
@@ -44,42 +54,56 @@ class TestPhase3IntegrationSystem:
             "task_id": "test_task_123",
             "description": "Analyze user authentication system",
             "type": "analysis",
-            "complexity": "medium"
+            "complexity": "medium",
         }
 
         # Mock all the component methods
-        with patch.object(self.integration_system, '_analyze_and_segment_task') as mock_segment:
+        with patch.object(
+            self.integration_system, "_analyze_and_segment_task"
+        ) as mock_segment:
             mock_segment.return_value = [
                 {"segment_id": "seg1", "description": "Analyze requirements"},
-                {"segment_id": "seg2", "description": "Review implementation"}
+                {"segment_id": "seg2", "description": "Review implementation"},
             ]
 
-            with patch.object(self.integration_system, '_execute_multi_hop_reasoning') as mock_reasoning:
+            with patch.object(
+                self.integration_system, "_execute_multi_hop_reasoning"
+            ) as mock_reasoning:
                 mock_reasoning.return_value = {
                     "success": True,
                     "total_hops": 3,
-                    "confidence": 0.85
+                    "confidence": 0.85,
                 }
 
-                with patch.object(self.integration_system, '_execute_hybrid_llm_processing') as mock_hybrid:
+                with patch.object(
+                    self.integration_system, "_execute_hybrid_llm_processing"
+                ) as mock_hybrid:
                     mock_hybrid.return_value = {
                         "success": True,
-                        "result": {"confidence": 0.9, "execution_time": 2.5}
+                        "result": {"confidence": 0.9, "execution_time": 2.5},
                     }
 
-                    with patch.object(self.integration_system, '_apply_metacognitive_enhancement') as mock_meta:
+                    with patch.object(
+                        self.integration_system, "_apply_metacognitive_enhancement"
+                    ) as mock_meta:
                         mock_meta.return_value = {
                             "success": True,
-                            "insights": ["Strategy improvement", "Efficiency gain"]
+                            "insights": ["Strategy improvement", "Efficiency gain"],
                         }
 
-                        with patch.object(self.integration_system, '_optimize_contextual_prompts') as mock_prompts:
+                        with patch.object(
+                            self.integration_system, "_optimize_contextual_prompts"
+                        ) as mock_prompts:
                             mock_prompts.return_value = {
                                 "success": True,
-                                "engineered_prompts": ["Prompt 1", "Prompt 2"]
+                                "engineered_prompts": ["Prompt 1", "Prompt 2"],
                             }
 
-                            result = self.integration_system.process_advanced_reasoning_task(task)
+                            result = (
+                                self.integration_system.process_advanced_reasoning_task(
+                                    task
+                                )
+                            )
 
         assert result["success"] is True
         assert result["task_id"] == "test_task_123"
@@ -92,19 +116,23 @@ class TestPhase3IntegrationSystem:
         """Test task analysis and segmentation."""
         task = {
             "description": "Implement user authentication system",
-            "type": "code_generation"
+            "type": "code_generation",
         }
 
         # Mock automata synthesis
-        with patch.object(self.integration_system.automata_synthesis, 'get_automata_for_task_type') as mock_get:
+        with patch.object(
+            self.integration_system.automata_synthesis, "get_automata_for_task_type"
+        ) as mock_get:
             mock_automata = Mock()
             mock_automata.task_type = "code_generation"
             mock_get.return_value = mock_automata
 
-            with patch.object(self.integration_system.automata_synthesis, 'generate_task_segmentation') as mock_generate:
+            with patch.object(
+                self.integration_system.automata_synthesis, "generate_task_segmentation"
+            ) as mock_generate:
                 mock_generate.return_value = [
                     {"segment_id": "seg1", "description": "Analyze requirements"},
-                    {"segment_id": "seg2", "description": "Design architecture"}
+                    {"segment_id": "seg2", "description": "Design architecture"},
                 ]
 
                 segments = self.integration_system._analyze_and_segment_task(task)
@@ -118,13 +146,17 @@ class TestPhase3IntegrationSystem:
         task_segments = [{"segment_id": "seg1"}]
 
         # Mock GraphRAG query engine
-        with patch.object(self.integration_system.enhanced_graphrag, 'process_complex_query') as mock_process:
+        with patch.object(
+            self.integration_system.enhanced_graphrag, "process_complex_query"
+        ) as mock_process:
             mock_response = Mock()
             mock_response.reasoning_path.total_hops = 4
             mock_response.confidence = 0.88
             mock_process.return_value = mock_response
 
-            result = self.integration_system._execute_multi_hop_reasoning(task, task_segments)
+            result = self.integration_system._execute_multi_hop_reasoning(
+                task, task_segments
+            )
 
         assert result["success"] is True
         assert result["total_hops"] == 4
@@ -136,18 +168,22 @@ class TestPhase3IntegrationSystem:
             "task_id": "test_hybrid",
             "description": "Process authentication logic",
             "type": "processing",
-            "complexity": "medium"
+            "complexity": "medium",
         }
 
         # Mock hybrid LLM
-        with patch.object(self.integration_system.hybrid_llm, 'process_complex_reasoning_task') as mock_process:
+        with patch.object(
+            self.integration_system.hybrid_llm, "process_complex_reasoning_task"
+        ) as mock_process:
             mock_result = Mock()
             mock_result.confidence = 0.92
             mock_result.execution_time = 1.8
             mock_result.provider_usage = {"dllm": "mercury", "tllm": "gpt4"}
             mock_process.return_value = mock_result
 
-            result = self.integration_system._execute_hybrid_llm_processing(task, {"success": True})
+            result = self.integration_system._execute_hybrid_llm_processing(
+                task, {"success": True}
+            )
 
         assert result["success"] is True
         assert result["result"].confidence == 0.92
@@ -159,18 +195,27 @@ class TestPhase3IntegrationSystem:
         hybrid_results = {"result": {"confidence": 0.85}}
 
         # Mock metacognitive training
-        with patch.object(self.integration_system.metacognitive_training, 'start_think_aloud_session') as mock_start:
+        with patch.object(
+            self.integration_system.metacognitive_training, "start_think_aloud_session"
+        ) as mock_start:
             mock_start.return_value = "session_123"
 
-            with patch.object(self.integration_system.metacognitive_training, 'record_verbalization') as mock_record:
-                with patch.object(self.integration_system.metacognitive_training, 'end_think_aloud_session') as mock_end:
+            with patch.object(
+                self.integration_system.metacognitive_training, "record_verbalization"
+            ) as mock_record:
+                with patch.object(
+                    self.integration_system.metacognitive_training,
+                    "end_think_aloud_session",
+                ) as mock_end:
                     mock_end.return_value = {
                         "session_id": "session_123",
                         "insights": ["Strategy improvement", "Error pattern"],
-                        "verbalizations_count": 5
+                        "verbalizations_count": 5,
                     }
 
-                    result = self.integration_system._apply_metacognitive_enhancement(task, hybrid_results)
+                    result = self.integration_system._apply_metacognitive_enhancement(
+                        task, hybrid_results
+                    )
 
         assert result["success"] is True
         assert len(result["insights"]) == 2
@@ -181,17 +226,24 @@ class TestPhase3IntegrationSystem:
         metacognitive_results = {"insights": ["Use clearer language"]}
 
         # Mock contextual prompting
-        with patch.object(self.integration_system.contextual_prompting, 'create_contextual_prompt') as mock_create:
+        with patch.object(
+            self.integration_system.contextual_prompting, "create_contextual_prompt"
+        ) as mock_create:
             mock_prompt = Mock()
             mock_prompt.prompt_id = "prompt_123"
             mock_create.return_value = mock_prompt
 
-            with patch.object(self.integration_system.contextual_prompting, 'engineer_contextual_prompt') as mock_engineer:
+            with patch.object(
+                self.integration_system.contextual_prompting,
+                "engineer_contextual_prompt",
+            ) as mock_engineer:
                 mock_result = Mock()
                 mock_result.estimated_effectiveness = 0.88
                 mock_engineer.return_value = mock_result
 
-                result = self.integration_system._optimize_contextual_prompts(task, metacognitive_results)
+                result = self.integration_system._optimize_contextual_prompts(
+                    task, metacognitive_results
+                )
 
         assert result["success"] is True
         assert result["contextual_prompt"].prompt_id == "prompt_123"
@@ -206,8 +258,12 @@ class TestPhase3IntegrationSystem:
         contextual_results = {"success": True, "engineered_prompts": ["prompt1"]}
 
         result = self.integration_system._integrate_and_validate_results(
-            task, task_segments, reasoning_results, hybrid_results,
-            metacognitive_results, contextual_results
+            task,
+            task_segments,
+            reasoning_results,
+            hybrid_results,
+            metacognitive_results,
+            contextual_results,
         )
 
         assert "task_description" in result
@@ -233,24 +289,33 @@ class TestPhase3IntegrationSystem:
     def test_benchmark_against_research(self):
         """Test benchmarking against research standards."""
         test_tasks = [
-            {"task_id": "task1", "description": "Test authentication", "type": "analysis"},
-            {"task_id": "task2", "description": "Test payment processing", "type": "impact_analysis"}
+            {
+                "task_id": "task1",
+                "description": "Test authentication",
+                "type": "analysis",
+            },
+            {
+                "task_id": "task2",
+                "description": "Test payment processing",
+                "type": "impact_analysis",
+            },
         ]
 
         # Mock task processing
-        with patch.object(self.integration_system, 'process_advanced_reasoning_task') as mock_process:
+        with patch.object(
+            self.integration_system, "process_advanced_reasoning_task"
+        ) as mock_process:
             mock_result = Mock()
             mock_result.success = True
             mock_result.result = {
                 "overall_confidence": 0.88,
-                "research_alignment": {"overall_alignment": True}
+                "research_alignment": {"overall_alignment": True},
             }
-            mock_process.return_value = {
-                "success": True,
-                "result": mock_result.result
-            }
+            mock_process.return_value = {"success": True, "result": mock_result.result}
 
-            benchmark_results = self.integration_system.benchmark_against_research(test_tasks)
+            benchmark_results = self.integration_system.benchmark_against_research(
+                test_tasks
+            )
 
         assert benchmark_results["total_tests"] == 2
         assert benchmark_results["successful_tests"] == 2
@@ -260,7 +325,9 @@ class TestPhase3IntegrationSystem:
     def test_export_import_system_state(self):
         """Test system state export and import."""
         # Set up some state
-        self.integration_system.execution_learning.learning_history = [{"test": "session"}]
+        self.integration_system.execution_learning.learning_history = [
+            {"test": "session"}
+        ]
         self.integration_system.enhanced_graphrag.query_cache = {"query1": "result1"}
 
         # Export state
@@ -294,7 +361,7 @@ class TestPhase3IntegrationSystem:
         # Set up performance metrics
         self.integration_system.performance_metrics = {
             "average_confidence": 0.75,
-            "average_execution_time": 25.0
+            "average_execution_time": 25.0,
         }
 
         optimization_report = self.integration_system.optimize_system_performance()
@@ -326,7 +393,9 @@ class TestEnhancedGraphRAGQueryEngine:
         """Set up test fixtures."""
         self.enhanced_graph = EnhancedKnowledgeGraph()
         self.execution_learning = Mock()
-        self.query_engine = EnhancedGraphRAGQueryEngine(self.enhanced_graph, self.execution_learning)
+        self.query_engine = EnhancedGraphRAGQueryEngine(
+            self.enhanced_graph, self.execution_learning
+        )
 
     def test_initialization(self):
         """Test query engine initialization."""
@@ -339,40 +408,56 @@ class TestEnhancedGraphRAGQueryEngine:
         query = "What functions implement user authentication?"
 
         # Mock the parsing and execution methods
-        with patch.object(self.query_engine, '_parse_query_intent') as mock_parse:
+        with patch.object(self.query_engine, "_parse_query_intent") as mock_parse:
             mock_parse.return_value = Mock(
                 query_type="relationship_query",
                 entities=["function", "authentication"],
                 relationships=["implements"],
-                required_hops=2
+                required_hops=2,
             )
 
-            with patch.object(self.query_engine, '_resolve_entities') as mock_resolve:
+            with patch.object(self.query_engine, "_resolve_entities") as mock_resolve:
                 mock_resolve.return_value = {"found_entities": ["func_auth"]}
 
-                with patch.object(self.query_engine, '_plan_multi_hop_traversal') as mock_plan:
+                with patch.object(
+                    self.query_engine, "_plan_multi_hop_traversal"
+                ) as mock_plan:
                     mock_plan.return_value = Mock(
                         start_entities=["func_auth"],
-                        traversal_sequence=[{"relationship_type": "IMPLEMENTS"}]
+                        traversal_sequence=[{"relationship_type": "IMPLEMENTS"}],
                     )
 
-                    with patch.object(self.query_engine, '_execute_semantic_traversal') as mock_execute:
+                    with patch.object(
+                        self.query_engine, "_execute_semantic_traversal"
+                    ) as mock_execute:
                         mock_path = Mock()
                         mock_path.steps = [Mock(confidence_score=0.85)]
                         mock_path.total_hops = 1
                         mock_path.overall_confidence = 0.85
                         mock_execute.return_value = mock_path
 
-                        with patch.object(self.query_engine, '_validate_reasoning_chain') as mock_validate:
+                        with patch.object(
+                            self.query_engine, "_validate_reasoning_chain"
+                        ) as mock_validate:
                             mock_validate.return_value = {"path_accuracy": 0.9}
 
-                            with patch.object(self.query_engine, '_generate_traceable_explanation') as mock_explain:
-                                mock_explain.return_value = "Query processed successfully"
+                            with patch.object(
+                                self.query_engine, "_generate_traceable_explanation"
+                            ) as mock_explain:
+                                mock_explain.return_value = (
+                                    "Query processed successfully"
+                                )
 
-                                with patch.object(self.query_engine, '_synthesize_answer') as mock_synthesize:
-                                    mock_synthesize.return_value = "Authentication functions found"
+                                with patch.object(
+                                    self.query_engine, "_synthesize_answer"
+                                ) as mock_synthesize:
+                                    mock_synthesize.return_value = (
+                                        "Authentication functions found"
+                                    )
 
-                                    response = self.query_engine.process_complex_query(query)
+                                    response = self.query_engine.process_complex_query(
+                                        query
+                                    )
 
         assert response.answer == "Authentication functions found"
         assert response.confidence > 0.8
@@ -380,7 +465,9 @@ class TestEnhancedGraphRAGQueryEngine:
 
     def test_parse_query_intent(self):
         """Test query intent parsing."""
-        query = "How does user authentication work and what are the security implications?"
+        query = (
+            "How does user authentication work and what are the security implications?"
+        )
 
         intent = self.query_engine._parse_query_intent(query)
 
@@ -411,7 +498,9 @@ class TestEnhancedGraphRAGQueryEngine:
         entities = ["function", "authentication", "user"]
         relationships = ["calls", "implements"]
 
-        hops = self.query_engine._calculate_required_hops("multi_hop", entities, relationships)
+        hops = self.query_engine._calculate_required_hops(
+            "multi_hop", entities, relationships
+        )
 
         assert hops >= 3  # Should require multiple hops for complex query
 
@@ -432,14 +521,14 @@ class TestEnhancedGraphRAGQueryEngine:
     def test_plan_multi_hop_traversal(self):
         """Test multi-hop traversal planning."""
         parsed_query = Mock(
-            entities=["authentication"],
-            relationships=["implements"],
-            required_hops=3
+            entities=["authentication"], relationships=["implements"], required_hops=3
         )
 
         entity_mappings = {"found_entities": ["func_auth"]}
 
-        plan = self.query_engine._plan_multi_hop_traversal(parsed_query, entity_mappings)
+        plan = self.query_engine._plan_multi_hop_traversal(
+            parsed_query, entity_mappings
+        )
 
         assert len(plan.start_entities) > 0
         assert len(plan.traversal_sequence) >= 3
@@ -448,15 +537,15 @@ class TestEnhancedGraphRAGQueryEngine:
         """Test semantic traversal execution."""
         plan = Mock(
             start_entities=["func_auth"],
-            traversal_sequence=[
-                {"relationship_type": "IMPLEMENTS", "hop_number": 1}
-            ],
+            traversal_sequence=[{"relationship_type": "IMPLEMENTS", "hop_number": 1}],
             semantic_filters=[{}],
-            max_depth=2
+            max_depth=2,
         )
 
         # Mock graph operations
-        with patch.object(self.enhanced_graph, 'get_connected_entities') as mock_connected:
+        with patch.object(
+            self.enhanced_graph, "get_connected_entities"
+        ) as mock_connected:
             mock_connected.return_value = [Mock(id="req_auth")]
 
             reasoning_path = self.query_engine._execute_semantic_traversal(plan)
@@ -486,14 +575,18 @@ class TestAutomataSynthesisEngine:
         exploration_data = [
             {"state": "initial", "action": "analyze_requirements", "success": True},
             {"state": "processing", "action": "generate_code", "success": True},
-            {"state": "validation", "action": "test_code", "success": True}
+            {"state": "validation", "action": "test_code", "success": True},
         ]
 
-        automata = self.automata_engine.synthesize_automata_from_exploration(task_type, exploration_data)
+        automata = self.automata_engine.synthesize_automata_from_exploration(
+            task_type, exploration_data
+        )
 
         assert automata is not None
         assert automata.task_type == task_type
-        assert len(automata.states) >= 2  # Should have initial and at least one other state
+        assert (
+            len(automata.states) >= 2
+        )  # Should have initial and at least one other state
         assert automata.initial_state in automata.states
 
     def test_generate_task_segmentation(self):
@@ -505,11 +598,13 @@ class TestAutomataSynthesisEngine:
         automata.states = {
             "initial": Mock(state_type="initial", description="Start task"),
             "processing": Mock(state_type="intermediate", description="Process data"),
-            "terminal": Mock(state_type="terminal", description="Complete task")
+            "terminal": Mock(state_type="terminal", description="Complete task"),
         }
         automata.transitions = {}
 
-        segments = self.automata_engine.generate_task_segmentation("Test task", automata)
+        segments = self.automata_engine.generate_task_segmentation(
+            "Test task", automata
+        )
 
         assert len(segments) >= 2
         assert segments[0]["state"] == "initial"
@@ -520,7 +615,10 @@ class TestAutomataSynthesisEngine:
         automata = Mock()
         automata.automata_id = "test_automata"
         automata.states = {"initial": Mock(), "processing": Mock(), "terminal": Mock()}
-        automata.transitions = {"initial-->processing": Mock(), "processing-->terminal": Mock()}
+        automata.transitions = {
+            "initial-->processing": Mock(),
+            "processing-->terminal": Mock(),
+        }
         automata.terminal_states = ["terminal"]
         automata.exploration_data = [{"success": True}] * 15
 
@@ -535,8 +633,13 @@ class TestAutomataSynthesisEngine:
         """Test Memetic Unit creation from automata."""
         automata = Mock()
         automata.automata_id = "test_automata"
-        automata.states = {"initial": Mock(state_type="initial"), "processing": Mock(state_type="intermediate")}
-        automata.transitions = {"initial-->processing": Mock(transition_type="sequential")}
+        automata.states = {
+            "initial": Mock(state_type="initial"),
+            "processing": Mock(state_type="intermediate"),
+        }
+        automata.transitions = {
+            "initial-->processing": Mock(transition_type="sequential")
+        }
 
         units = self.automata_engine.create_memetic_units_from_automata(automata)
 
@@ -545,7 +648,7 @@ class TestAutomataSynthesisEngine:
         # Should have units for automata, states, and transitions
         unit_types = [u.metadata.cognitive_type for u in units]
         assert CognitiveType.PROCEDURAL in unit_types  # Automata unit
-        assert CognitiveType.SEMANTIC in unit_types    # State units
+        assert CognitiveType.SEMANTIC in unit_types  # State units
 
     def test_get_task_segmentation_for_query(self):
         """Test task segmentation for natural language query."""
@@ -555,13 +658,17 @@ class TestAutomataSynthesisEngine:
         mock_automata = Mock()
         mock_automata.task_type = "code_generation"
 
-        with patch.object(self.automata_engine, 'get_automata_for_task_type') as mock_get:
+        with patch.object(
+            self.automata_engine, "get_automata_for_task_type"
+        ) as mock_get:
             mock_get.return_value = mock_automata
 
-            with patch.object(self.automata_engine, 'generate_task_segmentation') as mock_generate:
+            with patch.object(
+                self.automata_engine, "generate_task_segmentation"
+            ) as mock_generate:
                 mock_generate.return_value = [
                     {"segment_id": "seg1", "description": "Analyze requirements"},
-                    {"segment_id": "seg2", "description": "Design architecture"}
+                    {"segment_id": "seg2", "description": "Design architecture"},
                 ]
 
                 segments = self.automata_engine.get_task_segmentation_for_query(query)
@@ -592,31 +699,35 @@ class TestHybridLLMArchitecture:
             "description": "Design authentication system",
             "type": "design",
             "complexity": "high",
-            "requirements": ["secure", "scalable"]
+            "requirements": ["secure", "scalable"],
         }
 
         # Mock provider operations
-        with patch.object(self.hybrid_llm, '_execute_rapid_planning') as mock_plan:
+        with patch.object(self.hybrid_llm, "_execute_rapid_planning") as mock_plan:
             mock_plan.return_value = {
                 "provider": "mercury_dllm",
                 "planning_output": "Plan for authentication system",
                 "execution_time": 0.5,
-                "tokens_used": 200
+                "tokens_used": 200,
             }
 
-            with patch.object(self.hybrid_llm, '_execute_precise_solving') as mock_solve:
+            with patch.object(
+                self.hybrid_llm, "_execute_precise_solving"
+            ) as mock_solve:
                 mock_solve.return_value = {
                     "provider": "gpt4_nano_tllm",
                     "solving_output": "Detailed authentication implementation",
                     "execution_time": 2.0,
-                    "tokens_used": 800
+                    "tokens_used": 800,
                 }
 
-                with patch.object(self.hybrid_llm, '_integrate_and_validate') as mock_integrate:
+                with patch.object(
+                    self.hybrid_llm, "_integrate_and_validate"
+                ) as mock_integrate:
                     mock_integrate.return_value = {
                         "answer": "Complete authentication system design",
                         "confidence": 0.91,
-                        "reasoning_path": []
+                        "reasoning_path": [],
                     }
 
                     result = self.hybrid_llm.process_complex_reasoning_task(task)
@@ -637,24 +748,28 @@ class TestHybridLLMArchitecture:
 
         # Should select appropriate providers based on complexity
         assert simple_provider.model_type == "diffusion"  # Fast for simple tasks
-        assert complex_provider.model_type == "transformer"  # Accurate for complex tasks
+        assert (
+            complex_provider.model_type == "transformer"
+        )  # Accurate for complex tasks
         assert balanced_provider.model_type == "hybrid"  # Balanced for medium tasks
 
     def test_benchmark_hybrid_vs_individual(self):
         """Test benchmarking of hybrid vs individual providers."""
         test_tasks = [
             {"task_id": "task1", "complexity": "simple"},
-            {"task_id": "task2", "complexity": "complex"}
+            {"task_id": "task2", "complexity": "complex"},
         ]
 
         # Mock individual provider testing
-        with patch.object(self.hybrid_llm, '_test_individual_provider') as mock_test:
+        with patch.object(self.hybrid_llm, "_test_individual_provider") as mock_test:
             mock_test.side_effect = [
                 {"provider": "mercury_dllm", "execution_time": 0.5, "accuracy": 0.75},
-                {"provider": "gpt4_nano_tllm", "execution_time": 2.0, "accuracy": 0.92}
+                {"provider": "gpt4_nano_tllm", "execution_time": 2.0, "accuracy": 0.92},
             ]
 
-            benchmark_results = self.hybrid_llm.benchmark_hybrid_vs_individual(test_tasks)
+            benchmark_results = self.hybrid_llm.benchmark_hybrid_vs_individual(
+                test_tasks
+            )
 
         assert "comparison" in benchmark_results
         assert "speed_comparison" in benchmark_results["comparison"]
@@ -711,13 +826,15 @@ class TestMetacognitiveTrainingSystem:
         session_id = self.metacognitive_system.start_think_aloud_session("Test task")
 
         self.metacognitive_system.record_verbalization(
-            session_id,
-            "I'm considering different approaches to this problem"
+            session_id, "I'm considering different approaches to this problem"
         )
 
         session = self.metacognitive_system.training_sessions[0]
         assert len(session.verbalizations) == 1
-        assert session.verbalizations[0]["verbalization"] == "I'm considering different approaches to this problem"
+        assert (
+            session.verbalizations[0]["verbalization"]
+            == "I'm considering different approaches to this problem"
+        )
 
     def test_end_think_aloud_session(self):
         """Test ending think-aloud session."""
@@ -726,10 +843,14 @@ class TestMetacognitiveTrainingSystem:
         self.metacognitive_system.record_verbalization(session_id, "Test verbalization")
 
         # Mock insight extraction
-        with patch.object(self.metacognitive_system, '_extract_insights_from_session') as mock_extract:
+        with patch.object(
+            self.metacognitive_system, "_extract_insights_from_session"
+        ) as mock_extract:
             mock_extract.return_value = [Mock(insight_type="strategy_improvement")]
 
-            with patch.object(self.metacognitive_system, '_update_metacognitive_state_from_session') as mock_update:
+            with patch.object(
+                self.metacognitive_system, "_update_metacognitive_state_from_session"
+            ) as mock_update:
                 summary = self.metacognitive_system.end_think_aloud_session(session_id)
 
         assert summary["session_id"] == session_id
@@ -749,11 +870,15 @@ class TestMetacognitiveTrainingSystem:
         assert len(all_insights) == 1
 
         # Get filtered insights
-        strategy_insights = self.metacognitive_system.get_metacognitive_insights("strategy_improvement")
+        strategy_insights = self.metacognitive_system.get_metacognitive_insights(
+            "strategy_improvement"
+        )
         assert len(strategy_insights) == 1
 
         # Get non-existent type
-        other_insights = self.metacognitive_system.get_metacognitive_insights("non_existent")
+        other_insights = self.metacognitive_system.get_metacognitive_insights(
+            "non_existent"
+        )
         assert len(other_insights) == 0
 
     def test_apply_metacognitive_improvements(self):
@@ -771,7 +896,9 @@ class TestMetacognitiveTrainingSystem:
 
         insights = [high_applicability_insight, low_applicability_insight]
 
-        improvements = self.metacognitive_system.apply_metacognitive_improvements(insights)
+        improvements = self.metacognitive_system.apply_metacognitive_improvements(
+            insights
+        )
 
         assert improvements["applied_insights"] == 1  # Only high applicability
         assert len(improvements["improvement_areas"]) == 1
@@ -817,10 +944,12 @@ class TestContextualPromptingSystem:
         context = {
             "task_type": "analysis",
             "complexity": "medium",
-            "user_expertise": "intermediate"
+            "user_expertise": "intermediate",
         }
 
-        contextual_prompt = self.prompting_system.create_contextual_prompt(base_prompt, context)
+        contextual_prompt = self.prompting_system.create_contextual_prompt(
+            base_prompt, context
+        )
 
         assert contextual_prompt.base_prompt == base_prompt
         assert len(contextual_prompt.behavioral_directives) > 0
@@ -837,7 +966,9 @@ class TestContextualPromptingSystem:
         mock_prompt.context_variables = {"test": "value"}
         mock_prompt.validation_criteria = ["Test criterion"]
 
-        engineered_result = self.prompting_system.engineer_contextual_prompt(mock_prompt)
+        engineered_result = self.prompting_system.engineer_contextual_prompt(
+            mock_prompt
+        )
 
         assert engineered_result.engineered_prompt is not None
         assert len(engineered_result.engineered_prompt) > 0
@@ -875,7 +1006,7 @@ class TestContextualPromptingSystem:
                 "directive_coverage": 0.8,
                 "constraint_compliance": 0.9,
                 "context_relevance": 0.85,
-                "estimated_effectiveness": 0.87
+                "estimated_effectiveness": 0.87,
             }
         ]
 
@@ -891,10 +1022,12 @@ class TestContextualPromptingSystem:
         agent_type = "code_generator"
         task_context = {
             "task_description": "Generate authentication code",
-            "complexity": "medium"
+            "complexity": "medium",
         }
 
-        agent_prompt = self.prompting_system.create_agent_specific_prompt(agent_type, task_context)
+        agent_prompt = self.prompting_system.create_agent_specific_prompt(
+            agent_type, task_context
+        )
 
         assert agent_prompt.base_prompt is not None
         assert "code_generator" in agent_prompt.base_prompt

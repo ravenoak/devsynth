@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import os
 import random
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 
@@ -82,7 +82,7 @@ def deterministic_seed() -> int:
 @pytest.fixture(autouse=True)
 def enforce_test_timeout(
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Enforce a per-test timeout when configured.
 
     Controlled by the environment variable DEVSYNTH_TEST_TIMEOUT_SECONDS.

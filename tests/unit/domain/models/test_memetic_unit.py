@@ -5,9 +5,10 @@ This module tests the Memetic Unit abstraction functionality including
 metadata management, cognitive classification, and lifecycle operations.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from uuid import UUID
+
+import pytest
 
 from devsynth.domain.models.memory import (
     CognitiveType,
@@ -25,8 +26,7 @@ class TestMemeticMetadata:
     def test_initialization(self):
         """Test MemeticMetadata initialization."""
         metadata = MemeticMetadata(
-            source=MemeticSource.USER_INPUT,
-            cognitive_type=CognitiveType.WORKING
+            source=MemeticSource.USER_INPUT, cognitive_type=CognitiveType.WORKING
         )
 
         assert metadata.unit_id is not None
@@ -43,7 +43,7 @@ class TestMemeticMetadata:
             source=MemeticSource.CODE_EXECUTION,
             cognitive_type=CognitiveType.EPISODIC,
             confidence_score=0.8,
-            salience_score=0.7
+            salience_score=0.7,
         )
 
         metadata_dict = {
@@ -52,7 +52,7 @@ class TestMemeticMetadata:
             "cognitive_type": metadata.cognitive_type.value,
             "status": metadata.status.value,
             "confidence_score": metadata.confidence_score,
-            "salience_score": metadata.salience_score
+            "salience_score": metadata.salience_score,
         }
 
         # Test that all fields are serializable
@@ -67,8 +67,7 @@ class TestMemeticUnit:
     def test_creation(self):
         """Test MemeticUnit creation and initialization."""
         metadata = MemeticMetadata(
-            source=MemeticSource.USER_INPUT,
-            cognitive_type=CognitiveType.WORKING
+            source=MemeticSource.USER_INPUT, cognitive_type=CognitiveType.WORKING
         )
         payload = "Test user input content"
 
@@ -85,17 +84,17 @@ class TestMemeticUnit:
         # Test with string payload
         unit1 = MemeticUnit(
             metadata=MemeticMetadata(source=MemeticSource.USER_INPUT),
-            payload="identical content"
+            payload="identical content",
         )
 
         unit2 = MemeticUnit(
             metadata=MemeticMetadata(source=MemeticSource.USER_INPUT),
-            payload="identical content"
+            payload="identical content",
         )
 
         unit3 = MemeticUnit(
             metadata=MemeticMetadata(source=MemeticSource.USER_INPUT),
-            payload="different content"
+            payload="different content",
         )
 
         # Identical content should have identical hashes
@@ -110,12 +109,11 @@ class TestMemeticUnit:
             source=MemeticSource.LLM_RESPONSE,
             cognitive_type=CognitiveType.SEMANTIC,
             confidence_score=0.9,
-            salience_score=0.8
+            salience_score=0.8,
         )
 
         original_unit = MemeticUnit(
-            metadata=original_metadata,
-            payload={"type": "test", "data": "sample"}
+            metadata=original_metadata, payload={"type": "test", "data": "sample"}
         )
 
         # Serialize
@@ -125,23 +123,34 @@ class TestMemeticUnit:
         reconstructed_unit = MemeticUnit.from_dict(unit_dict)
 
         # Verify roundtrip integrity
-        assert str(reconstructed_unit.metadata.unit_id) == str(original_unit.metadata.unit_id)
+        assert str(reconstructed_unit.metadata.unit_id) == str(
+            original_unit.metadata.unit_id
+        )
         assert reconstructed_unit.metadata.source == original_unit.metadata.source
-        assert reconstructed_unit.metadata.cognitive_type == original_unit.metadata.cognitive_type
-        assert reconstructed_unit.metadata.confidence_score == original_unit.metadata.confidence_score
-        assert reconstructed_unit.metadata.salience_score == original_unit.metadata.salience_score
+        assert (
+            reconstructed_unit.metadata.cognitive_type
+            == original_unit.metadata.cognitive_type
+        )
+        assert (
+            reconstructed_unit.metadata.confidence_score
+            == original_unit.metadata.confidence_score
+        )
+        assert (
+            reconstructed_unit.metadata.salience_score
+            == original_unit.metadata.salience_score
+        )
         assert reconstructed_unit.payload == original_unit.payload
 
     def test_link_management(self):
         """Test relationship link management."""
         unit1 = MemeticUnit(
             metadata=MemeticMetadata(source=MemeticSource.USER_INPUT),
-            payload="First unit"
+            payload="First unit",
         )
 
         unit2 = MemeticUnit(
             metadata=MemeticMetadata(source=MemeticSource.USER_INPUT),
-            payload="Second unit"
+            payload="Second unit",
         )
 
         # Add relationship
@@ -149,7 +158,7 @@ class TestMemeticUnit:
             unit2.metadata.unit_id,
             "RELATED_TO",
             strength=0.7,
-            type="semantic"  # Put in metadata
+            type="semantic",  # Put in metadata
         )
 
         assert len(unit1.metadata.links) == 1
@@ -163,17 +172,13 @@ class TestMemeticUnit:
         """Test salience score updates based on context."""
         unit = MemeticUnit(
             metadata=MemeticMetadata(
-                source=MemeticSource.USER_INPUT,
-                salience_score=0.5
+                source=MemeticSource.USER_INPUT, salience_score=0.5
             ),
-            payload="Test content"
+            payload="Test content",
         )
 
         # Update salience with relevant context
-        context = {
-            "current_task": "user_authentication",
-            "recent_activity": True
-        }
+        context = {"current_task": "user_authentication", "recent_activity": True}
 
         unit.update_salience(context)
 
@@ -186,7 +191,7 @@ class TestMemeticUnit:
         # Create unit with lifespan policy
         metadata = MemeticMetadata(
             source=MemeticSource.USER_INPUT,
-            lifespan_policy={"max_age_hours": 24, "max_inactive_hours": 12}
+            lifespan_policy={"max_age_hours": 24, "max_inactive_hours": 12},
         )
 
         unit = MemeticUnit(metadata=metadata, payload="Test content")
@@ -203,34 +208,33 @@ class TestMemeticUnit:
         # Test different cognitive types
         working_unit = MemeticUnit(
             metadata=MemeticMetadata(
-                source=MemeticSource.USER_INPUT,
-                cognitive_type=CognitiveType.WORKING
+                source=MemeticSource.USER_INPUT, cognitive_type=CognitiveType.WORKING
             ),
-            payload="Current task context"
+            payload="Current task context",
         )
 
         episodic_unit = MemeticUnit(
             metadata=MemeticMetadata(
                 source=MemeticSource.CODE_EXECUTION,
-                cognitive_type=CognitiveType.EPISODIC
+                cognitive_type=CognitiveType.EPISODIC,
             ),
-            payload="Execution result"
+            payload="Execution result",
         )
 
         semantic_unit = MemeticUnit(
             metadata=MemeticMetadata(
                 source=MemeticSource.DOCUMENTATION,
-                cognitive_type=CognitiveType.SEMANTIC
+                cognitive_type=CognitiveType.SEMANTIC,
             ),
-            payload="Knowledge documentation"
+            payload="Knowledge documentation",
         )
 
         procedural_unit = MemeticUnit(
             metadata=MemeticMetadata(
                 source=MemeticSource.API_RESPONSE,
-                cognitive_type=CognitiveType.PROCEDURAL
+                cognitive_type=CognitiveType.PROCEDURAL,
             ),
-            payload="API procedure"
+            payload="API procedure",
         )
 
         # Verify cognitive types are preserved
@@ -245,13 +249,13 @@ class TestMemeticLink:
 
     def test_link_creation(self):
         """Test MemeticLink creation and properties."""
-        target_id = UUID('12345678-1234-5678-9abc-def012345678')
+        target_id = UUID("12345678-1234-5678-9abc-def012345678")
 
         link = MemeticLink(
             target_id=target_id,
             relationship_type="IMPLEMENTS",
             strength=0.8,
-            metadata={"validation_method": "semantic_similarity"}
+            metadata={"validation_method": "semantic_similarity"},
         )
 
         assert link.target_id == target_id
@@ -262,16 +266,16 @@ class TestMemeticLink:
     def test_link_serialization(self):
         """Test MemeticLink serialization."""
         link = MemeticLink(
-            target_id=UUID('12345678-1234-5678-9abc-def012345678'),
+            target_id=UUID("12345678-1234-5678-9abc-def012345678"),
             relationship_type="VALIDATES",
-            strength=0.9
+            strength=0.9,
         )
 
         link_dict = {
             "target_id": str(link.target_id),
             "relationship_type": link.relationship_type,
             "strength": link.strength,
-            "metadata": link.metadata
+            "metadata": link.metadata,
         }
 
         # Verify serialization structure

@@ -83,7 +83,7 @@ class TestWSDEDialecticalReasoning:
         assert len(conflicts) > 0
         security_performance_conflict = None
         for conflict in conflicts:
-            if set(conflict["domains"]) == set(["security", "performance"]):
+            if set(conflict["domains"]) == {"security", "performance"}:
                 security_performance_conflict = conflict
                 break
         assert security_performance_conflict is not None

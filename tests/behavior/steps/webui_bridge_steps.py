@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import html
 from types import ModuleType
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 import pytest
 from pytest_bdd import given, parsers, then, when

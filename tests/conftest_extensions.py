@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Iterable, List
+from typing import List
+from collections.abc import Iterable
 
 import pytest
 
@@ -233,7 +234,7 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: List[pytest.Item]
+    config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Validate test speed markers and apply filtering."""
 

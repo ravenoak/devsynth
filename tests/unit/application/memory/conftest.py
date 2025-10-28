@@ -11,7 +11,8 @@ from collections import defaultdict
 from collections.abc import Mapping, MutableMapping, Sequence
 from math import sqrt
 from types import ModuleType, SimpleNamespace
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
+from collections.abc import Callable
 
 _NUMPY_SPEC = importlib.util.find_spec("numpy")
 if _NUMPY_SPEC is not None:  # pragma: no branch - deterministic path selection
@@ -601,10 +602,10 @@ def _build_tinydb_stub() -> ModuleType:
             self._path = path
             self._predicate = predicate
 
-        def __getattr__(self, name: str) -> "_TinyDBQuery":
+        def __getattr__(self, name: str) -> _TinyDBQuery:
             return _TinyDBQuery(self._path + (name,), self._predicate)
 
-        def __getitem__(self, item: str) -> "_TinyDBQuery":
+        def __getitem__(self, item: str) -> _TinyDBQuery:
             return self.__getattr__(item)
 
         def __and__(self, other: TinyDBQueryLike) -> TinyDBQueryLike:
@@ -790,7 +791,7 @@ def _build_kuzu_stub() -> ModuleType:
     module = ModuleType("kuzu")
 
     class _Connection:
-        def __init__(self, db: "_Database") -> None:
+        def __init__(self, db: _Database) -> None:
             self._db = db
 
         def execute(self, sql: str) -> None:  # pragma: no cover - simple passthrough
@@ -852,7 +853,7 @@ def _build_faiss_stub() -> ModuleType:
             json.dump(payload, fh)
 
     def read_index(path: str) -> IndexFlatL2:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             payload = json.load(fh)
         idx = IndexFlatL2(payload["dimension"])
         idx._vectors = [list(map(float, vec)) for vec in payload.get("vectors", [])]

@@ -88,7 +88,7 @@ def _install_pytest_stubs(
     monkeypatch: pytest.MonkeyPatch,
     *,
     collect_stdout_sequence: list[str] | None = None,
-) -> tuple[list[dict[str, str]], List[List[str]]]:
+) -> tuple[list[dict[str, str]], list[list[str]]]:
     """Stub pytest execution and track coverage consolidation calls."""
 
     popen_envs: list[dict[str, str]] = []

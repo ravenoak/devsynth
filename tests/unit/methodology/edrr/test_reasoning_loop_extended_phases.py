@@ -13,7 +13,9 @@ from devsynth.methodology.edrr.reasoning_loop import Phase
 
 
 @pytest.mark.fast
-def test_reasoning_loop_preserves_nonstandard_phase_without_hints(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_preserves_nonstandard_phase_without_hints(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Non-standard phases fall back to the refine recorder when no hints are provided."""
 
     call_order: deque[str] = deque()
@@ -29,7 +31,9 @@ def test_reasoning_loop_preserves_nonstandard_phase_without_hints(monkeypatch: p
             return {"status": "running"}
         return {"status": "completed"}
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted_apply)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: scripted_apply
+    )
 
     coordinator = CoordinatorRecorder()
     results = rl.reasoning_loop(
@@ -47,7 +51,9 @@ def test_reasoning_loop_preserves_nonstandard_phase_without_hints(monkeypatch: p
 
 
 @pytest.mark.fast
-def test_reasoning_loop_handles_extended_phase_transitions(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_handles_extended_phase_transitions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Extended phases transition via string hints and continue using refine fallback."""
 
     call_index = 0
@@ -66,7 +72,9 @@ def test_reasoning_loop_handles_extended_phase_transitions(monkeypatch: pytest.M
             return {"status": "running"}
         return {"status": "completed"}
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted_apply)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: scripted_apply
+    )
 
     coordinator = CoordinatorRecorder()
     results = rl.reasoning_loop(

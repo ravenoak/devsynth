@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
-from typing import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 
 import pytest
 
@@ -133,11 +133,11 @@ def coverage_stub_factory(
         measured_files: Sequence[str] | None,
         on_html: CoverageHook | None = None,
         on_json: CoverageHook | None = None,
-        on_load: Callable[["FakeCoverage"], None] | None = None,
+        on_load: Callable[[FakeCoverage], None] | None = None,
     ) -> SimpleNamespace:
         html_calls: list[Path] = []
         json_calls: list[Path] = []
-        instances: list["FakeCoverage"] = []
+        instances: list[FakeCoverage] = []
 
         class FakeCoverage:
             """Test double mimicking the ``coverage.Coverage`` API surface."""

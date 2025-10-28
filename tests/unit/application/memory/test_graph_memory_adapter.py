@@ -6,7 +6,8 @@ import datetime
 import os
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, List
+from collections.abc import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -194,7 +195,7 @@ class TestGraphMemoryAdapter:
             summary=summary,
             citation_url="file://" + str(artifact_path),
             evidence_hash=evidence_hash,
-            published_at=datetime.datetime.now(datetime.timezone.utc),
+            published_at=datetime.datetime.now(datetime.UTC),
             supports=[item_two.id],
             derived_from=[item_one.id],
             archive_path=str(artifact_path),
@@ -271,7 +272,7 @@ class TestGraphMemoryAdapter:
             artifact_path,
             title="Experiment Log",
             citation_url="file://" + str(artifact_path),
-            published_at=datetime.datetime.now(datetime.timezone.utc),
+            published_at=datetime.datetime.now(datetime.UTC),
             supports=[],
             derived_from=[],
         )
@@ -464,8 +465,7 @@ class TestGraphMemoryAdapter:
                             Literal(5),
                         ),
                     ]
-                    for item in items:
-                        yield item
+                    yield from items
 
             return MockQueryResult()
 

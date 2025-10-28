@@ -27,7 +27,7 @@ class TestBaseAgent:
 
         class ConcreteAgent(BaseAgent):
 
-            def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+            def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
                 return {"result": "Processed " + str(inputs.get("input", ""))}
 
         agent = ConcreteAgent()
@@ -80,7 +80,7 @@ class TestBaseAgent:
 
         class ConcreteAgent(BaseAgent):
 
-            def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+            def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
                 return {"result": "Processed"}
 
         agent = ConcreteAgent()
@@ -95,7 +95,7 @@ class TestBaseAgent:
 
         class ConcreteAgent(BaseAgent):
 
-            def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+            def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
                 return {"result": "Processed"}
 
         agent = ConcreteAgent()

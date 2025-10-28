@@ -14,7 +14,8 @@ Key improvements:
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Iterator
+from typing import Dict
+from collections.abc import Iterator
 from unittest.mock import patch
 
 import pytest
@@ -78,7 +79,7 @@ def _test_environment_defaults() -> None:
 
 
 @pytest.fixture(autouse=True)
-def global_test_isolation(monkeypatch, tmp_path) -> Iterator[Dict[str, Path]]:
+def global_test_isolation(monkeypatch, tmp_path) -> Iterator[dict[str, Path]]:
     """
     Provide comprehensive test isolation with simplified implementation.
 
@@ -104,7 +105,7 @@ def global_test_isolation(monkeypatch, tmp_path) -> Iterator[Dict[str, Path]]:
         os.environ.update(original_env)
 
 
-def _create_test_environment(tmp_path: Path, monkeypatch) -> Dict[str, Path]:
+def _create_test_environment(tmp_path: Path, monkeypatch) -> dict[str, Path]:
     """Create isolated test environment with necessary directories."""
     # Create test directory structure
     project_dir = tmp_path / "project"

@@ -25,7 +25,7 @@ class DummyProgress:
         return False
 
     def update(
-        self, *, advance: float = 1, description: Union[str, None] = None
+        self, *, advance: float = 1, description: str | None = None
     ) -> None:
         if description:
             self.description = sanitize_output(description)
@@ -36,7 +36,7 @@ class DummyProgress:
         self.messages.append(f"{self.description} complete")
 
 
-def small_workflow(bridge: Union[CLIUXBridge, APIBridge]) -> list[str]:
+def small_workflow(bridge: CLIUXBridge | APIBridge) -> list[str]:
     """Minimal workflow exercising prompt, confirm and progress."""
     name = bridge.prompt("Name?", default="demo")
     if not bridge.confirm("Proceed?", default=True):

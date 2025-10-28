@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 import types
 from dataclasses import asdict
-from typing import Mapping
+from collections.abc import Mapping
 
 import pytest
 

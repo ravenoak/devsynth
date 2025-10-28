@@ -108,10 +108,10 @@ class TestRDFLibStore:
             store.store(item)
         results = store.search({"memory_type": MemoryType.SHORT_TERM})
         assert len(results) == 2
-        assert all((item.memory_type == MemoryType.SHORT_TERM for item in results))
+        assert all(item.memory_type == MemoryType.SHORT_TERM for item in results)
         results = store.search({"metadata.tag": "test"})
         assert len(results) == 2
-        assert all((item.metadata.get("tag") == "test" for item in results))
+        assert all(item.metadata.get("tag") == "test" for item in results)
         results = store.search({"content": "Content 2"})
         assert len(results) == 1
         assert results[0].content == "Content 2"

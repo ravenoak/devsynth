@@ -29,7 +29,7 @@ class DummyProgress:
         return False
 
     def update(
-        self, *, advance: float = 1, description: Union[str, None] = None
+        self, *, advance: float = 1, description: str | None = None
     ) -> None:
         if description:
             self.description = sanitize_output(description)
@@ -54,7 +54,7 @@ class VoteAgent:
         return {"vote": self.vote}
 
 
-def collaborative_vote_workflow(bridge: Union[CLIUXBridge, APIBridge]) -> list[str]:
+def collaborative_vote_workflow(bridge: CLIUXBridge | APIBridge) -> list[str]:
     """Run a minimal multi-agent voting workflow through a UX bridge."""
 
     team = WSDETeam(name="Team")

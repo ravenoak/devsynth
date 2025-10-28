@@ -11,10 +11,10 @@ from __future__ import annotations
 import importlib.util
 import os
 import sys
+from collections.abc import Iterable, Mapping, Sequence
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from typing import Any
-from collections.abc import Iterable, Mapping, Sequence
 
 import pytest
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Mapping
+from collections.abc import Mapping
 
 import pytest
 

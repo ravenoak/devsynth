@@ -1,7 +1,8 @@
 import json
 import os
 import sys
-from typing import Optional, Sequence
+from typing import Optional
+from collections.abc import Sequence
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,8 +26,8 @@ class DummyBridge(UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         response = self.answers[self.index]
@@ -89,6 +90,6 @@ def run_flow_webui(tmp_project_dir, webui_context):
 def check_interactive_file(tmp_project_dir):
     path = os.path.join(tmp_project_dir, "interactive_requirements.json")
     assert os.path.exists(path)
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     assert data.get("name") == "My Project"

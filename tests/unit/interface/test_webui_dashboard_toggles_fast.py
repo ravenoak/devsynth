@@ -5,7 +5,8 @@ from __future__ import annotations
 import importlib
 import sys
 from types import ModuleType
-from typing import Iterator, Tuple
+from typing import Tuple
+from collections.abc import Iterator
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -14,7 +15,7 @@ from tests.unit.interface.test_webui_enhanced import _mock_streamlit
 
 
 @pytest.fixture
-def reloaded_webui(monkeypatch: pytest.MonkeyPatch) -> Iterator[Tuple[object, object]]:
+def reloaded_webui(monkeypatch: pytest.MonkeyPatch) -> Iterator[tuple[object, object]]:
     """Reload ``devsynth.interface.webui`` with a deterministic Streamlit stub."""
 
     st = _mock_streamlit()
@@ -102,7 +103,7 @@ def reloaded_webui(monkeypatch: pytest.MonkeyPatch) -> Iterator[Tuple[object, ob
 
 @pytest.mark.fast
 def test_webui_layout_breakpoints_toggle_between_modes(
-    reloaded_webui: Tuple[object, object],
+    reloaded_webui: tuple[object, object],
 ) -> None:
     """Mobile, tablet, and desktop dashboards set distinct layout toggles."""
 
@@ -130,7 +131,7 @@ def test_webui_layout_breakpoints_toggle_between_modes(
 
 @pytest.mark.fast
 def test_webui_error_guidance_surfaces_suggestions_and_docs(
-    reloaded_webui: Tuple[object, object],
+    reloaded_webui: tuple[object, object],
 ) -> None:
     """Error rendering includes guidance and documentation links for dashboard users."""
 

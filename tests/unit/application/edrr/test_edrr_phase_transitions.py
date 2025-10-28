@@ -78,10 +78,8 @@ class TestPhaseTransitionMetrics:
         should_transition, reasons = self.metrics.should_transition(phase)
         assert should_transition is True
         assert all(
-            (
                 "Meets threshold" in reason or "within threshold" in reason
                 for reason in reasons.values()
-            )
         )
 
     @pytest.mark.medium

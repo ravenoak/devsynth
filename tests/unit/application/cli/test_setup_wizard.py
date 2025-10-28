@@ -131,7 +131,7 @@ def test_setup_wizard_run_succeeds(tmp_path, monkeypatch) -> None:
     assert cfg.config.memory_store_type == "kuzu"
     assert cfg.config.offline_mode is True
     assert cfg.config.features["wsde_collaboration"] is True
-    assert any(("Initialization complete" in msg for msg in bridge.messages))
+    assert any("Initialization complete" in msg for msg in bridge.messages)
 
 
 def test_setup_wizard_abort_succeeds(tmp_path, monkeypatch) -> None:
@@ -146,7 +146,7 @@ def test_setup_wizard_abort_succeeds(tmp_path, monkeypatch) -> None:
     wizard.run()
     cfg_file = tmp_path / ".devsynth" / "project.yaml"
     assert not cfg_file.exists()
-    assert any(("Initialization aborted" in msg for msg in bridge.messages))
+    assert any("Initialization aborted" in msg for msg in bridge.messages)
 
 
 def test_prompt_features_uses_prompt_toolkit_multiselect(monkeypatch) -> None:

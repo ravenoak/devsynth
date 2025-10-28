@@ -1,6 +1,7 @@
 """Property-based tests for recursion termination in the EDRRCoordinator."""
 
-from typing import Any, Callable, cast
+from typing import Any, cast
+from collections.abc import Callable
 from unittest.mock import MagicMock, patch
 
 import pytest

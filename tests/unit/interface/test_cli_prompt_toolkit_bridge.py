@@ -9,7 +9,6 @@ from rich.text import Text
 
 from devsynth.interface.cli import CLIUXBridge
 
-
 pytestmark = [pytest.mark.fast]
 
 
@@ -36,7 +35,9 @@ def test_cli_ask_question_uses_prompt_toolkit(monkeypatch: pytest.MonkeyPatch) -
     assert result == "safe-picked"
 
 
-def test_cli_confirm_choice_uses_prompt_toolkit(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_confirm_choice_uses_prompt_toolkit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """confirm_choice should return the adapter's boolean response."""
 
     bridge = CLIUXBridge()

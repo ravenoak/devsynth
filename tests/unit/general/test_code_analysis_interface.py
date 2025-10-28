@@ -32,16 +32,16 @@ class TestCodeAnalysisInterface(unittest.TestCase):
                 self.dependencies = {}
                 self.metrics = {}
 
-            def get_file_analysis(self, file_path: str) -> Optional[FileAnalysisResult]:
+            def get_file_analysis(self, file_path: str) -> FileAnalysisResult | None:
                 return self.files.get(file_path)
 
-            def get_symbol_references(self, symbol_name: str) -> List[Dict[str, Any]]:
+            def get_symbol_references(self, symbol_name: str) -> list[dict[str, Any]]:
                 return self.symbols.get(symbol_name, [])
 
-            def get_dependencies(self, module_name: str) -> List[str]:
+            def get_dependencies(self, module_name: str) -> list[str]:
                 return self.dependencies.get(module_name, [])
 
-            def get_metrics(self) -> Dict[str, Any]:
+            def get_metrics(self) -> dict[str, Any]:
                 return self.metrics
 
         result = FakeResult()
@@ -70,22 +70,22 @@ class TestCodeAnalysisInterface(unittest.TestCase):
                 self.docstring = ""
                 self.metrics = {}
 
-            def get_imports(self) -> List[Dict[str, Any]]:
+            def get_imports(self) -> list[dict[str, Any]]:
                 return self.imports
 
-            def get_classes(self) -> List[Dict[str, Any]]:
+            def get_classes(self) -> list[dict[str, Any]]:
                 return self.classes
 
-            def get_functions(self) -> List[Dict[str, Any]]:
+            def get_functions(self) -> list[dict[str, Any]]:
                 return self.functions
 
-            def get_variables(self) -> List[Dict[str, Any]]:
+            def get_variables(self) -> list[dict[str, Any]]:
                 return self.variables
 
             def get_docstring(self) -> str:
                 return self.docstring
 
-            def get_metrics(self) -> Dict[str, Any]:
+            def get_metrics(self) -> dict[str, Any]:
                 return self.metrics
 
         file_result = FakeFileResult()

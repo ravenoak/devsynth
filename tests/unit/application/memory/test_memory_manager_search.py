@@ -52,7 +52,7 @@ class TestMemoryManagerSearch:
         self,
         manager: MemoryManager,
         text: str,
-        memory_type: Union[MemoryType, str],
+        memory_type: MemoryType | str,
         **metadata,
     ):
         embedding = manager._embed_text(text)
@@ -95,4 +95,4 @@ class TestMemoryManagerSearch:
         )
         assert len(results) == 2
         assert all(isinstance(record, MemoryRecord) for record in results)
-        assert all((record.metadata.get("category") == "fruit" for record in results))
+        assert all(record.metadata.get("category") == "fruit" for record in results)
