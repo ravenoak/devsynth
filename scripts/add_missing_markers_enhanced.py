@@ -159,9 +159,9 @@ def load_progress(progress_file):
     """Load the test categorization progress."""
     if os.path.exists(progress_file):
         try:
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error loading progress file: {e}")
             return {"tests": {}, "categorized_tests": {}, "last_date": None}
     return {"tests": {}, "categorized_tests": {}, "last_date": None}
@@ -176,7 +176,7 @@ def save_progress(progress, progress_file):
 
 def collect_unmarked_tests(
     category: str = "all", module: str = None, use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect tests without speed markers.
 
@@ -220,7 +220,7 @@ def collect_unmarked_tests(
     return unmarked_tests
 
 
-def prioritize_tests(tests: List[str], priority_modules: List[str]) -> List[str]:
+def prioritize_tests(tests: list[str], priority_modules: list[str]) -> list[str]:
     """
     Prioritize tests based on module priority.
 
@@ -243,7 +243,7 @@ def prioritize_tests(tests: List[str], priority_modules: List[str]) -> List[str]
     return high_priority + normal_priority
 
 
-def run_test_batch(batch: List[str], timeout: int = 60) -> Dict[str, float]:
+def run_test_batch(batch: list[str], timeout: int = 60) -> dict[str, float]:
     """
     Run a batch of tests and measure execution time.
 
@@ -311,7 +311,7 @@ def determine_speed_category(
         return "slow"
 
 
-def extract_base_test_name(test_path: str) -> Tuple[str, str, str]:
+def extract_base_test_name(test_path: str) -> tuple[str, str, str]:
     """
     Extract the base test name from a test path, handling parameterized tests.
 
@@ -364,7 +364,7 @@ def add_marker_to_file(
     marker: str,
     dry_run: bool = True,
     verbose: bool = False,
-) -> Tuple[bool, bool]:
+) -> tuple[bool, bool]:
     """
     Add a speed marker to a test file.
 
@@ -381,7 +381,7 @@ def add_marker_to_file(
         - file_modified: Whether the file was actually modified
     """
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Check if the file already has pytest imported

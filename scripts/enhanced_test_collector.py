@@ -36,7 +36,7 @@ import enhanced_test_parser
 TEST_CATEGORIES = common_test_collector.TEST_CATEGORIES
 
 
-def collect_tests_by_category(category: str, use_cache: bool = True) -> List[str]:
+def collect_tests_by_category(category: str, use_cache: bool = True) -> list[str]:
     """
     Collect tests by category using the appropriate parser.
 
@@ -56,7 +56,7 @@ def collect_tests_by_category(category: str, use_cache: bool = True) -> List[str
     return common_test_collector.collect_tests_by_category(category, use_cache)
 
 
-def collect_tests(use_cache: bool = True) -> Dict[str, List[str]]:
+def collect_tests(use_cache: bool = True) -> dict[str, list[str]]:
     """
     Collect all tests in the project, organized by category.
 
@@ -76,8 +76,8 @@ def collect_tests(use_cache: bool = True) -> Dict[str, List[str]]:
 
 
 def get_tests_with_markers(
-    marker_types: List[str] = ["fast", "medium", "slow"], use_cache: bool = True
-) -> Dict[str, Dict[str, List[str]]]:
+    marker_types: list[str] = ["fast", "medium", "slow"], use_cache: bool = True
+) -> dict[str, dict[str, list[str]]]:
     """
     Get tests with specific markers, organized by category.
 
@@ -115,7 +115,7 @@ def get_tests_with_markers(
     return tests_with_markers
 
 
-def get_marker_counts(use_cache: bool = True) -> Dict[str, Dict[str, int]]:
+def get_marker_counts(use_cache: bool = True) -> dict[str, dict[str, int]]:
     """
     Get counts of tests with specific markers, organized by category.
 
@@ -153,8 +153,8 @@ def get_marker_counts(use_cache: bool = True) -> Dict[str, Dict[str, int]]:
 
 
 def check_test_has_marker(
-    test_path: str, marker_types: List[str] = ["fast", "medium", "slow"]
-) -> Tuple[bool, Optional[str]]:
+    test_path: str, marker_types: list[str] = ["fast", "medium", "slow"]
+) -> tuple[bool, str | None]:
     """
     Check if a test has a specific marker.
 
@@ -190,7 +190,7 @@ def check_test_has_marker(
     return common_test_collector.check_test_has_marker(test_path, marker_types)
 
 
-def verify_test_counts(use_cache: bool = True) -> Dict[str, Any]:
+def verify_test_counts(use_cache: bool = True) -> dict[str, Any]:
     """
     Verify test counts between different collection methods.
 
@@ -235,7 +235,7 @@ def verify_test_counts(use_cache: bool = True) -> Dict[str, Any]:
     return results
 
 
-def verify_marker_detection(use_cache: bool = True) -> Dict[str, Any]:
+def verify_marker_detection(use_cache: bool = True) -> dict[str, Any]:
     """
     Verify marker detection between different collection methods.
 
@@ -323,7 +323,7 @@ def verify_marker_detection(use_cache: bool = True) -> Dict[str, Any]:
     return results
 
 
-def generate_test_isolation_report(directory: str = "tests") -> Dict[str, Any]:
+def generate_test_isolation_report(directory: str = "tests") -> dict[str, Any]:
     """
     Generate a report on test isolation issues.
 

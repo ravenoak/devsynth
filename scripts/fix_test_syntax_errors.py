@@ -16,7 +16,7 @@ import sys
 from typing import Dict, List, Optional, Tuple
 
 
-def find_test_files(base_dir: str) -> List[str]:
+def find_test_files(base_dir: str) -> list[str]:
     """Find all Python test files in the given directory."""
     test_files = []
     for root, _, files in os.walk(base_dir):
@@ -26,9 +26,9 @@ def find_test_files(base_dir: str) -> List[str]:
     return test_files
 
 
-def check_file_syntax(file_path: str) -> Tuple[bool, Optional[str]]:
+def check_file_syntax(file_path: str) -> tuple[bool, str | None]:
     """Check if a file has syntax errors."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     try:
@@ -40,7 +40,7 @@ def check_file_syntax(file_path: str) -> Tuple[bool, Optional[str]]:
 
 def fix_common_syntax_errors(file_path: str) -> bool:
     """Fix common syntax errors in a file."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     original_content = content

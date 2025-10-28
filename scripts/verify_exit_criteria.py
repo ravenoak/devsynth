@@ -12,10 +12,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-Command = Tuple[List[str], str]  # (argv, artifact path for stdout tee)
+Command = tuple[list[str], str]  # (argv, artifact path for stdout tee)
 
 
-def run_and_capture(cmd: List[str], artifact_path: str) -> int:
+def run_and_capture(cmd: list[str], artifact_path: str) -> int:
     p = Path(artifact_path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", encoding="utf-8") as out:
@@ -57,7 +57,7 @@ def main() -> int:
     diagnostics = Path("diagnostics")
     diagnostics.mkdir(exist_ok=True)
 
-    steps: Dict[str, Command] = {
+    steps: dict[str, Command] = {
         # Marker verification
         "marker_verification": (
             [
@@ -149,12 +149,12 @@ def main() -> int:
         ),
     }
 
-    results: Dict[str, Any] = {
+    results: dict[str, Any] = {
         "started": datetime.now(timezone.utc).isoformat(),
         "steps": {},
     }
     overall_rc = 0
-    artifacts: List[str] = []
+    artifacts: list[str] = []
 
     for name, (argv, artifact) in steps.items():
         rc = run_and_capture(argv, artifact)

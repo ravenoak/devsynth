@@ -87,7 +87,7 @@ def parse_args():
 
 def collect_tests(
     test_dir: str, category: str = "all", speed: str = "all"
-) -> List[str]:
+) -> list[str]:
     """
     Collect all tests in the given directory.
 
@@ -139,7 +139,7 @@ def collect_tests(
         return []
 
 
-def load_test_history(history_file: str) -> Dict[str, Dict[str, Any]]:
+def load_test_history(history_file: str) -> dict[str, dict[str, Any]]:
     """
     Load test failure history from file.
 
@@ -151,7 +151,7 @@ def load_test_history(history_file: str) -> Dict[str, Dict[str, Any]]:
     """
     if os.path.exists(history_file):
         try:
-            with open(history_file, "r") as f:
+            with open(history_file) as f:
                 return json.load(f)
         except json.JSONDecodeError:
             print(f"Error loading history file {history_file}, creating new history")
@@ -161,7 +161,7 @@ def load_test_history(history_file: str) -> Dict[str, Dict[str, Any]]:
         return {}
 
 
-def save_test_history(history: Dict[str, Dict[str, Any]], history_file: str):
+def save_test_history(history: dict[str, dict[str, Any]], history_file: str):
     """
     Save test failure history to file.
 
@@ -190,7 +190,7 @@ def reset_test_history(history_file: str):
         print(f"History file {history_file} not found, nothing to reset")
 
 
-def calculate_failure_probability(test_history: Dict[str, Any]) -> float:
+def calculate_failure_probability(test_history: dict[str, Any]) -> float:
     """
     Calculate the probability of a test failing based on its history.
 
@@ -237,8 +237,8 @@ def calculate_failure_probability(test_history: Dict[str, Any]) -> float:
 
 
 def prioritize_tests(
-    tests: List[str], history: Dict[str, Dict[str, Any]]
-) -> List[Tuple[str, float]]:
+    tests: list[str], history: dict[str, dict[str, Any]]
+) -> list[tuple[str, float]]:
     """
     Prioritize tests based on their failure history.
 
@@ -275,8 +275,8 @@ def prioritize_tests(
 
 
 def run_tests(
-    prioritized_tests: List[Tuple[str, float]], args
-) -> Tuple[int, Dict[str, bool]]:
+    prioritized_tests: list[tuple[str, float]], args
+) -> tuple[int, dict[str, bool]]:
     """
     Run the prioritized tests.
 
@@ -360,8 +360,8 @@ def run_tests(
 
 
 def update_test_history(
-    history: Dict[str, Dict[str, Any]], test_results: Dict[str, bool]
-) -> Dict[str, Dict[str, Any]]:
+    history: dict[str, dict[str, Any]], test_results: dict[str, bool]
+) -> dict[str, dict[str, Any]]:
     """
     Update the test failure history based on test results.
 

@@ -111,7 +111,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def count_tests_by_category(use_cache: bool = True) -> Dict[str, int]:
+def count_tests_by_category(use_cache: bool = True) -> dict[str, int]:
     """
     Count tests by category (unit, integration, behavior, etc.).
 
@@ -132,11 +132,11 @@ def count_tests_by_category(use_cache: bool = True) -> Dict[str, int]:
     ):
         try:
             # Check if cache is recent (less than 24 hours old)
-            with open(cache_timestamp_file, "r") as f:
+            with open(cache_timestamp_file) as f:
                 timestamp = float(f.read().strip())
 
             if time.time() - timestamp < 86400:  # 24 hours in seconds
-                with open(cache_file, "r") as f:
+                with open(cache_file) as f:
                     counts = json.load(f)
                     print(
                         "Using cached test counts by category (less than 24 hours old)"
@@ -179,8 +179,8 @@ def count_tests_by_category(use_cache: bool = True) -> Dict[str, int]:
 
 
 def count_tests_by_speed(
-    use_cache: bool = True, category_counts: Dict[str, int] = None
-) -> Dict[str, int]:
+    use_cache: bool = True, category_counts: dict[str, int] = None
+) -> dict[str, int]:
     """
     Count tests by speed category (fast, medium, slow).
 
@@ -202,11 +202,11 @@ def count_tests_by_speed(
     ):
         try:
             # Check if cache is recent (less than 24 hours old)
-            with open(cache_timestamp_file, "r") as f:
+            with open(cache_timestamp_file) as f:
                 timestamp = float(f.read().strip())
 
             if time.time() - timestamp < 86400:  # 24 hours in seconds
-                with open(cache_file, "r") as f:
+                with open(cache_file) as f:
                     counts = json.load(f)
                     print("Using cached test counts by speed (less than 24 hours old)")
                     return counts
@@ -249,7 +249,7 @@ def count_tests_by_speed(
     return counts
 
 
-def _run_with_memory(cmd: List[str]) -> Tuple[str, str, float]:
+def _run_with_memory(cmd: list[str]) -> tuple[str, str, float]:
     """Run a command and track peak memory usage.
 
     Args:
@@ -289,7 +289,7 @@ def identify_failing_tests(
     segment: bool = True,
     segment_size: int = 50,
     use_cache: bool = True,
-) -> Tuple[Dict[str, List[str]], Dict[str, float]]:
+) -> tuple[dict[str, list[str]], dict[str, float]]:
     """
     Run tests to identify failing tests.
 
@@ -313,11 +313,11 @@ def identify_failing_tests(
     ):
         try:
             # Check if cache is recent (less than 1 hour old)
-            with open(cache_timestamp_file, "r") as f:
+            with open(cache_timestamp_file) as f:
                 timestamp = float(f.read().strip())
 
             if time.time() - timestamp < 3600:  # 1 hour in seconds
-                with open(cache_file, "r") as f:
+                with open(cache_file) as f:
                     failing_tests = json.load(f)
                     print("Using cached failing tests (less than 1 hour old)")
                     return failing_tests
@@ -330,8 +330,8 @@ def identify_failing_tests(
             pass
 
     print("Identifying failing tests...")
-    failing_tests: Dict[str, List[str]] = {}
-    memory_usage: Dict[str, float] = {}
+    failing_tests: dict[str, list[str]] = {}
+    memory_usage: dict[str, float] = {}
 
     for category, path in TEST_CATEGORIES.items():
         if not os.path.exists(path):
@@ -357,7 +357,7 @@ def identify_failing_tests(
 
             try:
                 # Run tests in batches
-                failing: List[str] = []
+                failing: list[str] = []
                 for i in range(0, len(test_list), segment_size):
                     batch = test_list[i : i + segment_size]
                     print(
@@ -420,7 +420,7 @@ def identify_failing_tests(
                 stdout, _, peak = _run_with_memory(cmd)
 
                 # Parse the output to get failing tests
-                failing: List[str] = []
+                failing: list[str] = []
                 for line in stdout.split("\n"):
                     if "FAILED" in line:
                         match = re.search(r"(test_\w+\.py::[\w:]+)", line)
@@ -445,7 +445,7 @@ def identify_failing_tests(
     return failing_tests, memory_usage
 
 
-def calculate_coverage(speed: str | None = None) -> Dict[str, float]:
+def calculate_coverage(speed: str | None = None) -> dict[str, float]:
     """Calculate test coverage metrics for an optional speed selection."""
     coverage = {
         "line_coverage": 0.0,
@@ -483,7 +483,7 @@ def calculate_coverage(speed: str | None = None) -> Dict[str, float]:
     return coverage
 
 
-def generate_report(args) -> Dict[str, Any]:
+def generate_report(args) -> dict[str, Any]:
     """
     Generate a comprehensive test metrics report.
 
@@ -534,14 +534,14 @@ def generate_report(args) -> Dict[str, Any]:
     return report
 
 
-def save_json_report(report: Dict[str, Any], filename: str):
+def save_json_report(report: dict[str, Any], filename: str):
     """Save the report as a JSON file."""
     with open(filename, "w") as f:
         json.dump(report, f, indent=2)
     print(f"Report saved to {filename}")
 
 
-def generate_html_report(report: Dict[str, Any], filename: str):
+def generate_html_report(report: dict[str, Any], filename: str):
     """Generate an HTML report from the metrics data."""
     html = f"""
     <!DOCTYPE html>
@@ -672,7 +672,7 @@ def clear_cache():
         print("No cache directory found.")
 
 
-def create_issues_for_failing_tests(failing_tests: Dict[str, List[str]]) -> List[Path]:
+def create_issues_for_failing_tests(failing_tests: dict[str, list[str]]) -> list[Path]:
     """Create issue files for failing tests when their total count is below 50."""
     total = sum(len(t) for t in failing_tests.values())
     if total == 0 or total >= 50:
@@ -682,7 +682,7 @@ def create_issues_for_failing_tests(failing_tests: Dict[str, List[str]]) -> List
     issue_dir.mkdir(exist_ok=True)
     existing = [int(p.stem) for p in issue_dir.glob("*.md") if p.stem.isdigit()]
     next_number = max(existing) + 1 if existing else 1
-    created: List[Path] = []
+    created: list[Path] = []
     for tests in failing_tests.values():
         for test in tests:
             issue_path = issue_dir / f"{next_number}.md"
@@ -698,7 +698,7 @@ def create_issues_for_failing_tests(failing_tests: Dict[str, List[str]]) -> List
     return created
 
 
-def generate_report(args) -> Dict[str, Any]:
+def generate_report(args) -> dict[str, Any]:
     """
     Generate a comprehensive test metrics report based on command-line arguments.
 
@@ -737,8 +737,8 @@ def generate_report(args) -> Dict[str, Any]:
             speed_counts = {args.speed: 0}
 
     # Identify failing tests if requested
-    failing_tests: Dict[str, List[str]] = {}
-    memory_usage: Dict[str, Any] = {}
+    failing_tests: dict[str, list[str]] = {}
+    memory_usage: dict[str, Any] = {}
     if args.run_tests:
         parallel = not args.no_parallel
         segment = args.segment
@@ -757,13 +757,13 @@ def generate_report(args) -> Dict[str, Any]:
             else:
                 failing_tests = {args.category: []}
 
-    created_issues: List[Path] = []
+    created_issues: list[Path] = []
     if failing_tests:
         created_issues = create_issues_for_failing_tests(failing_tests)
 
     coverage = {"line_coverage": 0.0, "branch_coverage": 0.0}
-    coverage_by_speed: Dict[str, float] = {}
-    coverage_failures: List[str] = []
+    coverage_by_speed: dict[str, float] = {}
+    coverage_failures: list[str] = []
     if not args.skip_coverage:
         print("Calculating coverage metrics...")
         coverage = calculate_coverage()

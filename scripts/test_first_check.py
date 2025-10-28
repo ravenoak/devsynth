@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Set, Tuple
 
 
-def get_staged_files() -> List[str]:
+def get_staged_files() -> list[str]:
     """Get a list of staged files from git."""
     result = subprocess.run(
         ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
@@ -22,7 +22,7 @@ def get_staged_files() -> List[str]:
     return result.stdout.strip().split("\n")
 
 
-def get_modified_python_files(staged_files: List[str]) -> List[str]:
+def get_modified_python_files(staged_files: list[str]) -> list[str]:
     """Filter the list of staged files to only include Python files in src/."""
     return [
         file
@@ -33,7 +33,7 @@ def get_modified_python_files(staged_files: List[str]) -> List[str]:
     ]
 
 
-def get_expected_test_files(python_files: List[str]) -> List[str]:
+def get_expected_test_files(python_files: list[str]) -> list[str]:
     """Get the expected test files for the given Python files."""
     expected_test_files = []
     for file in python_files:
@@ -62,8 +62,8 @@ def get_expected_test_files(python_files: List[str]) -> List[str]:
 
 
 def check_test_files_exist(
-    expected_test_files: List[str], staged_files: List[str]
-) -> Tuple[bool, List[str]]:
+    expected_test_files: list[str], staged_files: list[str]
+) -> tuple[bool, list[str]]:
     """Check if the expected test files exist or are staged."""
     missing_tests = []
     for test_file in expected_test_files:
@@ -74,7 +74,7 @@ def check_test_files_exist(
     return len(missing_tests) == 0, missing_tests
 
 
-def main(filenames: List[str]) -> int:
+def main(filenames: list[str]) -> int:
     """Main function to check if tests exist for the given files."""
     if not filenames:
         return 0

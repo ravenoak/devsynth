@@ -39,8 +39,8 @@ def _stable_env() -> None:
     os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "10")
 
 
-def _parse_failed_tests(output: str) -> Set[str]:
-    failed: Set[str] = set()
+def _parse_failed_tests(output: str) -> set[str]:
+    failed: set[str] = set()
     # Common patterns include lines like:
     #   FAILED tests/unit/foo/test_bar.py::test_baz - AssertionError: ...
     #   === 1 failed, 2 passed in 0.12s ===
@@ -59,7 +59,7 @@ def _parse_failed_tests(output: str) -> Set[str]:
     return failed
 
 
-def _run_fast_suite() -> Tuple[bool, str, Set[str]]:
+def _run_fast_suite() -> tuple[bool, str, set[str]]:
     success, output = run_tests(
         target="all-tests",
         speed_categories=["fast"],
@@ -86,7 +86,7 @@ def main() -> int:
     print(f"[identify_flaky_tests] Pass #2 success={s2}, failures={len(f2)}")
 
     # Flaky candidates are tests that failed in only one of the runs
-    flaky = sorted(list((f1 ^ f2)))
+    flaky = sorted(list(f1 ^ f2))
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     report_dir = Path("test_reports")

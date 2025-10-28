@@ -60,7 +60,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_all_test_files() -> List[str]:
+def find_all_test_files() -> list[str]:
     """
     Find all test files in the project.
 
@@ -80,7 +80,7 @@ def find_all_test_files() -> List[str]:
     return test_files
 
 
-def find_test_functions_in_file(file_path: str) -> List[str]:
+def find_test_functions_in_file(file_path: str) -> list[str]:
     """
     Find all test functions in a file.
 
@@ -93,7 +93,7 @@ def find_test_functions_in_file(file_path: str) -> List[str]:
     test_functions = []
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Find all test functions (both standalone and class-based)
@@ -123,7 +123,7 @@ def find_test_functions_in_file(file_path: str) -> List[str]:
 
 def analyze_apply_speed_markers(
     test_path: str, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Analyze how apply_speed_markers.py would handle a test.
 
@@ -146,7 +146,7 @@ def analyze_apply_speed_markers(
 
     # Read the file content
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
     except Exception as e:
         return {"error": f"Error reading file {file_path}: {e}"}
@@ -228,7 +228,7 @@ def analyze_apply_speed_markers(
 
 def analyze_common_test_collector(
     test_path: str, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Analyze how common_test_collector.py would handle a test.
 
@@ -254,8 +254,8 @@ def analyze_common_test_collector(
 
 
 def compare_analyses(
-    apply_analysis: Dict[str, Any], collector_analysis: Dict[str, Any]
-) -> Dict[str, Any]:
+    apply_analysis: dict[str, Any], collector_analysis: dict[str, Any]
+) -> dict[str, Any]:
     """
     Compare the analyses from apply_speed_markers.py and common_test_collector.py.
 
@@ -305,7 +305,7 @@ def compare_analyses(
 
 
 def determine_discrepancy_type(
-    apply_analysis: Dict[str, Any], collector_analysis: Dict[str, Any]
+    apply_analysis: dict[str, Any], collector_analysis: dict[str, Any]
 ) -> str:
     """
     Determine the type of discrepancy between apply_speed_markers.py and common_test_collector.py.

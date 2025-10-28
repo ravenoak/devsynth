@@ -119,7 +119,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def collect_all_test_modules() -> List[str]:
+def collect_all_test_modules() -> list[str]:
     """
     Collect all test modules in the project.
 
@@ -182,7 +182,7 @@ def count_tests_in_module(module_path: str) -> int:
     return test_count
 
 
-def count_categorized_tests_in_module(module_path: str) -> Tuple[int, Dict[str, int]]:
+def count_categorized_tests_in_module(module_path: str) -> tuple[int, dict[str, int]]:
     """
     Count the number of tests in a module that have speed markers, using a more accurate approach.
 
@@ -200,7 +200,7 @@ def count_categorized_tests_in_module(module_path: str) -> Tuple[int, Dict[str, 
     return categorized_count, marker_counts
 
 
-def generate_schedule(args) -> Dict[str, Any]:
+def generate_schedule(args) -> dict[str, Any]:
     """
     Generate a schedule for categorizing remaining tests.
 
@@ -314,7 +314,7 @@ def generate_schedule(args) -> Dict[str, Any]:
     return schedule
 
 
-def save_schedule(schedule: Dict[str, Any], dry_run: bool = False) -> None:
+def save_schedule(schedule: dict[str, Any], dry_run: bool = False) -> None:
     """
     Save the schedule to a file.
 
@@ -330,7 +330,7 @@ def save_schedule(schedule: Dict[str, Any], dry_run: bool = False) -> None:
     test_utils_ext.save_schedule_file(schedule, SCHEDULE_FILE)
 
 
-def load_schedule() -> Dict[str, Any]:
+def load_schedule() -> dict[str, Any]:
     """
     Load the schedule from a file.
 

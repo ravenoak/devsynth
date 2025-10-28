@@ -125,7 +125,7 @@ def get_test_directory(category: str) -> str:
 
 def collect_tests(
     test_dir: str, speed: str = "all", use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect all tests in the given directory.
 
@@ -195,7 +195,7 @@ def collect_tests(
 
 def _collect_tests_fallback(
     test_dir: str, speed: str = "all", use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Fallback method to collect tests using pytest directly.
     Used for non-standard test directories that don't match the known categories.
@@ -217,7 +217,7 @@ def _collect_tests_fallback(
 
     if use_cache and os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
 
             # Use cache if it's less than 1 hour old
@@ -268,8 +268,8 @@ def _collect_tests_fallback(
 
 
 def run_tests(
-    tests: List[str], args, xml_report: Optional[str] = None
-) -> Tuple[int, Dict[str, bool]]:
+    tests: list[str], args, xml_report: str | None = None
+) -> tuple[int, dict[str, bool]]:
     """
     Run the specified tests.
 
@@ -346,8 +346,8 @@ def run_tests(
 
 
 def run_tests_in_segments(
-    tests: List[str], args, segment_size: int = 50, xml_report: Optional[str] = None
-) -> Tuple[int, Dict[str, bool]]:
+    tests: list[str], args, segment_size: int = 50, xml_report: str | None = None
+) -> tuple[int, dict[str, bool]]:
     """
     Run tests in smaller batches to improve performance.
 
@@ -470,7 +470,7 @@ def clear_all_caches(
 
 def measure_test_time(
     test_path: str, timeout: int = 30, use_cache: bool = True
-) -> Tuple[float, bool, bool]:
+) -> tuple[float, bool, bool]:
     """
     Measure the execution time of a single test.
 
@@ -488,7 +488,7 @@ def measure_test_time(
 
     if use_cache and os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
 
             # Use cache if it's less than 24 hours old

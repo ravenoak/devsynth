@@ -20,7 +20,7 @@ Exit codes:
 from __future__ import annotations
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 
 def _fail(msg: str) -> None:

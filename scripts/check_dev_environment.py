@@ -25,10 +25,10 @@ class CheckResult:
     name: str
     ok: bool
     details: str = ""
-    hint: Optional[str] = None
+    hint: str | None = None
 
 
-def run(cmd: List[str]) -> tuple[int, str, str]:
+def run(cmd: list[str]) -> tuple[int, str, str]:
     try:
         proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
         return proc.returncode, proc.stdout.strip(), proc.stderr.strip()

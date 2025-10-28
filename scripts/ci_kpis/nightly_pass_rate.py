@@ -31,7 +31,7 @@ def ensure_parent(path: pathlib.Path) -> None:
 
 def write_placeholder(reason: str) -> None:
     ensure_parent(OUTPUT)
-    data: Dict[str, Any] = {
+    data: dict[str, Any] = {
         "workflow": os.getenv("WORKFLOW_NAME", "ci_nightly_providers"),
         "rolling_n": int(os.getenv("ROLLING_N", "20")),
         "pass_rate": None,

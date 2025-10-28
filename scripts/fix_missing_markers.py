@@ -62,7 +62,7 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def _ensure_pytest_import(lines: List[str]) -> Tuple[List[str], bool]:
+def _ensure_pytest_import(lines: list[str]) -> tuple[list[str], bool]:
     # Ensure pytest is imported; if not, add `import pytest` after module docstring or shebang
     has_import = any(PYTEST_MARK_IMPORT.search(l) for l in lines)
     if has_import:
@@ -85,13 +85,13 @@ def _ensure_pytest_import(lines: List[str]) -> Tuple[List[str], bool]:
     return new_lines, True
 
 
-def _insert_marker_above(lines: List[str], idx: int) -> None:
+def _insert_marker_above(lines: list[str], idx: int) -> None:
     # Insert @pytest.mark.medium above function def, respecting indentation
     indent = len(lines[idx]) - len(lines[idx].lstrip(" "))
     lines.insert(idx, " " * indent + "@pytest.mark.medium\n")
 
 
-def _file_has_module_level_speed_marker(lines: List[str]) -> bool:
+def _file_has_module_level_speed_marker(lines: list[str]) -> bool:
     # We do not add/alter module-level speed markers; verifier will flag them elsewhere.
     # Here, we just detect them to avoid false positives when counting missing markers.
     for line in lines:
@@ -102,15 +102,15 @@ def _file_has_module_level_speed_marker(lines: List[str]) -> bool:
 
 def process_file(
     path: Path, dry_run: bool = False, verbose: bool = False
-) -> Tuple[bool, int]:
+) -> tuple[bool, int]:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines(keepends=True)
 
     # Optionally use collector to find tests and whether they already have markers
-    test_functions: List[Tuple[int, str]] = []  # (line_index, func_name)
+    test_functions: list[tuple[int, str]] = []  # (line_index, func_name)
 
     # Simple parse: track class context for class-based tests; still fine for decorator insertion
-    class_stack: List[str] = []
+    class_stack: list[str] = []
     for i, line in enumerate(lines):
         class_m = CLASS_DEF_PATTERN.match(line)
         if class_m:
@@ -130,7 +130,7 @@ def process_file(
         return False, 0
 
     # Determine which need markers
-    inserts: List[int] = []
+    inserts: list[int] = []
     for idx, name in test_functions:
         # Walk upwards skipping blank lines and comments to see if a speed marker already exists immediately above
         j = idx - 1
@@ -198,10 +198,10 @@ def process_file(
     return True, len(adjusted_inserts)
 
 
-def discover_targets(root: Path) -> List[Path]:
+def discover_targets(root: Path) -> list[Path]:
     if root.is_file():
         return [root] if root.suffix == ".py" else []
-    paths: List[Path] = []
+    paths: list[Path] = []
     for p in root.rglob("test_*.py"):
         if "/.venv/" in str(p) or "__pycache__" in str(p.parts):
             continue
@@ -216,7 +216,7 @@ def main() -> int:
     if args.verbose:
         print(f"Scanning {len(files)} files under {target}")
     total_added = 0
-    modified_files: List[str] = []
+    modified_files: list[str] = []
 
     for f in files:
         try:

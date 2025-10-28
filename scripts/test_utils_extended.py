@@ -48,7 +48,7 @@ TEST_CATEGORIES = {
 }
 
 
-def load_progress_file(file_path: str = PROGRESS_FILE) -> Dict[str, Any]:
+def load_progress_file(file_path: str = PROGRESS_FILE) -> dict[str, Any]:
     """
     Load the test categorization progress file.
 
@@ -60,7 +60,7 @@ def load_progress_file(file_path: str = PROGRESS_FILE) -> Dict[str, Any]:
     """
     if os.path.exists(file_path):
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 return json.load(f)
         except json.JSONDecodeError:
             print(f"Error loading progress file {file_path}, creating new progress")
@@ -85,7 +85,7 @@ def load_progress_file(file_path: str = PROGRESS_FILE) -> Dict[str, Any]:
         }
 
 
-def load_schedule_file(file_path: str = SCHEDULE_FILE) -> Dict[str, Any]:
+def load_schedule_file(file_path: str = SCHEDULE_FILE) -> dict[str, Any]:
     """
     Load the test categorization schedule file.
 
@@ -97,7 +97,7 @@ def load_schedule_file(file_path: str = SCHEDULE_FILE) -> Dict[str, Any]:
     """
     if os.path.exists(file_path):
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 return json.load(f)
         except json.JSONDecodeError:
             print(f"Error loading schedule file {file_path}")
@@ -108,7 +108,7 @@ def load_schedule_file(file_path: str = SCHEDULE_FILE) -> Dict[str, Any]:
 
 
 def save_progress_file(
-    progress: Dict[str, Any], file_path: str = PROGRESS_FILE
+    progress: dict[str, Any], file_path: str = PROGRESS_FILE
 ) -> None:
     """
     Save the test categorization progress file.
@@ -127,7 +127,7 @@ def save_progress_file(
 
 
 def save_schedule_file(
-    schedule: Dict[str, Any], file_path: str = SCHEDULE_FILE
+    schedule: dict[str, Any], file_path: str = SCHEDULE_FILE
 ) -> None:
     """
     Save the test categorization schedule file.
@@ -150,7 +150,7 @@ def save_schedule_file(
 
 def collect_behavior_tests(
     test_dir: str = "tests/behavior", use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect behavior tests using a specialized approach.
 
@@ -169,7 +169,7 @@ def collect_behavior_tests(
     )
 
 
-def collect_all_tests(use_cache: bool = True) -> Dict[str, List[str]]:
+def collect_all_tests(use_cache: bool = True) -> dict[str, list[str]]:
     """
     Collect all tests in the project, organized by category.
 
@@ -191,8 +191,8 @@ def collect_all_tests(use_cache: bool = True) -> Dict[str, List[str]]:
 
 
 def check_test_has_marker(
-    test_path: str, marker_type: Optional[str] = None
-) -> Tuple[bool, Optional[str]]:
+    test_path: str, marker_type: str | None = None
+) -> tuple[bool, str | None]:
     """
     Check if a test has a speed marker without running pytest.
 
@@ -217,7 +217,7 @@ def check_test_has_marker(
         )
 
 
-def get_test_markers_from_file(file_path: str) -> Dict[str, str]:
+def get_test_markers_from_file(file_path: str) -> dict[str, str]:
     """
     Extract all test markers from a file.
 
@@ -232,7 +232,7 @@ def get_test_markers_from_file(file_path: str) -> Dict[str, str]:
         return {}
 
     # Read the file content
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     markers = {}
@@ -258,7 +258,7 @@ def get_test_markers_from_file(file_path: str) -> Dict[str, str]:
 
 def count_categorized_tests_accurately(
     module_path: str,
-) -> Tuple[int, int, Dict[str, int]]:
+) -> tuple[int, int, dict[str, int]]:
     """
     Count the number of tests in a module that have speed markers, using a more accurate approach.
 
@@ -320,7 +320,7 @@ def count_categorized_tests_accurately(
     return total_tests, categorized_count, marker_counts
 
 
-def synchronize_test_categorization() -> Dict[str, Any]:
+def synchronize_test_categorization() -> dict[str, Any]:
     """
     Synchronize the test categorization tracking between progress file and schedule file.
 
@@ -434,7 +434,7 @@ def synchronize_test_categorization() -> Dict[str, Any]:
     }
 
 
-def verify_test_markers(test_dir: str = "tests") -> Dict[str, Any]:
+def verify_test_markers(test_dir: str = "tests") -> dict[str, Any]:
     """
     Verify that test markers are correctly applied and recognized by pytest.
 
@@ -488,7 +488,7 @@ def verify_test_markers(test_dir: str = "tests") -> Dict[str, Any]:
     # Analyze files for issues
     for file_path in test_files:
         # Count tests in the file
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         test_matches = FUNCTION_PATTERN.findall(content)

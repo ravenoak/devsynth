@@ -39,7 +39,7 @@ DEFAULT_THRESHOLD = 90.0
 AUTO_SECTION_MARK = "<!-- auto:coverage-issues -->"
 
 
-def load_coverage(path: str) -> Dict[str, Any]:
+def load_coverage(path: str) -> dict[str, Any]:
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except FileNotFoundError:
@@ -57,8 +57,8 @@ def guess_owner(path: str) -> str:
     return "unassigned"
 
 
-def under_threshold(data: Dict[str, Any], threshold: float) -> List[Tuple[str, float]]:
-    rows: List[Tuple[str, float]] = []
+def under_threshold(data: dict[str, Any], threshold: float) -> list[tuple[str, float]]:
+    rows: list[tuple[str, float]] = []
     for filename, metrics in data.get("files", {}).items():
         norm = filename.replace("\\", "/")
         if not norm.startswith("src/devsynth/"):
@@ -70,8 +70,8 @@ def under_threshold(data: Dict[str, Any], threshold: float) -> List[Tuple[str, f
     return rows
 
 
-def generate_issue_lines(rows: List[Tuple[str, float]]) -> List[str]:
-    lines: List[str] = []
+def generate_issue_lines(rows: list[tuple[str, float]]) -> list[str]:
+    lines: list[str] = []
     for path, pct in rows:
         owner = guess_owner(path)
         title = f"Increase coverage to ≥90%: {path}"
@@ -108,7 +108,7 @@ def trim_notes(text: str, max_lines: int = 600) -> str:
     return "\n".join(lines) + "\n"
 
 
-def append_notes(notes_path: str, lines: List[str], threshold: float) -> None:
+def append_notes(notes_path: str, lines: list[str], threshold: float) -> None:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     section = (
         f"\n{AUTO_SECTION_MARK}\n"
@@ -127,7 +127,7 @@ def append_notes(notes_path: str, lines: List[str], threshold: float) -> None:
     Path(notes_path).write_text(updated, encoding="utf-8")
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         description="Create issue stub checklist for <90% coverage files"
     )

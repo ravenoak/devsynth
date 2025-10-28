@@ -59,7 +59,7 @@ def find_test_files(base_dir):
 
 def fix_method_signatures(file_path):
     """Fix inconsistent method signatures in a test file."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     try:

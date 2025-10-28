@@ -17,7 +17,7 @@ from typing import Dict, List
 
 def generate_access_sequence(
     pattern: str, num_items: int, num_accesses: int, seed: int
-) -> List[int]:
+) -> list[int]:
     """Generate an access sequence.
 
     Args:
@@ -41,10 +41,10 @@ def generate_access_sequence(
 
 
 def simulate(
-    num_layers: int, access_sequence: List[int]
-) -> Dict[str, float | int | List[float | int]]:
+    num_layers: int, access_sequence: list[int]
+) -> dict[str, float | int | list[float | int]]:
     """Run a layered cache simulation for a single layer count."""
-    caches: List[Dict[int, bool]] = [dict() for _ in range(num_layers)]
+    caches: list[dict[int, bool]] = [dict() for _ in range(num_layers)]
     hits = [0] * num_layers
     total = 0
 
@@ -80,7 +80,7 @@ def run_simulation(
     pattern: str,
     output: Path | None,
     chart: Path | None,
-) -> List[Dict[str, float | int | List[float | int]]]:
+) -> list[dict[str, float | int | list[float | int]]]:
     """Run simulations for layer counts from 1 to ``max_layers``."""
     sequence = generate_access_sequence(pattern, num_items, num_accesses, seed=42)
     results = [simulate(layers, sequence) for layers in range(1, max_layers + 1)]
@@ -113,8 +113,8 @@ def run_simulation(
 class SyncStore:
     """Store with pending writes used for synchronization demo."""
 
-    data: Dict[int, int]
-    pending: Dict[int, int]
+    data: dict[int, int]
+    pending: dict[int, int]
 
 
 def synchronize(primary: SyncStore, secondary: SyncStore) -> None:

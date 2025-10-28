@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Sequence
+from collections.abc import Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"

@@ -31,7 +31,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_behavior_test_files() -> List[Path]:
+def find_behavior_test_files() -> list[Path]:
     """Find all behavior test files."""
     test_files = []
     for root, _, files in os.walk("tests/behavior"):
@@ -46,7 +46,7 @@ def find_behavior_test_files() -> List[Path]:
     return test_files
 
 
-def find_feature_files() -> Dict[str, Path]:
+def find_feature_files() -> dict[str, Path]:
     """Find all feature files and map filenames to paths."""
     feature_files = {}
     for root, _, files in os.walk("tests/behavior/features"):
@@ -59,7 +59,7 @@ def find_feature_files() -> Dict[str, Path]:
 
 def extract_feature_filename(test_file: Path) -> str:
     """Extract the feature filename from a test file."""
-    with open(test_file, "r") as f:
+    with open(test_file) as f:
         content = f.read()
 
     match = SCENARIOS_PATTERN.search(content)
@@ -78,7 +78,7 @@ def update_test_file(test_file: Path, feature_file: Path, dry_run: bool) -> bool
     Returns:
         bool: True if the file was updated, False otherwise
     """
-    with open(test_file, "r") as f:
+    with open(test_file) as f:
         content = f.read()
 
     match = SCENARIOS_PATTERN.search(content)

@@ -278,7 +278,7 @@ class IsolationVisitor(ast.NodeVisitor):
                 line_no = child.lineno
                 col_offset = child.col_offset
                 try:
-                    with open(self.file_path, "r") as f:
+                    with open(self.file_path) as f:
                         file_lines = f.readlines()
                         if line_no <= len(file_lines):
                             source_lines.append(file_lines[line_no - 1])
@@ -316,7 +316,7 @@ class IsolationVisitor(ast.NodeVisitor):
                 )
 
 
-def analyze_test_file(file_path: str) -> Dict[str, Any]:
+def analyze_test_file(file_path: str) -> dict[str, Any]:
     """
     Analyze a test file for potential isolation issues.
 
@@ -337,7 +337,7 @@ def analyze_test_file(file_path: str) -> Dict[str, Any]:
 
     try:
         # Read the file content
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Parse the file using AST
@@ -376,7 +376,7 @@ def analyze_test_file(file_path: str) -> Dict[str, Any]:
         }
 
 
-def generate_recommendations(visitor: IsolationVisitor) -> List[str]:
+def generate_recommendations(visitor: IsolationVisitor) -> list[str]:
     """
     Generate recommendations based on isolation issues.
 
@@ -428,7 +428,7 @@ def generate_recommendations(visitor: IsolationVisitor) -> List[str]:
     return recommendations
 
 
-def analyze_test_isolation(directory: str = "tests") -> Dict[str, Any]:
+def analyze_test_isolation(directory: str = "tests") -> dict[str, Any]:
     """
     Analyze test isolation issues in a directory.
 
@@ -526,7 +526,7 @@ def analyze_test_isolation(directory: str = "tests") -> Dict[str, Any]:
     return results
 
 
-def generate_isolation_best_practices() -> Dict[str, List[str]]:
+def generate_isolation_best_practices() -> dict[str, list[str]]:
     """
     Generate best practices for test isolation and determinism.
 

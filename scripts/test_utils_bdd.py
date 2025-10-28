@@ -25,7 +25,7 @@ BDD_FUNCTION_PATTERN = re.compile(r"def (\w+)\(")
 MARKER_PATTERN = re.compile(r"@pytest\.mark\.(fast|medium|slow|isolation)")
 
 
-def find_bdd_step_files(test_dir: str = "tests/behavior/steps") -> List[str]:
+def find_bdd_step_files(test_dir: str = "tests/behavior/steps") -> list[str]:
     """
     Find all BDD step definition files.
 
@@ -45,7 +45,7 @@ def find_bdd_step_files(test_dir: str = "tests/behavior/steps") -> List[str]:
     return step_files
 
 
-def find_feature_files(test_dir: str = "tests/behavior/features") -> List[str]:
+def find_feature_files(test_dir: str = "tests/behavior/features") -> list[str]:
     """
     Find all feature files.
 
@@ -65,7 +65,7 @@ def find_feature_files(test_dir: str = "tests/behavior/features") -> List[str]:
     return feature_files
 
 
-def extract_bdd_test_info(file_path: str) -> Dict[str, Any]:
+def extract_bdd_test_info(file_path: str) -> dict[str, Any]:
     """
     Extract information about BDD tests from a step definition file.
 
@@ -78,7 +78,7 @@ def extract_bdd_test_info(file_path: str) -> Dict[str, Any]:
     if not os.path.exists(file_path):
         return {"file_path": file_path, "test_functions": [], "feature_files": []}
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Extract test functions
@@ -148,7 +148,7 @@ def extract_bdd_test_info(file_path: str) -> Dict[str, Any]:
 
 def update_bdd_test_file(
     file_path: str, marker: str, dry_run: bool = False
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """
     Update a BDD test file with appropriate markers.
 
@@ -170,7 +170,7 @@ def update_bdd_test_file(
     if not test_info["test_functions"]:
         return 0, 0, 0
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     modified_lines = lines.copy()
@@ -237,8 +237,8 @@ def categorize_bdd_tests(
     test_dir: str = "tests/behavior/steps",
     marker: str = "medium",
     dry_run: bool = False,
-    max_files: Optional[int] = None,
-) -> Dict[str, int]:
+    max_files: int | None = None,
+) -> dict[str, int]:
     """
     Categorize BDD tests with appropriate markers.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Conventional Commit message linter (strict by default in CI).
+r"""Conventional Commit message linter (strict by default in CI).
 
 Supports two modes:
 - commit-msg hook: pass the commit message file path as the first argument.
@@ -22,7 +22,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
 
 CONV_REGEX = re.compile(
     r"^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .+"

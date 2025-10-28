@@ -23,7 +23,7 @@ STATUS_PATTERNS = [
 def scan_markdown_file(file_path):
     """Scan a Markdown file for incorrect implementation status notes."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         for pattern in STATUS_PATTERNS:

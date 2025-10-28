@@ -145,9 +145,9 @@ def load_progress():
     """Load categorization progress from file."""
     if PROGRESS_FILE.exists():
         try:
-            with open(PROGRESS_FILE, "r") as f:
+            with open(PROGRESS_FILE) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error loading progress file: {e}")
             return {"tests": {}}
     return {"tests": {}}
@@ -161,7 +161,7 @@ def save_progress(progress):
 
 def collect_unmarked_tests(
     category: str = "all", module: str = None, use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect unmarked tests.
 
@@ -205,7 +205,7 @@ def collect_unmarked_tests(
     return unmarked_tests
 
 
-def prioritize_tests(tests: List[str], priority_modules: List[str]) -> List[str]:
+def prioritize_tests(tests: list[str], priority_modules: list[str]) -> list[str]:
     """
     Prioritize tests based on module priority.
 
@@ -228,7 +228,7 @@ def prioritize_tests(tests: List[str], priority_modules: List[str]) -> List[str]
     return high_priority + normal_priority
 
 
-def run_test_batch(batch: List[str], timeout: int = 60) -> Dict[str, float]:
+def run_test_batch(batch: list[str], timeout: int = 60) -> dict[str, float]:
     """
     Run a batch of tests and measure execution time.
 
@@ -313,7 +313,7 @@ def update_test_file(
         Whether the update was successful
     """
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             lines = f.readlines()
 
         # Find the test function
@@ -430,7 +430,7 @@ def fix_marker_placement(
 
 
 def generate_report(
-    results: Dict[str, Dict[str, Any]],
+    results: dict[str, dict[str, Any]],
     output_file: str = "test_categorization_report.json",
 ):
     """
@@ -478,7 +478,7 @@ def generate_report(
     print(f"  Slow tests: {category_counts['slow']}")
 
 
-def update_progress_file(results: Dict[str, Dict[str, Any]]):
+def update_progress_file(results: dict[str, dict[str, Any]]):
     """
     Update the progress file with categorization results.
 

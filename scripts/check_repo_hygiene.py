@@ -31,7 +31,7 @@ ARTIFACT_FILES_PREFIX = [
 ]
 
 
-def run(cmd: List[str]) -> Tuple[int, str, str]:
+def run(cmd: list[str]) -> tuple[int, str, str]:
     proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
     return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
 

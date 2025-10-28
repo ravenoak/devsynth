@@ -84,7 +84,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_test_files(directory: str) -> List[Path]:
+def find_test_files(directory: str) -> list[Path]:
     """Find all test files in the given directory."""
     test_files = []
     for root, _, files in os.walk(directory):
@@ -96,8 +96,8 @@ def find_test_files(directory: str) -> List[Path]:
 
 def analyze_test_file(
     file_path: Path,
-) -> Tuple[
-    Dict[str, List[str]], Dict[int, str], Dict[int, str], List[Tuple[int, int, str]]
+) -> tuple[
+    dict[str, list[str]], dict[int, str], dict[int, str], list[tuple[int, int, str]]
 ]:
     """
     Analyze a test file to extract existing markers, test functions, and classes.
@@ -114,7 +114,7 @@ def analyze_test_file(
     class_line_numbers = {}
     test_function_ranges = []
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     current_markers = []
@@ -183,7 +183,7 @@ def analyze_test_file(
 
 def standardize_markers_in_file(
     file_path: Path, dry_run: bool = False, verbose: bool = False
-) -> Tuple[int, bool]:
+) -> tuple[int, bool]:
     """
     Standardize marker placement in a test file.
 
@@ -206,7 +206,7 @@ def standardize_markers_in_file(
     if not test_line_numbers:
         return standardized, file_modified
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # First pass: remove all existing markers

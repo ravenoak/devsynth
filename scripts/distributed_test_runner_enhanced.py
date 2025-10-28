@@ -144,7 +144,7 @@ def parse_args():
 
 def collect_tests(
     category: str, speed: str = "all", use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect tests to run based on category and speed.
 
@@ -229,8 +229,8 @@ def collect_tests(
 
 
 def collect_all_tests(
-    categories: List[str], speed: str = "all", use_cache: bool = True
-) -> Dict[str, List[str]]:
+    categories: list[str], speed: str = "all", use_cache: bool = True
+) -> dict[str, list[str]]:
     """
     Collect tests from multiple categories.
 
@@ -268,7 +268,7 @@ def get_test_complexity(test_path: str, use_history: bool = False) -> float:
         )
         if history_file.exists():
             try:
-                with open(history_file, "r") as f:
+                with open(history_file) as f:
                     history = json.load(f)
                 return history.get("average_time", 1.0)
             except (json.JSONDecodeError, KeyError):
@@ -299,8 +299,8 @@ def get_test_complexity(test_path: str, use_history: bool = False) -> float:
 
 
 def create_balanced_batches(
-    tests_by_category: Dict[str, List[str]], batch_size: int, use_history: bool = False
-) -> List[List[str]]:
+    tests_by_category: dict[str, list[str]], batch_size: int, use_history: bool = False
+) -> list[list[str]]:
     """
     Create balanced batches of tests for distributed execution.
 
@@ -353,7 +353,7 @@ def create_balanced_batches(
     return batches
 
 
-def run_test_batch(batch: List[str], timeout: int, batch_id: int) -> Dict[str, Any]:
+def run_test_batch(batch: list[str], timeout: int, batch_id: int) -> dict[str, Any]:
     """
     Run a batch of tests.
 
@@ -464,7 +464,7 @@ def update_test_history(test_path: str, passed: bool, execution_time: float):
     # Load existing history or create new
     if history_file.exists():
         try:
-            with open(history_file, "r") as f:
+            with open(history_file) as f:
                 history = json.load(f)
         except (json.JSONDecodeError, KeyError):
             history = {"executions": [], "pass_rate": 0.0, "average_time": 0.0}
@@ -502,13 +502,13 @@ def update_test_history(test_path: str, passed: bool, execution_time: float):
 
 
 def run_distributed_tests(
-    batches: List[List[str]],
+    batches: list[list[str]],
     num_workers: int,
     timeout: int,
     max_retries: int,
     fail_fast: bool,
     verbose: bool,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Run tests in a distributed manner across multiple processes.
 
@@ -630,7 +630,7 @@ def run_distributed_tests(
     return results
 
 
-def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+def aggregate_results(batch_results: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Aggregate results from multiple batches.
 
@@ -682,7 +682,7 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     return aggregated
 
 
-def save_results(results: Dict[str, Any], filename: str):
+def save_results(results: dict[str, Any], filename: str):
     """
     Save results to a file.
 
@@ -695,7 +695,7 @@ def save_results(results: Dict[str, Any], filename: str):
     print(f"Results saved to {filename}")
 
 
-def generate_html_report(results: Dict[str, Any], filename: str):
+def generate_html_report(results: dict[str, Any], filename: str):
     """
     Generate an HTML report from the results.
 
@@ -855,7 +855,7 @@ def generate_html_report(results: Dict[str, Any], filename: str):
     print(f"HTML report saved to {filename}")
 
 
-def print_summary(results: Dict[str, Any], execution_time: float):
+def print_summary(results: dict[str, Any], execution_time: float):
     """
     Print a summary of the results.
 

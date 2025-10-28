@@ -57,7 +57,7 @@ def update_issue(path: pathlib.Path) -> bool:
         lines.append("")
         changed = True
     j = ref_header + 1
-    refs: List[str] = []
+    refs: list[str] = []
     while j < len(lines) and lines[j].startswith("-"):
         refs.append(lines[j].strip())
         j += 1

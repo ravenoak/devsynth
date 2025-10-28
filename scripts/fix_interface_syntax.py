@@ -71,7 +71,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def collect_test_files(module: str, file: str = None) -> List[str]:
+def collect_test_files(module: str, file: str = None) -> list[str]:
     """
     Collect test files to process.
 
@@ -105,7 +105,7 @@ def collect_test_files(module: str, file: str = None) -> List[str]:
     return test_files
 
 
-def check_syntax(file_path: str) -> Tuple[bool, str]:
+def check_syntax(file_path: str) -> tuple[bool, str]:
     """
     Check if a file has syntax errors.
 
@@ -116,7 +116,7 @@ def check_syntax(file_path: str) -> Tuple[bool, str]:
         Tuple of (has_error, error_message)
     """
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Try to parse the file
@@ -799,7 +799,7 @@ def fix_extra_blank_lines(content: str, verbose: bool = False) -> str:
 
 def fix_file(
     file_path: str, dry_run: bool = True, verbose: bool = False
-) -> Tuple[bool, Dict[str, Any]]:
+) -> tuple[bool, dict[str, Any]]:
     """
     Fix syntax errors in a file.
 
@@ -827,7 +827,7 @@ def fix_file(
             print(f"  Found syntax error: {error_message}")
 
         # Read the file
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Apply fixes in multiple passes
@@ -892,7 +892,7 @@ def fix_file(
 
 
 def generate_report(
-    results: Dict[str, Dict[str, Any]],
+    results: dict[str, dict[str, Any]],
     output_file: str = "interface_syntax_report.json",
 ):
     """

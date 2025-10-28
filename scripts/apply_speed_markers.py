@@ -91,7 +91,7 @@ def parse_args():
 
 
 def load_timing_data() -> (
-    Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Dict[str, Any]]]]
+    tuple[dict[str, dict[str, Any]], dict[str, dict[str, dict[str, Any]]]]
 ):
     """
     Load timing data from cache files.
@@ -114,7 +114,7 @@ def load_timing_data() -> (
 
     for cache_file in cache_files:
         try:
-            with open(os.path.join(CACHE_DIR, cache_file), "r") as f:
+            with open(os.path.join(CACHE_DIR, cache_file)) as f:
                 data = json.load(f)
 
             # Parse the cache file name to extract test file path and test function name
@@ -212,7 +212,7 @@ def load_timing_data() -> (
     return timing_data, file_test_map
 
 
-def find_test_files(directory: str) -> List[Path]:
+def find_test_files(directory: str) -> list[Path]:
     """Find all test files in the given directory."""
     test_files = []
     for root, _, files in os.walk(directory):
@@ -224,7 +224,7 @@ def find_test_files(directory: str) -> List[Path]:
 
 def analyze_test_file(
     file_path: Path,
-) -> Tuple[Dict[str, List[str]], Dict[int, str], List[str], Dict[str, List[str]]]:
+) -> tuple[dict[str, list[str]], dict[int, str], list[str], dict[str, list[str]]]:
     """
     Analyze a test file to extract existing markers and test functions.
 
@@ -240,7 +240,7 @@ def analyze_test_file(
     module_markers = []
     class_markers = {}
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Add pattern for class definitions
@@ -338,10 +338,10 @@ def analyze_test_file(
 
 def update_test_file_with_markers(
     file_path: Path,
-    test_markers: Dict[str, str],
+    test_markers: dict[str, str],
     dry_run: bool = False,
     verbose: bool = False,
-) -> Tuple[int, int, int, bool]:
+) -> tuple[int, int, int, bool]:
     """
     Update a test file with appropriate markers.
 
@@ -367,7 +367,7 @@ def update_test_file_with_markers(
     if not test_line_numbers:
         return added, updated, unchanged, file_modified
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Create a dictionary to track which tests need markers

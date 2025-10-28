@@ -39,7 +39,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_behavior_test_files() -> List[Path]:
+def find_behavior_test_files() -> list[Path]:
     """Find all behavior test files."""
     test_files = []
     for root, _, files in os.walk("tests/behavior"):
@@ -54,7 +54,7 @@ def find_behavior_test_files() -> List[Path]:
     return test_files
 
 
-def find_step_files() -> Dict[str, Path]:
+def find_step_files() -> dict[str, Path]:
     """Find all step definition files."""
     step_files = {}
     for root, _, files in os.walk("tests/behavior/steps"):
@@ -65,7 +65,7 @@ def find_step_files() -> Dict[str, Path]:
     return step_files
 
 
-def find_feature_files() -> Dict[str, Path]:
+def find_feature_files() -> dict[str, Path]:
     """Find all feature files and map filenames to paths."""
     feature_files = {}
     for root, _, files in os.walk("tests/behavior/features"):
@@ -76,7 +76,7 @@ def find_feature_files() -> Dict[str, Path]:
     return feature_files
 
 
-def fix_circular_imports(step_files: Dict[str, Path], dry_run: bool) -> int:
+def fix_circular_imports(step_files: dict[str, Path], dry_run: bool) -> int:
     """
     Fix circular imports in step definition files.
 
@@ -85,7 +85,7 @@ def fix_circular_imports(step_files: Dict[str, Path], dry_run: bool) -> int:
     updated_count = 0
 
     for name, path in step_files.items():
-        with open(path, "r") as f:
+        with open(path) as f:
             content = f.read()
 
         # Check for circular imports
@@ -98,7 +98,7 @@ def fix_circular_imports(step_files: Dict[str, Path], dry_run: bool) -> int:
                 target_file = f"test_{import_name}_steps.py"
                 if target_file in step_files:
                     target_path = step_files[target_file]
-                    with open(target_path, "r") as f:
+                    with open(target_path) as f:
                         target_content = f.read()
 
                     # Replace the import with the actual content
@@ -120,7 +120,7 @@ def fix_circular_imports(step_files: Dict[str, Path], dry_run: bool) -> int:
 
 
 def fix_feature_paths(
-    test_files: List[Path], feature_files: Dict[str, Path], dry_run: bool
+    test_files: list[Path], feature_files: dict[str, Path], dry_run: bool
 ) -> int:
     """
     Fix feature file paths in test files.
@@ -130,7 +130,7 @@ def fix_feature_paths(
     updated_count = 0
 
     for test_file in test_files:
-        with open(test_file, "r") as f:
+        with open(test_file) as f:
             content = f.read()
 
         # Check for scenarios function calls
@@ -170,7 +170,7 @@ def fix_feature_paths(
 
 
 def fix_step_file_feature_paths(
-    step_files: Dict[str, Path], feature_files: Dict[str, Path], dry_run: bool
+    step_files: dict[str, Path], feature_files: dict[str, Path], dry_run: bool
 ) -> int:
     """
     Fix feature file paths in step definition files.
@@ -180,7 +180,7 @@ def fix_step_file_feature_paths(
     updated_count = 0
 
     for name, path in step_files.items():
-        with open(path, "r") as f:
+        with open(path) as f:
             content = f.read()
 
         # Check for scenarios function calls

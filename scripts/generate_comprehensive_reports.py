@@ -53,7 +53,7 @@ HIGH_PRIORITY_MODULES = [
 ]
 
 
-def generate_test_count_report() -> Dict[str, Any]:
+def generate_test_count_report() -> dict[str, Any]:
     """
     Generate a comprehensive report on test counts.
 
@@ -137,7 +137,7 @@ def generate_test_count_report() -> Dict[str, Any]:
     return report
 
 
-def generate_marker_detection_report() -> Dict[str, Any]:
+def generate_marker_detection_report() -> dict[str, Any]:
     """
     Generate a comprehensive report on marker detection.
 
@@ -193,7 +193,7 @@ def generate_marker_detection_report() -> Dict[str, Any]:
     return report
 
 
-def generate_test_isolation_report() -> Dict[str, Any]:
+def generate_test_isolation_report() -> dict[str, Any]:
     """
     Generate a comprehensive report on test isolation issues.
 
@@ -268,7 +268,7 @@ def generate_test_isolation_report() -> Dict[str, Any]:
     return report
 
 
-def save_report(report: Dict[str, Any], filename: str):
+def save_report(report: dict[str, Any], filename: str):
     """
     Save a report to a file.
 
@@ -281,7 +281,7 @@ def save_report(report: Dict[str, Any], filename: str):
     print(f"Report saved to {filename}")
 
 
-def print_report_summary(report_type: str, report: Dict[str, Any]):
+def print_report_summary(report_type: str, report: dict[str, Any]):
     """
     Print a summary of a report.
 

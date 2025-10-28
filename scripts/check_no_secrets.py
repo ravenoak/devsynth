@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 import re
 import sys
-from typing import Iterable
+from collections.abc import Iterable
 
 # Directories to skip entirely
 SKIP_DIRS: set[str] = {
@@ -103,7 +103,7 @@ def main() -> int:
                 if _should_skip_path(rel_path):
                     continue
                 try:
-                    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                    with open(path, encoding="utf-8", errors="ignore") as f:
                         text = f.read()
                 except Exception:
                     continue

@@ -62,7 +62,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_command(command: List[str], verbose: bool = False) -> Tuple[int, str, str]:
+def run_command(command: list[str], verbose: bool = False) -> tuple[int, str, str]:
     """
     Run a command and return its exit code, stdout, and stderr.
 
@@ -86,7 +86,7 @@ def run_command(command: List[str], verbose: bool = False) -> Tuple[int, str, st
     return process.returncode, process.stdout, process.stderr
 
 
-def fix_syntax_errors(directory: str, verbose: bool = False) -> Dict[str, Any]:
+def fix_syntax_errors(directory: str, verbose: bool = False) -> dict[str, Any]:
     """
     Fix syntax errors in test files.
 
@@ -126,7 +126,7 @@ def fix_syntax_errors(directory: str, verbose: bool = False) -> Dict[str, Any]:
         if verbose:
             print(f"\nFixing syntax errors in {file_path}")
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Fix common syntax errors
@@ -190,7 +190,7 @@ def fix_syntax_errors(directory: str, verbose: bool = False) -> Dict[str, Any]:
 
 def fix_misaligned_markers(
     directory: str, dry_run: bool = False, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Fix misaligned markers in test files.
 
@@ -273,7 +273,7 @@ def add_missing_markers(
     max_tests: int = 100,
     dry_run: bool = False,
     verbose: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Add missing markers to test files.
 
@@ -330,7 +330,7 @@ def add_missing_markers(
     return {"added": added, "updated": updated, "unchanged": unchanged}
 
 
-def verify_marker_detection(verbose: bool = False) -> Dict[str, Any]:
+def verify_marker_detection(verbose: bool = False) -> dict[str, Any]:
     """
     Verify marker detection by common_test_collector.py.
 

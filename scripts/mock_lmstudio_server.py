@@ -39,14 +39,14 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    model: Optional[str] = None
-    messages: List[ChatMessage]
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
+    model: str | None = None
+    messages: list[ChatMessage]
+    temperature: float | None = None
+    max_tokens: int | None = None
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(req: ChatRequest) -> Dict[str, Any]:
+async def chat_completions(req: ChatRequest) -> dict[str, Any]:
     # Return deterministic content expected by tests
     reply = "This is a test response"
     return {

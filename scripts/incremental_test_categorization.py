@@ -119,7 +119,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_progress(progress_file: str) -> Dict[str, Any]:
+def load_progress(progress_file: str) -> dict[str, Any]:
     """
     Load categorization progress from file.
 
@@ -131,7 +131,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
     """
     if os.path.exists(progress_file):
         try:
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 return json.load(f)
         except json.JSONDecodeError:
             print(f"Error loading progress file {progress_file}, creating new progress")
@@ -156,7 +156,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
         }
 
 
-def save_progress(progress: Dict[str, Any], progress_file: str):
+def save_progress(progress: dict[str, Any], progress_file: str):
     """
     Save categorization progress to file.
 
@@ -171,7 +171,7 @@ def save_progress(progress: Dict[str, Any], progress_file: str):
         json.dump(progress, f, indent=2)
 
 
-def collect_tests(directory: str) -> List[str]:
+def collect_tests(directory: str) -> list[str]:
     """
     Collect all tests in the given directory.
 
@@ -192,7 +192,7 @@ def collect_tests(directory: str) -> List[str]:
 
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
 
             # Use cache if it's less than 1 hour old
@@ -240,7 +240,7 @@ def collect_tests(directory: str) -> List[str]:
         return []
 
 
-def run_test_with_timing(test_path: str, timeout: int = 30) -> Tuple[float, bool, bool]:
+def run_test_with_timing(test_path: str, timeout: int = 30) -> tuple[float, bool, bool]:
     """
     Run a single test and measure its execution time.
 
@@ -257,7 +257,7 @@ def run_test_with_timing(test_path: str, timeout: int = 30) -> Tuple[float, bool
 
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
 
             # Use cache if it's less than 24 hours old
@@ -329,7 +329,7 @@ def run_test_with_timing(test_path: str, timeout: int = 30) -> Tuple[float, bool
         return 0.0, False, False
 
 
-def find_test_files(directory: str) -> List[Path]:
+def find_test_files(directory: str) -> list[Path]:
     """
     Find all test files in the given directory or return the file if directory is a file path.
 
@@ -366,7 +366,7 @@ def find_test_files(directory: str) -> List[Path]:
     return test_files
 
 
-def analyze_test_file(file_path: Path) -> Tuple[Dict[str, List[str]], Dict[int, str]]:
+def analyze_test_file(file_path: Path) -> tuple[dict[str, list[str]], dict[int, str]]:
     """
     Analyze a test file to extract existing markers and test functions.
 
@@ -378,7 +378,7 @@ def analyze_test_file(file_path: Path) -> Tuple[Dict[str, List[str]], Dict[int, 
     existing_markers = {}
     test_line_numbers = {}
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     current_markers = []
@@ -421,10 +421,10 @@ def analyze_test_file(file_path: Path) -> Tuple[Dict[str, List[str]], Dict[int, 
 
 def update_test_file(
     file_path: Path,
-    test_markers: Dict[str, str],
+    test_markers: dict[str, str],
     dry_run: bool = False,
     verbose: bool = True,
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """
     Update a test file with appropriate markers.
 
@@ -453,7 +453,7 @@ def update_test_file(
             print("DEBUG: No test functions/methods found in file")
         return added, updated, unchanged
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Check if pytest is imported
@@ -649,8 +649,8 @@ def update_test_file(
 
 
 def filter_uncategorized_tests(
-    test_list: List[str], progress: Dict[str, Any], force: bool = False
-) -> List[str]:
+    test_list: list[str], progress: dict[str, Any], force: bool = False
+) -> list[str]:
     """
     Filter out tests that have already been categorized.
 
@@ -670,11 +670,11 @@ def filter_uncategorized_tests(
 
 
 def measure_test_times(
-    test_list: List[str],
+    test_list: list[str],
     batch_size: int = 20,
-    max_tests: Optional[int] = None,
+    max_tests: int | None = None,
     timeout: int = 30,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """
     Measure execution times for a list of tests.
 
@@ -739,8 +739,8 @@ def measure_test_times(
 
 
 def update_progress(
-    progress: Dict[str, Any], test_times: Dict[str, Dict[str, Any]], force: bool = False
-) -> Dict[str, Any]:
+    progress: dict[str, Any], test_times: dict[str, dict[str, Any]], force: bool = False
+) -> dict[str, Any]:
     """
     Update categorization progress with new test times.
 

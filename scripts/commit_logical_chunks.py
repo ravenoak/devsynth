@@ -29,15 +29,16 @@ import re
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
+from collections.abc import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-StatusLine = Tuple[str, str]  # (status_code, path)
+StatusLine = tuple[str, str]  # (status_code, path)
 
 
 def run(
-    cmd: List[str], cwd: Path | None = None, env: Dict[str, str] | None = None
+    cmd: list[str], cwd: Path | None = None, env: dict[str, str] | None = None
 ) -> subprocess.CompletedProcess:
     merged_env = os.environ.copy()
     if env:
@@ -52,7 +53,7 @@ def run(
     )
 
 
-def git_status_porcelain(include_untracked: bool) -> List[StatusLine]:
+def git_status_porcelain(include_untracked: bool) -> list[StatusLine]:
     # --untracked-files=no to exclude untracked; default is normal
     args = ["git", "status", "--porcelain=v1"]
     if not include_untracked:
@@ -61,7 +62,7 @@ def git_status_porcelain(include_untracked: bool) -> List[StatusLine]:
     if cp.returncode != 0:
         raise RuntimeError(f"git status failed: {cp.stderr.strip()}")
     lines = [ln for ln in cp.stdout.splitlines() if ln.strip()]
-    results: List[StatusLine] = []
+    results: list[StatusLine] = []
     # Format: XY <path> (rename shows 'R  old -> new')
     for ln in lines:
         status = ln[:2].strip()
@@ -81,12 +82,12 @@ class Group:
     description: str
     matcher: re.Pattern[str]
     conventional_type: str
-    paths: List[str] = field(default_factory=list)
+    paths: list[str] = field(default_factory=list)
 
 
-def build_groups() -> List[Group]:
+def build_groups() -> list[Group]:
     # Define matchers for groups. First match wins; order matters.
-    patterns: List[Group] = [
+    patterns: list[Group] = [
         Group(
             name="ci",
             description="CI workflows and automation",
@@ -155,8 +156,8 @@ def build_groups() -> List[Group]:
     return patterns
 
 
-def assign_to_groups(status: List[StatusLine], groups: List[Group]) -> Dict[str, Group]:
-    by_name: Dict[str, Group] = {g.name: g for g in groups}
+def assign_to_groups(status: list[StatusLine], groups: list[Group]) -> dict[str, Group]:
+    by_name: dict[str, Group] = {g.name: g for g in groups}
     for _, path in status:
         # Skip internal cache directories created by tests/tools
         if (
@@ -191,12 +192,12 @@ def build_commit_message(group: Group, socratic: bool) -> str:
     return header + socratic_footer
 
 
-def _git_identity_env() -> Dict[str, str]:
+def _git_identity_env() -> dict[str, str]:
     """Return environment variables to ensure git has an identity and no signing.
 
     If the user already has GIT_* env vars set, we do not override them.
     """
-    env: Dict[str, str] = {}
+    env: dict[str, str] = {}
     defaults = {
         "GIT_AUTHOR_NAME": "DevSynth Commit Bot",
         "GIT_AUTHOR_EMAIL": "commitbot@example.com",

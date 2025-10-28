@@ -41,7 +41,7 @@ LANGUAGE_VERIFIERS = {
 }
 
 
-def extract_code_blocks(content: str) -> List[Tuple[str, str]]:
+def extract_code_blocks(content: str) -> list[tuple[str, str]]:
     """
     Extracts code blocks from markdown content.
 
@@ -55,7 +55,7 @@ def extract_code_blocks(content: str) -> List[Tuple[str, str]]:
     return matches
 
 
-def verify_python(code: str) -> List[str]:
+def verify_python(code: str) -> list[str]:
     """
     Verifies Python code syntax.
 
@@ -73,7 +73,7 @@ def verify_python(code: str) -> List[str]:
     return errors
 
 
-def verify_bash(code: str) -> List[str]:
+def verify_bash(code: str) -> list[str]:
     """
     Verifies Bash code syntax.
 
@@ -96,7 +96,7 @@ def verify_bash(code: str) -> List[str]:
     return errors
 
 
-def verify_javascript(code: str) -> List[str]:
+def verify_javascript(code: str) -> list[str]:
     """
     Verifies JavaScript code syntax.
 
@@ -119,7 +119,7 @@ def verify_javascript(code: str) -> List[str]:
     return errors
 
 
-def verify_typescript(code: str) -> List[str]:
+def verify_typescript(code: str) -> list[str]:
     """
     Verifies TypeScript code syntax.
 
@@ -151,7 +151,7 @@ def verify_typescript(code: str) -> List[str]:
     return errors
 
 
-def verify_code_block(language: str, code: str) -> List[str]:
+def verify_code_block(language: str, code: str) -> list[str]:
     """
     Verifies a code block based on its language.
 
@@ -184,7 +184,7 @@ def main():
 
     args = parser.parse_args()
 
-    files_to_check: List[pathlib.Path] = []
+    files_to_check: list[pathlib.Path] = []
     for path_arg in args.paths:
         if path_arg.is_file():
             if path_arg.suffix == ".md":

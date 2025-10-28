@@ -207,17 +207,17 @@ CONFIG_SCHEMA = {
 }
 
 
-def load_config(file_path: str) -> Dict[str, Any]:
+def load_config(file_path: str) -> dict[str, Any]:
     """Load a YAML configuration file."""
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             return yaml.safe_load(f)
     except Exception as e:
         print(f"Error loading configuration file {file_path}: {e}")
         sys.exit(1)
 
 
-def validate_config(config: Dict[str, Any], schema: Dict[str, Any]) -> List[str]:
+def validate_config(config: dict[str, Any], schema: dict[str, Any]) -> list[str]:
     """Validate a configuration against a schema."""
     validator = jsonschema.Draft7Validator(schema)
     errors = list(validator.iter_errors(config))
@@ -226,7 +226,7 @@ def validate_config(config: Dict[str, Any], schema: Dict[str, Any]) -> List[str]
     ]
 
 
-def validate_environment_variables(config: Dict[str, Any]) -> List[str]:
+def validate_environment_variables(config: dict[str, Any]) -> list[str]:
     """Check for environment variables in the configuration and validate they're set."""
     errors = []
 
@@ -253,7 +253,7 @@ def validate_environment_variables(config: Dict[str, Any]) -> List[str]:
     return errors
 
 
-def check_config_consistency(configs: Dict[str, Dict[str, Any]]) -> List[str]:
+def check_config_consistency(configs: dict[str, dict[str, Any]]) -> list[str]:
     """Check consistency across different environment configurations."""
     errors = []
 

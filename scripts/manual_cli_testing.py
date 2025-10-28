@@ -248,7 +248,7 @@ class CLIWorkflowTester:
         if spec_created:
             print("\nSpec file was created successfully.")
             # Show the content of the spec file
-            with open("./.devsynth/specs.md", "r") as f:
+            with open("./.devsynth/specs.md") as f:
                 print("\nContent of specs.md:")
                 print(f.read())
         else:
@@ -402,7 +402,7 @@ class CLIWorkflowTester:
             import json
 
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     config = json.load(f)
                     if config.get("model") == "gpt-4":
                         config_updated = True

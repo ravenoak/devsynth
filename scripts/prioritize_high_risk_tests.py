@@ -138,7 +138,7 @@ def parse_args():
 
 def collect_all_tests(
     category: str = "all", module: str = None, use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect all tests.
 
@@ -194,9 +194,9 @@ def get_test_hash(test_path: str) -> str:
     mapping = {}
     if hash_mapping_file.exists():
         try:
-            with open(hash_mapping_file, "r") as f:
+            with open(hash_mapping_file) as f:
                 mapping = json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, OSError):
             mapping = {}
 
     mapping[hash_str] = test_path
@@ -204,13 +204,13 @@ def get_test_hash(test_path: str) -> str:
     try:
         with open(hash_mapping_file, "w") as f:
             json.dump(mapping, f, indent=2)
-    except IOError:
+    except OSError:
         pass
 
     return hash_str
 
 
-def load_test_history(test_path: str) -> Dict[str, Any]:
+def load_test_history(test_path: str) -> dict[str, Any]:
     """
     Load test execution history.
 
@@ -224,19 +224,19 @@ def load_test_history(test_path: str) -> Dict[str, Any]:
     history_file = HISTORY_DIR / f"{hash_str}_history.json"
     if history_file.exists():
         try:
-            with open(history_file, "r") as f:
+            with open(history_file) as f:
                 history = json.load(f)
                 # Add test_path to history if not present
                 if "test_path" not in history:
                     history["test_path"] = test_path
                 return history
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error loading history file for {test_path}: {e}")
             return {"executions": [], "test_path": test_path}
     return {"executions": [], "test_path": test_path}
 
 
-def save_test_history(test_path: str, history: Dict[str, Any]):
+def save_test_history(test_path: str, history: dict[str, Any]):
     """
     Save test execution history.
 
@@ -253,7 +253,7 @@ def save_test_history(test_path: str, history: Dict[str, Any]):
     try:
         with open(history_file, "w") as f:
             json.dump(history, f, indent=2)
-    except IOError as e:
+    except OSError as e:
         print(f"Error saving history file for {test_path}: {e}")
 
 
@@ -354,7 +354,7 @@ def calculate_complexity_risk(test_path: str) -> float:
 
     try:
         # Count lines of code as a simple complexity metric
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             lines = f.readlines()
 
         # Count non-empty, non-comment lines
@@ -373,7 +373,7 @@ def calculate_complexity_risk(test_path: str) -> float:
         return 0.5
 
 
-def get_git_changes(days: int = 7) -> Set[str]:
+def get_git_changes(days: int = 7) -> set[str]:
     """
     Get files changed in the last N days.
 
@@ -407,7 +407,7 @@ def get_git_changes(days: int = 7) -> Set[str]:
         return set()
 
 
-def calculate_change_risk(test_path: str, changed_files: Set[str]) -> float:
+def calculate_change_risk(test_path: str, changed_files: set[str]) -> float:
     """
     Calculate risk based on recent changes.
 
@@ -461,7 +461,7 @@ def calculate_dependency_risk(test_path: str) -> float:
 
     try:
         # Analyze imports as a simple dependency metric
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Count imports
@@ -476,7 +476,7 @@ def calculate_dependency_risk(test_path: str) -> float:
         return 0.5
 
 
-def calculate_overall_risk(test_path: str, changed_files: Set[str]) -> float:
+def calculate_overall_risk(test_path: str, changed_files: set[str]) -> float:
     """
     Calculate overall risk score.
 
@@ -505,7 +505,7 @@ def calculate_overall_risk(test_path: str, changed_files: Set[str]) -> float:
     return overall_risk * 100
 
 
-def run_test(test_path: str, timeout: int = 60) -> Dict[str, Any]:
+def run_test(test_path: str, timeout: int = 60) -> dict[str, Any]:
     """
     Run a single test.
 
@@ -569,8 +569,8 @@ def run_test(test_path: str, timeout: int = 60) -> Dict[str, Any]:
 
 
 def run_tests_parallel(
-    tests: List[str], num_processes: int, timeout: int
-) -> List[Dict[str, Any]]:
+    tests: list[str], num_processes: int, timeout: int
+) -> list[dict[str, Any]]:
     """
     Run tests in parallel.
 
@@ -619,8 +619,8 @@ def run_tests_parallel(
 
 
 def generate_risk_report(
-    tests_with_risk: List[Tuple[str, float]],
-    results: List[Dict[str, Any]] = None,
+    tests_with_risk: list[tuple[str, float]],
+    results: list[dict[str, Any]] = None,
     output_file: str = "test_risk_report.json",
 ):
     """

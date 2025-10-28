@@ -117,7 +117,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_high_risk_tests(high_risk_file: str) -> List[Dict[str, Any]]:
+def load_high_risk_tests(high_risk_file: str) -> list[dict[str, Any]]:
     """
     Load high-risk tests from a file.
 
@@ -132,7 +132,7 @@ def load_high_risk_tests(high_risk_file: str) -> List[Dict[str, Any]]:
         return []
 
     try:
-        with open(high_risk_file, "r") as f:
+        with open(high_risk_file) as f:
             data = json.load(f)
 
         if "high_risk_tests" in data:
@@ -171,8 +171,8 @@ def identify_high_risk_tests(identify_args: str, high_risk_file: str) -> bool:
 
 
 def filter_high_risk_tests(
-    high_risk_tests: List[Dict[str, Any]], risk_threshold: float, max_tests: int
-) -> List[str]:
+    high_risk_tests: list[dict[str, Any]], risk_threshold: float, max_tests: int
+) -> list[str]:
     """
     Filter high-risk tests based on risk threshold and maximum number of tests.
 
@@ -201,7 +201,7 @@ def filter_high_risk_tests(
     return test_paths
 
 
-def run_test(test_path: str, timeout: int) -> Dict[str, Any]:
+def run_test(test_path: str, timeout: int) -> dict[str, Any]:
     """
     Run a single test.
 
@@ -271,8 +271,8 @@ def run_test(test_path: str, timeout: int) -> Dict[str, Any]:
 
 
 def run_tests_sequential(
-    test_paths: List[str], timeout: int, verbose: bool
-) -> List[Dict[str, Any]]:
+    test_paths: list[str], timeout: int, verbose: bool
+) -> list[dict[str, Any]]:
     """
     Run tests sequentially.
 
@@ -305,8 +305,8 @@ def run_tests_sequential(
 
 
 def run_tests_parallel(
-    test_paths: List[str], timeout: int, num_workers: int, verbose: bool
-) -> List[Dict[str, Any]]:
+    test_paths: list[str], timeout: int, num_workers: int, verbose: bool
+) -> list[dict[str, Any]]:
     """
     Run tests in parallel.
 
@@ -366,7 +366,7 @@ def run_tests_parallel(
     return results
 
 
-def aggregate_results(test_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+def aggregate_results(test_results: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Aggregate test results.
 
@@ -411,7 +411,7 @@ def aggregate_results(test_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     return aggregated
 
 
-def save_results(results: Dict[str, Any], output_file: str):
+def save_results(results: dict[str, Any], output_file: str):
     """
     Save results to a file.
 
@@ -424,7 +424,7 @@ def save_results(results: Dict[str, Any], output_file: str):
     print(f"Results saved to {output_file}")
 
 
-def update_test_history(results: Dict[str, Any], history_file: str):
+def update_test_history(results: dict[str, Any], history_file: str):
     """
     Update test execution history with results.
 
@@ -440,7 +440,7 @@ def update_test_history(results: Dict[str, Any], history_file: str):
     # Load the history file
     if os.path.exists(history_file):
         try:
-            with open(history_file, "r") as f:
+            with open(history_file) as f:
                 history = json.load(f)
         except json.JSONDecodeError:
             print(f"Error: {history_file} is not a valid JSON file")
@@ -520,7 +520,7 @@ def update_test_history(results: Dict[str, Any], history_file: str):
     print(f"Test execution history updated in {history_file}")
 
 
-def generate_html_report(results: Dict[str, Any], output_file: str):
+def generate_html_report(results: dict[str, Any], output_file: str):
     """
     Generate an HTML report from the results.
 
@@ -646,7 +646,7 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
     print(f"HTML report saved to {output_file}")
 
 
-def print_summary(results: Dict[str, Any], execution_time: float):
+def print_summary(results: dict[str, Any], execution_time: float):
     """
     Print a summary of the results.
 

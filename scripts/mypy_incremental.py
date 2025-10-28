@@ -25,7 +25,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable, List, Sequence
+from typing import List
+from collections.abc import Iterable, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -38,7 +39,7 @@ def _run(
     )
 
 
-def _git_diff_names(base_ref: str) -> List[str]:
+def _git_diff_names(base_ref: str) -> list[str]:
     proc = _run(["git", "diff", "--name-only", base_ref, "HEAD"])
     if proc.returncode != 0:
         return []
@@ -55,8 +56,8 @@ def _fallback_base_ref() -> str:
     return "HEAD~1"
 
 
-def _filter_python_paths(paths: Iterable[str]) -> List[str]:
-    out: List[str] = []
+def _filter_python_paths(paths: Iterable[str]) -> list[str]:
+    out: list[str] = []
     for p in paths:
         if not p.endswith(".py"):
             continue

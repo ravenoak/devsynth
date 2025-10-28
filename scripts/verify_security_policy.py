@@ -25,7 +25,7 @@ REQUIRED_NONEMPTY = ["DEVSYNTH_ACCESS_TOKEN"]
 
 def main() -> int:
     """Check environment variables and report any violations."""
-    failures: List[str] = []
+    failures: list[str] = []
     for name in REQUIRED_TRUE:
         if os.getenv(name, "").lower() != "true":
             failures.append(f"{name} must be set to 'true'")

@@ -46,7 +46,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_progress(progress_file: str) -> Dict[str, Any]:
+def load_progress(progress_file: str) -> dict[str, Any]:
     """
     Load categorization progress from file.
 
@@ -58,7 +58,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
     """
     if os.path.exists(progress_file):
         try:
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 return json.load(f)
         except json.JSONDecodeError:
             print(f"Error loading progress file {progress_file}")
@@ -79,7 +79,7 @@ def load_progress(progress_file: str) -> Dict[str, Any]:
         }
 
 
-def find_test_files(directory: Optional[str] = None) -> List[Path]:
+def find_test_files(directory: str | None = None) -> list[Path]:
     """
     Find all test files in the given directory or in the tests directory if not specified.
 
@@ -111,7 +111,7 @@ def find_test_files(directory: Optional[str] = None) -> List[Path]:
     return test_files
 
 
-def analyze_test_file(file_path: Path) -> Tuple[Dict[str, List[str]], Dict[int, str]]:
+def analyze_test_file(file_path: Path) -> tuple[dict[str, list[str]], dict[int, str]]:
     """
     Analyze a test file to extract existing markers and test functions.
 
@@ -126,7 +126,7 @@ def analyze_test_file(file_path: Path) -> Tuple[Dict[str, List[str]], Dict[int, 
     existing_markers = {}
     test_line_numbers = {}
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     current_markers = []
@@ -169,10 +169,10 @@ def analyze_test_file(file_path: Path) -> Tuple[Dict[str, List[str]], Dict[int, 
 
 def update_test_file(
     file_path: Path,
-    categorized_tests: Dict[str, str],
+    categorized_tests: dict[str, str],
     dry_run: bool = False,
     verbose: bool = False,
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """
     Update a test file with markers from the categorized_tests dictionary.
 
@@ -203,7 +203,7 @@ def update_test_file(
             print("No test functions/methods found in file")
         return added, updated, unchanged
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Check if pytest is imported

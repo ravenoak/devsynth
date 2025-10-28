@@ -25,10 +25,10 @@ STANDARD_METADATA_SCHEMA = {
 }
 
 
-def extract_frontmatter(file_path: Path) -> Tuple[Optional[Dict], str, List[str]]:
+def extract_frontmatter(file_path: Path) -> tuple[dict | None, str, list[str]]:
     """Extract YAML frontmatter from a markdown file. Returns (metadata, content, lines)."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
     except Exception as e:
         return None, "", []
@@ -53,7 +53,7 @@ def extract_frontmatter(file_path: Path) -> Tuple[Optional[Dict], str, List[str]
     return None, content, lines
 
 
-def validate_metadata(file_path: Path, metadata: Optional[Dict]) -> List[Dict]:
+def validate_metadata(file_path: Path, metadata: dict | None) -> list[dict]:
     """Validate metadata against standard schema. Returns list of issues."""
     issues = []
 
@@ -128,8 +128,8 @@ def validate_metadata(file_path: Path, metadata: Optional[Dict]) -> List[Dict]:
 
 
 def generate_standard_metadata(
-    file_path: Path, existing_metadata: Optional[Dict] = None
-) -> Dict:
+    file_path: Path, existing_metadata: dict | None = None
+) -> dict:
     """Generate standard metadata for a file."""
     # Extract title from filename if not provided
     title = file_path.stem.replace("_", " ").replace("-", " ").title()
@@ -177,13 +177,13 @@ def generate_standard_metadata(
     return metadata
 
 
-def format_metadata_yaml(metadata: Dict) -> str:
+def format_metadata_yaml(metadata: dict) -> str:
     """Format metadata as YAML frontmatter."""
     yaml_content = yaml.dump(metadata, default_flow_style=False, sort_keys=False)
     return f"---\n{yaml_content}---\n"
 
 
-def validate_all_documentation(docs_dir: Path) -> Dict:
+def validate_all_documentation(docs_dir: Path) -> dict:
     """Validate metadata across all documentation files."""
     results = {
         "files_processed": 0,
@@ -232,7 +232,7 @@ def validate_all_documentation(docs_dir: Path) -> Dict:
     return results
 
 
-def generate_validation_report(results: Dict) -> str:
+def generate_validation_report(results: dict) -> str:
     """Generate a comprehensive validation report."""
     files_processed = results["files_processed"]
     files_with_issues = results["files_with_issues"]

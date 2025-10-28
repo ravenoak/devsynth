@@ -14,7 +14,7 @@ import yaml
 def load_manifest(manifest_path):
     """Load the project manifest file."""
     try:
-        with open(manifest_path, "r") as f:
+        with open(manifest_path) as f:
             return yaml.safe_load(f)
     except (FileNotFoundError, yaml.YAMLError) as e:
         print(f"Error loading manifest: {e}")

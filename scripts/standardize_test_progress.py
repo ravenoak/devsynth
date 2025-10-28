@@ -51,9 +51,9 @@ def load_progress(progress_file):
     """Load the test categorization progress."""
     if os.path.exists(progress_file):
         try:
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             print(f"Error loading progress file: {e}")
             return {"tests": {}, "categorized_tests": {}, "last_date": None}
     return {"tests": {}, "categorized_tests": {}, "last_date": None}

@@ -114,7 +114,7 @@ last_reviewed: "{CURRENT_DATE}"
 
 def add_metadata_header(file_path):
     """Add a metadata header to the file if it doesn't have one."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     if has_metadata_header(content):

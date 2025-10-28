@@ -79,7 +79,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_module_markers(file_path: str) -> Dict[str, bool]:
+def get_module_markers(file_path: str) -> dict[str, bool]:
     """
     Get markers defined at the module level.
 
@@ -95,7 +95,7 @@ def get_module_markers(file_path: str) -> Dict[str, bool]:
         return markers
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Check for pytestmark assignments
@@ -115,7 +115,7 @@ def get_module_markers(file_path: str) -> Dict[str, bool]:
     return markers
 
 
-def get_class_markers(file_path: str, class_name: str) -> Dict[str, bool]:
+def get_class_markers(file_path: str, class_name: str) -> dict[str, bool]:
     """
     Get markers defined at the class level.
 
@@ -132,7 +132,7 @@ def get_class_markers(file_path: str, class_name: str) -> Dict[str, bool]:
         return markers
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Find the class definition
@@ -158,8 +158,8 @@ def get_class_markers(file_path: str, class_name: str) -> Dict[str, bool]:
 
 
 def get_function_markers(
-    file_path: str, function_name: str, class_name: Optional[str] = None
-) -> Dict[str, bool]:
+    file_path: str, function_name: str, class_name: str | None = None
+) -> dict[str, bool]:
     """
     Get markers defined at the function level.
 
@@ -177,7 +177,7 @@ def get_function_markers(
         return markers
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         if class_name:
@@ -235,7 +235,7 @@ def get_function_markers(
 
 def analyze_duplicate_markers(
     use_cache: bool = True, verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Analyze duplicate marker detections in the test suite.
 
@@ -339,8 +339,8 @@ def analyze_duplicate_markers(
 
 
 def fix_duplicate_markers(
-    analysis_results: Dict[str, Any], verbose: bool = False
-) -> Dict[str, Any]:
+    analysis_results: dict[str, Any], verbose: bool = False
+) -> dict[str, Any]:
     """
     Fix duplicate marker detections by standardizing marker placement.
 
@@ -382,7 +382,7 @@ def fix_duplicate_markers(
             continue
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
 
             modified = False
@@ -497,7 +497,7 @@ def fix_duplicate_markers(
     return results
 
 
-def print_analysis_results(results: Dict[str, Any], verbose: bool = False):
+def print_analysis_results(results: dict[str, Any], verbose: bool = False):
     """
     Print analysis results.
 
@@ -533,7 +533,7 @@ def print_analysis_results(results: Dict[str, Any], verbose: bool = False):
                 )
 
 
-def print_fix_results(results: Dict[str, Any], verbose: bool = False):
+def print_fix_results(results: dict[str, Any], verbose: bool = False):
     """
     Print fix results.
 

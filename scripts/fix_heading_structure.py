@@ -45,7 +45,7 @@ def fix_heading_structure(file_path):
     """Fix the heading structure of a Markdown file."""
     changes = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Extract metadata and content

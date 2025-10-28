@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
 
-def extract_terms_from_content(content: str) -> Set[str]:
+def extract_terms_from_content(content: str) -> set[str]:
     """Extract potential technical terms from content."""
     # Common DevSynth terms to look for
     devsynth_terms = {
@@ -58,7 +58,7 @@ def extract_terms_from_content(content: str) -> Set[str]:
     return found_terms
 
 
-def load_glossary_terms(glossary_path: Path) -> Dict[str, str]:
+def load_glossary_terms(glossary_path: Path) -> dict[str, str]:
     """Load terms and definitions from the glossary file."""
     glossary_terms = {}
 
@@ -67,7 +67,7 @@ def load_glossary_terms(glossary_path: Path) -> Dict[str, str]:
         return glossary_terms
 
     try:
-        with open(glossary_path, "r", encoding="utf-8") as f:
+        with open(glossary_path, encoding="utf-8") as f:
             content = f.read()
 
         # Look for term definitions (markdown format: **Term**: Definition)
@@ -83,7 +83,7 @@ def load_glossary_terms(glossary_path: Path) -> Dict[str, str]:
     return glossary_terms
 
 
-def analyze_terminology_usage(docs_dir: Path, glossary_path: Path) -> Dict:
+def analyze_terminology_usage(docs_dir: Path, glossary_path: Path) -> dict:
     """Analyze terminology usage across all documentation."""
     results = {
         "files_processed": 0,
@@ -109,7 +109,7 @@ def analyze_terminology_usage(docs_dir: Path, glossary_path: Path) -> Dict:
         results["files_processed"] += 1
 
         try:
-            with open(md_file, "r", encoding="utf-8") as f:
+            with open(md_file, encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             continue
@@ -142,7 +142,7 @@ def analyze_terminology_usage(docs_dir: Path, glossary_path: Path) -> Dict:
     return results
 
 
-def generate_terminology_report(results: Dict) -> str:
+def generate_terminology_report(results: dict) -> str:
     """Generate comprehensive terminology analysis report."""
     coverage = results["coverage_analysis"]
 

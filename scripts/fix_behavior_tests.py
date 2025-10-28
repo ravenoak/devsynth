@@ -39,7 +39,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def find_feature_files() -> Dict[str, List[Path]]:
+def find_feature_files() -> dict[str, list[Path]]:
     """Find all feature files and group them by name."""
     feature_files = {}
     for root, _, files in os.walk("tests/behavior/features"):
@@ -52,7 +52,7 @@ def find_feature_files() -> Dict[str, List[Path]]:
     return feature_files
 
 
-def find_step_files() -> Dict[str, Path]:
+def find_step_files() -> dict[str, Path]:
     """Find all step definition files."""
     step_files = {}
     for root, _, files in os.walk("tests/behavior/steps"):
@@ -63,7 +63,7 @@ def find_step_files() -> Dict[str, Path]:
     return step_files
 
 
-def find_test_files() -> List[Path]:
+def find_test_files() -> list[Path]:
     """Find all test files in the behavior directory."""
     test_files = []
     for root, _, files in os.walk("tests/behavior"):
@@ -79,8 +79,8 @@ def find_test_files() -> List[Path]:
 
 
 def standardize_feature_files(
-    feature_files: Dict[str, List[Path]], dry_run: bool
-) -> Dict[str, Path]:
+    feature_files: dict[str, list[Path]], dry_run: bool
+) -> dict[str, Path]:
     """
     Standardize feature file locations.
 
@@ -114,8 +114,8 @@ def standardize_feature_files(
 
 
 def update_step_files(
-    step_files: Dict[str, Path],
-    standardized_feature_paths: Dict[str, Path],
+    step_files: dict[str, Path],
+    standardized_feature_paths: dict[str, Path],
     dry_run: bool,
 ) -> int:
     """
@@ -126,7 +126,7 @@ def update_step_files(
     updated_count = 0
 
     for name, path in step_files.items():
-        with open(path, "r") as f:
+        with open(path) as f:
             content = f.read()
 
         # Check if the file imports scenarios
@@ -194,7 +194,7 @@ def update_step_files(
 
 
 def update_test_files(
-    test_files: List[Path], standardized_feature_paths: Dict[str, Path], dry_run: bool
+    test_files: list[Path], standardized_feature_paths: dict[str, Path], dry_run: bool
 ) -> int:
     """
     Update test files to ensure they load scenarios correctly.
@@ -204,7 +204,7 @@ def update_test_files(
     updated_count = 0
 
     for path in test_files:
-        with open(path, "r") as f:
+        with open(path) as f:
             content = f.read()
 
         # Check for scenario decorators

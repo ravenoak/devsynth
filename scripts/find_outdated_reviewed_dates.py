@@ -38,7 +38,7 @@ def is_outdated(date_str):
 def scan_markdown_file(file_path):
     """Scan a Markdown file for outdated "last_reviewed" dates."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         match = LAST_REVIEWED_PATTERN.search(content)

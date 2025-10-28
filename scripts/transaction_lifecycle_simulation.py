@@ -18,8 +18,8 @@ class TransactionalStore:
     """Simple in-memory store with transactional snapshots."""
 
     def __init__(self) -> None:
-        self.items: Dict[str, MemoryItem] = {}
-        self._snapshots: Dict[str, Dict[str, MemoryItem]] = {}
+        self.items: dict[str, MemoryItem] = {}
+        self._snapshots: dict[str, dict[str, MemoryItem]] = {}
 
     def store(self, item: MemoryItem) -> None:
         self.items[item.id] = item

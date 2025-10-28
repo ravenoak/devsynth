@@ -35,7 +35,7 @@ class TestExecutionBenchmark:
     """Benchmarks test execution performance."""
 
     def __init__(self) -> None:
-        self.results: Dict[str, Any] = {
+        self.results: dict[str, Any] = {
             "metadata": {
                 "generated_at": datetime.now().isoformat(),
                 "tool_version": "1.0.0",
@@ -49,10 +49,10 @@ class TestExecutionBenchmark:
     def run_benchmark(
         self,
         target: str,
-        speed: Optional[str] = None,
+        speed: str | None = None,
         workers: int = 1,
         timeout: int = 300,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run a single benchmark test."""
         print(f"  Running {target} (speed: {speed or 'all'}, workers: {workers})...")
 
@@ -186,7 +186,7 @@ class TestExecutionBenchmark:
             }
 
     def run_comprehensive_benchmark(
-        self, targets: List[str], worker_counts: List[int], timeout: int = 300
+        self, targets: list[str], worker_counts: list[int], timeout: int = 300
     ) -> None:
         """Run comprehensive benchmarks across targets and worker counts."""
         print(f"Running comprehensive benchmark...")
@@ -305,8 +305,8 @@ class TestExecutionBenchmark:
         }
 
     def _generate_recommendations(
-        self, speedup_analysis: Dict, bottlenecks: List
-    ) -> List[str]:
+        self, speedup_analysis: dict, bottlenecks: list
+    ) -> list[str]:
         """Generate performance optimization recommendations."""
         recommendations = []
 

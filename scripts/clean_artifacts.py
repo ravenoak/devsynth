@@ -21,7 +21,8 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Iterable, List
+from typing import List
+from collections.abc import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -60,8 +61,8 @@ def is_git_tracked(paths: Iterable[Path]) -> set[Path]:
     return tracked
 
 
-def collect_targets(keep_reports: bool, keep_coverage: bool) -> List[Path]:
-    candidates: List[Path] = []
+def collect_targets(keep_reports: bool, keep_coverage: bool) -> list[Path]:
+    candidates: list[Path] = []
     # Directories
     if not keep_reports:
         candidates.append(REPO_ROOT / "test_reports")

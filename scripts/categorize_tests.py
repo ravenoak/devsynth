@@ -83,7 +83,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_benchmarks(directory: str, batch_size: int = 100) -> Dict:
+def run_benchmarks(directory: str, batch_size: int = 100) -> dict:
     """
     Run tests with pytest-benchmark to measure execution times.
 
@@ -149,7 +149,7 @@ def run_benchmarks(directory: str, batch_size: int = 100) -> Dict:
                 subprocess.run(cmd, check=True)
 
                 # Load benchmark results for this batch
-                with open(batch_filename, "r") as f:
+                with open(batch_filename) as f:
                     batch_data = json.load(f)
 
                 # Append the benchmarks from this batch to the overall results
@@ -169,7 +169,7 @@ def run_benchmarks(directory: str, batch_size: int = 100) -> Dict:
         return {}
 
 
-def analyze_benchmarks(benchmark_data: Dict) -> Dict[str, str]:
+def analyze_benchmarks(benchmark_data: dict) -> dict[str, str]:
     """Analyze benchmark data and determine appropriate markers."""
     test_markers = {}
 
@@ -193,7 +193,7 @@ def analyze_benchmarks(benchmark_data: Dict) -> Dict[str, str]:
     return test_markers
 
 
-def find_test_files(directory: str) -> List[Path]:
+def find_test_files(directory: str) -> list[Path]:
     """Find all test files in the given directory."""
     test_files = []
     for root, _, files in os.walk(directory):
@@ -203,7 +203,7 @@ def find_test_files(directory: str) -> List[Path]:
     return test_files
 
 
-def analyze_test_file(file_path: Path) -> Tuple[Dict[str, str], Dict[str, List[str]]]:
+def analyze_test_file(file_path: Path) -> tuple[dict[str, str], dict[str, list[str]]]:
     """
     Analyze a test file to extract existing markers and test functions.
 
@@ -215,7 +215,7 @@ def analyze_test_file(file_path: Path) -> Tuple[Dict[str, str], Dict[str, List[s
     existing_markers = {}
     test_line_numbers = {}
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     current_markers = []
@@ -238,8 +238,8 @@ def analyze_test_file(file_path: Path) -> Tuple[Dict[str, str], Dict[str, List[s
 
 
 def update_test_file(
-    file_path: Path, test_markers: Dict[str, str], dry_run: bool = False
-) -> Tuple[int, int, int]:
+    file_path: Path, test_markers: dict[str, str], dry_run: bool = False
+) -> tuple[int, int, int]:
     """
     Update a test file with appropriate markers.
 
@@ -256,7 +256,7 @@ def update_test_file(
     if not test_line_numbers:
         return added, updated, unchanged
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     # Process each test function
@@ -320,7 +320,7 @@ def update_test_file(
     return added, updated, unchanged
 
 
-def identify_isolation_candidates(directory: str) -> Set[str]:
+def identify_isolation_candidates(directory: str) -> set[str]:
     """
     Identify tests that might need the isolation marker.
 
@@ -392,7 +392,7 @@ def main():
     if args.skip_benchmarks:
         print("Skipping benchmarks, using existing timing report...")
         try:
-            with open(args.output, "r") as f:
+            with open(args.output) as f:
                 report = json.load(f)
                 test_markers = {
                     name: data["marker"]

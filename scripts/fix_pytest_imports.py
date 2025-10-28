@@ -24,7 +24,7 @@ def find_test_files(base_dir):
 
 def check_and_fix_file(file_path):
     """Check if a file uses pytest without importing it and fix if needed."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # Check if the file uses pytest but doesn't import it

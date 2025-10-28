@@ -19,7 +19,7 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES_DIR = REPO_ROOT / "examples"
@@ -39,8 +39,7 @@ def run(cmd: list[str], cwd: Path | None = None) -> tuple[int, str, str]:
     proc = subprocess.run(
         cmd,
         cwd=str(cwd) if cwd else None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
     )
     return proc.returncode, proc.stdout, proc.stderr

@@ -44,8 +44,8 @@ REQUIRED_KEYS = [
 ALLOWED_STATUS = {"draft", "active", "deprecated", "archived"}
 
 
-def find_markdown_files(paths: List[Path]) -> List[Path]:
-    files: List[Path] = []
+def find_markdown_files(paths: list[Path]) -> list[Path]:
+    files: list[Path] = []
     for p in paths:
         if p.is_dir():
             files.extend(list(p.rglob("*.md")))
@@ -54,7 +54,7 @@ def find_markdown_files(paths: List[Path]) -> List[Path]:
     return sorted({f.resolve() for f in files})
 
 
-def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]:
+def parse_front_matter(lines: list[str]) -> tuple[dict[str, str] | None, int]:
     """Return (front_matter_dict, end_index) or (None, 0) if not present.
     end_index is the line index after the front matter block.
     """
@@ -70,7 +70,7 @@ def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]
         return None, 0
 
     i += 1
-    fm: Dict[str, str] = {}
+    fm: dict[str, str] = {}
     while i < len(lines) and not RE_FM_START.match(lines[i]):
         line = lines[i].rstrip("\n")
         if line.strip():
@@ -89,8 +89,8 @@ def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]
     return fm, i + 1
 
 
-def validate_front_matter(fm: Dict[str, str]) -> List[str]:
-    errors: List[str] = []
+def validate_front_matter(fm: dict[str, str]) -> list[str]:
+    errors: list[str] = []
 
     for key in REQUIRED_KEYS:
         if key not in fm or not fm[key]:
@@ -111,12 +111,12 @@ def validate_front_matter(fm: Dict[str, str]) -> List[str]:
     return errors
 
 
-def should_skip(lines: List[str]) -> bool:
+def should_skip(lines: list[str]) -> bool:
     head = "\n".join(lines[:5]).lower()
     return "front_matter: skip" in head
 
 
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     args = argv[1:]
     if args:
         paths = [Path(a) for a in args]

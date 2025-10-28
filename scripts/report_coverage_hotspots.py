@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def load_coverage(file_path: Path) -> List[Tuple[str, float]]:
+def load_coverage(file_path: Path) -> list[tuple[str, float]]:
     if not file_path.exists():
         raise FileNotFoundError(f"Coverage file not found: {file_path}")
 
@@ -61,7 +61,7 @@ def load_coverage(file_path: Path) -> List[Tuple[str, float]]:
 
     # Coverage XML schema: <coverage> -> <packages> -> <package> -> <classes> -> <class>
     # Each class has attributes: filename, line-rate (0..1), branch-rate
-    results: List[Tuple[str, float]] = []
+    results: list[tuple[str, float]] = []
     for clazz in root.findall(".//class"):
         filename = clazz.get("filename")
         line_rate = clazz.get("line-rate")
@@ -76,8 +76,8 @@ def load_coverage(file_path: Path) -> List[Tuple[str, float]]:
 
 
 def filter_and_sort(
-    entries: List[Tuple[str, float]], threshold: float, limit: int
-) -> List[Tuple[str, float]]:
+    entries: list[tuple[str, float]], threshold: float, limit: int
+) -> list[tuple[str, float]]:
     # Focus on our codebase
     filtered = [(f, c) for (f, c) in entries if f.startswith("src/")]
     # Sort by ascending coverage, then by path

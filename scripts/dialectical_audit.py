@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Set
-from collections.abc import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"

@@ -21,7 +21,7 @@ except ImportError:
     enhanced_test_parser = None
 
 
-def get_parser_test_paths(directory: str, include_file_only: bool = True) -> List[str]:
+def get_parser_test_paths(directory: str, include_file_only: bool = True) -> list[str]:
     """
     Get test paths using enhanced_test_parser.
 
@@ -47,7 +47,7 @@ def get_parser_test_paths(directory: str, include_file_only: bool = True) -> Lis
         return tests
 
 
-def get_pytest_test_paths(directory: str) -> List[str]:
+def get_pytest_test_paths(directory: str) -> list[str]:
     """
     Get test paths using pytest.
 
@@ -97,8 +97,8 @@ def normalize_test_path(test_path: str) -> str:
 
 
 def analyze_path_differences(
-    parser_tests: List[str], pytest_tests: List[str]
-) -> Dict[str, Any]:
+    parser_tests: list[str], pytest_tests: list[str]
+) -> dict[str, Any]:
     """
     Analyze differences between parser and pytest test paths.
 
@@ -195,7 +195,7 @@ def analyze_path_differences(
     }
 
 
-def analyze_path_patterns(test_paths: List[str]) -> Dict[str, int]:
+def analyze_path_patterns(test_paths: list[str]) -> dict[str, int]:
     """
     Analyze patterns in test paths.
 

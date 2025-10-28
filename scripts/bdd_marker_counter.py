@@ -24,7 +24,7 @@ MARKER_PATTERN = re.compile(r"@pytest\.mark\.(fast|medium|slow|isolation)")
 BDD_DECORATOR_PATTERN = re.compile(r"@(given|when|then|scenario|scenarios)")
 
 
-def find_bdd_step_files(test_dir: str = BDD_STEP_DIR) -> List[str]:
+def find_bdd_step_files(test_dir: str = BDD_STEP_DIR) -> list[str]:
     """
     Find all BDD step definition files.
 
@@ -44,7 +44,7 @@ def find_bdd_step_files(test_dir: str = BDD_STEP_DIR) -> List[str]:
     return step_files
 
 
-def count_markers_in_file(file_path: str) -> Dict[str, int]:
+def count_markers_in_file(file_path: str) -> dict[str, int]:
     """
     Count markers in a BDD step definition file.
 
@@ -60,7 +60,7 @@ def count_markers_in_file(file_path: str) -> Dict[str, int]:
         return marker_counts
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
@@ -74,7 +74,7 @@ def count_markers_in_file(file_path: str) -> Dict[str, int]:
     return marker_counts
 
 
-def count_all_bdd_markers(test_dir: str = BDD_STEP_DIR) -> Dict[str, int]:
+def count_all_bdd_markers(test_dir: str = BDD_STEP_DIR) -> dict[str, int]:
     """
     Count all markers in BDD step definition files.
 
@@ -108,7 +108,7 @@ def count_all_bdd_markers(test_dir: str = BDD_STEP_DIR) -> Dict[str, int]:
     return total_counts
 
 
-def update_task_progress(bdd_counts: Dict[str, int]) -> None:
+def update_task_progress(bdd_counts: dict[str, int]) -> None:
     """
     Update the project status file with the latest BDD marker counts.
 
@@ -140,7 +140,7 @@ def update_task_progress(bdd_counts: Dict[str, int]) -> None:
         print(f"Error: {task_progress_path} not found")
         return
 
-    with open(task_progress_path, "r") as f:
+    with open(task_progress_path) as f:
         lines = f.readlines()
 
     # Find all lines with test categorization information and update them
