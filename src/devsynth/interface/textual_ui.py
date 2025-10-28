@@ -41,7 +41,7 @@ _TEXTUAL_SPEC = import_util.find_spec("textual")
 TEXTUAL_AVAILABLE: bool = _TEXTUAL_SPEC is not None
 
 
-@dataclass(slots=True)  # type: ignore[arg-type,misc,unused-ignore]
+@dataclass
 class LayoutPane:
     """Simple container representing a pane within the Textual layout."""
 
@@ -59,7 +59,7 @@ class LayoutPane:
         self.lines.clear()
 
 
-@dataclass(slots=True)  # type: ignore[arg-type,misc]
+@dataclass
 class MultiPaneLayout:
     """Logical representation of the Textual multi-pane layout."""
 
@@ -326,7 +326,7 @@ class TextualUXBridge(UXBridge):  # type: ignore[misc]
                 ("escape", "quit", "Quit"),
             ]
 
-            def compose(self) -> ComposeResult:  # type: ignore[override]
+            def compose(self) -> ComposeResult:
                 yield Header(show_clock=True)
                 with Horizontal(id="panes"):
                     yield Static("", id="sidebar")
@@ -530,7 +530,7 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: igno
 
         subtasks = self._compose_subtasks()
         if subtasks:
-            snapshot["nested_subtasks"] = subtasks  # type: ignore[assignment]
+            snapshot["nested_subtasks"] = subtasks
 
         self._bridge._record_progress(snapshot)
 

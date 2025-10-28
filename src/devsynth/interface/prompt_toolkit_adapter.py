@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Type, cast
+from typing import Any, Type, cast, assert_type
 from collections.abc import Callable, Iterable, Sequence
 
 from devsynth.logging_setup import DevSynthLogger
@@ -14,7 +14,7 @@ logger = DevSynthLogger(__name__)
 # The code works correctly at runtime, mypy struggles with conditional imports
 
 
-@dataclass(frozen=True)  # type: ignore[arg-type,misc,unused-ignore]
+@dataclass
 class PromptToolkitComponents:
     """Container for prompt-toolkit primitives used by the adapter."""
 
@@ -55,7 +55,7 @@ class PromptToolkitUnavailableError(RuntimeError):
 class PromptToolkitAdapter:
     """Wrapper around prompt-toolkit sessions providing CLI niceties."""
 
-    _components: PromptToolkitComponents | None
+    _components: PromptToolkitComponents
 
     def __init__(
         self,
@@ -67,14 +67,14 @@ class PromptToolkitAdapter:
         if temp_components is None:
             raise PromptToolkitUnavailableError("prompt_toolkit is not installed")
         # After this check, _components is guaranteed to be not None
-        self._components = temp_components  # type: ignore[assignment]
+        self._components = temp_components
 
-        self._history = self._components.history_class()  # type: ignore[union-attr]
-        self._session = session or self._components.prompt_session_class(  # type: ignore[union-attr]
+        self._history = self._components.history_class()
+        self._session = session or self._components.prompt_session_class(
             history=self._history
         )
         self._dialog_style = (
-            self._components.style_class.from_dict(  # type: ignore[union-attr]
+            self._components.style_class.from_dict(
                 {
                     "dialog": "bg:#1f1f1f #ffffff",
                     "dialog frame.label": "bg:#005f87 #ffffff",
@@ -115,13 +115,13 @@ class PromptToolkitAdapter:
         prompt_kwargs: dict[str, Any] = {}
         if normalized_choices:
             words = [value for value, _ in normalized_choices]
-            prompt_kwargs["completer"] = self._components.word_completer_class(  # type: ignore[union-attr]
+            prompt_kwargs["completer"] = self._components.word_completer_class(
                 words, ignore_case=True
             )
             prompt_kwargs["complete_in_thread"] = True
             if self._components.complete_style_enum is not None:
                 prompt_kwargs["complete_style"] = (
-                    self._components.complete_style_enum.MULTI_COLUMN  # type: ignore[union-attr]
+                    self._components.complete_style_enum.MULTI_COLUMN
                 )
 
         prompt_message = self._format_prompt(message, default, show_default)
@@ -169,7 +169,7 @@ class PromptToolkitAdapter:
         dialog_default = default if default in valid_values else None
 
         try:
-            dialog = self._components.radiolist_dialog(  # type: ignore[union-attr]
+            dialog = self._components.radiolist_dialog(
                 title="DevSynth",
                 text=message,
                 values=choices,
@@ -196,7 +196,7 @@ class PromptToolkitAdapter:
 
         default_values = [value for value in (default or [])]
         try:
-            dialog = self._components.checkboxlist_dialog(  # type: ignore[union-attr]
+            dialog = self._components.checkboxlist_dialog(
                 title="DevSynth",
                 text=message,
                 values=list(options),
