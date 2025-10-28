@@ -16,9 +16,9 @@ try:  # pragma: no cover - optional dependency import guard
         TextualUXBridge,
     )
 except Exception:  # pragma: no cover - degrade gracefully when Textual is unavailable
-    TextualUXBridge = None  # type: ignore[assignment]
-    MultiPaneLayout = None  # type: ignore[assignment]
-    LayoutPane = None  # type: ignore[assignment]
+    TextualUXBridge = None  # type: ignore[assignment,misc]
+    MultiPaneLayout = None  # type: ignore[assignment,misc]
+    LayoutPane = None  # type: ignore[assignment,misc]
     TEXTUAL_AVAILABLE = False
 
 # Import WebUI directly from the webui module to avoid circular imports

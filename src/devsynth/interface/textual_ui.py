@@ -27,6 +27,7 @@ from collections.abc import Mapping, Sequence
 from devsynth.interface.ux_bridge import (
     PROGRESS_STATUS_VALUES,
     ProgressIndicator,
+    ProgressStatusText,
     SubtaskProgressSnapshot,
     SupportsNestedSubtasks,
     UXBridge,
@@ -87,7 +88,7 @@ class MultiPaneLayout:
         }
 
 
-class TextualUXBridge(UXBridge):  # type: ignore[misc]
+class TextualUXBridge(UXBridge):
     """UX bridge that mirrors Textual's panelled interface."""
 
     def __init__(
@@ -349,7 +350,7 @@ class TextualUXBridge(UXBridge):  # type: ignore[misc]
         WizardApp().run()
 
 
-class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: ignore[misc]
+class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):
     """Progress indicator that mirrors Textual's live progress panels."""
 
     def __init__(
@@ -408,7 +409,6 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: igno
     def update_subtask(
         self,
         task_id: str,
-        *,
         advance: float = 1,
         description: str | None = None,
         status: str | None = None,
@@ -455,7 +455,6 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: igno
         self,
         parent_id: str,
         task_id: str,
-        *,
         advance: float = 1,
         description: str | None = None,
         status: str | None = None,
@@ -492,7 +491,7 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: igno
         self._counter += 1
         return f"{prefix}_{self._counter}"
 
-    def _normalise_status(self, status: str) -> str:
+    def _normalise_status(self, status: str) -> ProgressStatusText:
         if status in PROGRESS_STATUS_VALUES:
             return status
         return "In progress..."
@@ -514,7 +513,7 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):  # type: igno
             nested = self._nested_subtasks.get(task_id)
             if nested:
                 combined["nested_subtasks"] = {
-                    nested_id: dict(nested_snapshot)
+                    nested_id: nested_snapshot
                     for nested_id, nested_snapshot in nested.items()
                 }
             composed[task_id] = combined

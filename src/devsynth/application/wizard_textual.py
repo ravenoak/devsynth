@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass, field  # type: ignore[attr-defined]
+from typing import Any, cast
 from collections.abc import Mapping, Sequence
 
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
@@ -33,14 +33,14 @@ def is_back_command(reply: str, *, keyboard_shortcuts: bool) -> bool:
     return normalized in KEYBOARD_BACK_COMMANDS
 
 
-@dataclass(slots=True)
+@dataclass(slots=True)  # type: ignore
 class _FieldRecord:
     key: str
     label: str
     value: str
 
 
-@dataclass(slots=True)
+@dataclass(slots=True)  # type: ignore
 class TextualWizardViewModel:
     """Maintain wizard state for bridges that expose Textual layouts."""
 
@@ -127,7 +127,7 @@ class TextualWizardViewModel:
             help_text = entry
         if help_text is None:
             return None
-        return sanitize_output(help_text)
+        return sanitize_output(cast(str, help_text))  # type: ignore[no-any-return,redundant-cast]
 
     def present_question(
         self,

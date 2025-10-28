@@ -21,10 +21,10 @@ Key features:
 import json
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field  # type: ignore[attr-defined]
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 from devsynth.ports.memory_port import MemoryPort
 
@@ -62,8 +62,8 @@ class DialecticalAuditResult:
     total_features_found: int
     inconsistencies_found: int
     questions_generated: list[AuditQuestion]
-    coverage_analysis: dict[str, dict[str, int]]
-    feature_matrix: dict[str, set[str]]
+    coverage_analysis: dict[str, dict[str, float]]
+    feature_matrix: dict[str, dict[str, bool]]
     audit_summary: dict[str, Any]
 
 
@@ -188,7 +188,7 @@ class DialecticalAuditSystem:
 
     def extract_features_from_docs(self, docs_dir: Path) -> set[str]:
         """Extract feature references from documentation."""
-        features = set()
+        features: set[str] = set()
 
         if not docs_dir.exists():
             return features
@@ -206,7 +206,7 @@ class DialecticalAuditSystem:
 
     def extract_features_from_tests(self, tests_dir: Path) -> set[str]:
         """Extract feature references from test files."""
-        features = set()
+        features: set[str] = set()
 
         if not tests_dir.exists():
             return features
@@ -237,7 +237,7 @@ class DialecticalAuditSystem:
 
     def extract_features_from_code(self, code_dir: Path) -> set[str]:
         """Extract feature references from code comments."""
-        features = set()
+        features: set[str] = set()
 
         if not code_dir.exists():
             return features
@@ -365,12 +365,12 @@ class DialecticalAuditSystem:
 
     def analyze_coverage(
         self, feature_matrix: dict[str, dict[str, bool]]
-    ) -> dict[str, dict[str, int]]:
+    ) -> dict[str, dict[str, float]]:
         """Analyze feature coverage across artifact types."""
         coverage = {
-            "docs": {"covered": 0, "total": 0, "percentage": 0},
-            "code": {"covered": 0, "total": 0, "percentage": 0},
-            "tests": {"covered": 0, "total": 0, "percentage": 0},
+            "docs": {"covered": 0, "total": 0, "percentage": 0.0},
+            "code": {"covered": 0, "total": 0, "percentage": 0.0},
+            "tests": {"covered": 0, "total": 0, "percentage": 0.0},
         }
 
         total_features = len(feature_matrix)
@@ -438,7 +438,7 @@ class DialecticalAuditSystem:
         try:
             if self.audit_log_path.exists():
                 with open(self.audit_log_path) as f:
-                    return json.load(f)
+                    return cast(dict[str, Any], json.load(f))
             else:
                 return {"questions": [], "resolved": [], "last_audit": None}
         except (json.JSONDecodeError, OSError):
@@ -470,11 +470,11 @@ class DialecticalAuditSystem:
     def _generate_audit_summary(
         self,
         questions: list[AuditQuestion],
-        coverage_analysis: dict[str, dict[str, int]],
+        coverage_analysis: dict[str, dict[str, float]],
     ) -> dict[str, Any]:
         """Generate audit summary."""
         # Count questions by type and severity
-        by_type = {}
+        by_type: dict[str, int] = {}
         by_severity = {"high": 0, "medium": 0, "low": 0}
 
         for question in questions:
@@ -586,7 +586,7 @@ class DialecticalAuditSystem:
 
     def _find_feature_in_docs(self, feature_name: str, docs_dir: Path) -> list[str]:
         """Find feature in documentation."""
-        locations = []
+        locations: list[str] = []
 
         if not docs_dir.exists():
             return locations
@@ -606,7 +606,7 @@ class DialecticalAuditSystem:
 
     def _find_feature_in_code(self, feature_name: str, code_dir: Path) -> list[str]:
         """Find feature in code."""
-        locations = []
+        locations: list[str] = []
 
         if not code_dir.exists():
             return locations
@@ -626,7 +626,7 @@ class DialecticalAuditSystem:
 
     def _find_feature_in_tests(self, feature_name: str, tests_dir: Path) -> list[str]:
         """Find feature in tests."""
-        locations = []
+        locations: list[str] = []
 
         if not tests_dir.exists():
             return locations

@@ -19,7 +19,7 @@ import re
 import subprocess
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field  # type: ignore[attr-defined]
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
@@ -179,7 +179,7 @@ class EnhancedTestCollector:
         return results
 
     def get_tests_with_markers(
-        self, marker_types: list[str] = None, use_cache: bool = True
+        self, marker_types: list[str] | None = None, use_cache: bool = True
     ) -> dict[str, dict[str, list[str]]]:
         """
         Get tests with specific markers organized by category.
@@ -299,7 +299,7 @@ class EnhancedTestCollector:
             with open(cache_file) as f:
                 data = json.load(f)
 
-            return data.get("tests", [])
+            return data.get("tests", [])  # type: ignore[no-any-return]
 
         except (json.JSONDecodeError, OSError):
             cache_file.unlink()
@@ -329,7 +329,7 @@ class EnhancedTestCollector:
         try:
             memory_key = f"test_collection_{category}"
             result = TestCollectionResult(
-                tests={category: tests},
+                tests={category: tests},  # type: ignore[dict-item]
                 collection_time=collection_time,
                 total_tests=len(tests),
                 categories={category: len(tests)},

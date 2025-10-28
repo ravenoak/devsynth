@@ -15,10 +15,11 @@ Key features:
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field  # type: ignore[attr-defined]
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -150,10 +151,10 @@ class SecurityAuditSystem:
 
             # Add configuration options
             if self.bandit_config["severity_threshold"]:
-                cmd.extend(["-s", self.bandit_config["severity_threshold"]])
+                cmd.extend(["-s", str(self.bandit_config["severity_threshold"])])
 
             if self.bandit_config["confidence_threshold"]:
-                cmd.extend(["-c", self.bandit_config["confidence_threshold"]])
+                cmd.extend(["-c", str(self.bandit_config["confidence_threshold"])])
 
             # Run Bandit
             result = subprocess.run(
@@ -187,8 +188,8 @@ class SecurityAuditSystem:
                 )
 
             # Calculate metrics
-            issues_by_severity = {}
-            issues_by_type = {}
+            issues_by_severity: dict[str, int] = {}
+            issues_by_type: dict[str, int] = {}
 
             for issue in issues:
                 # Count by severity
@@ -295,7 +296,7 @@ class SecurityAuditSystem:
                 )
 
             # Analyze vulnerabilities
-            vulnerabilities_by_severity = {}
+            vulnerabilities_by_severity: dict[str, int] = {}
             affected_packages = set()
 
             for vuln in vulnerabilities:

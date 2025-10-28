@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .dialectical_audit_system import DialecticalAuditSystem
+from .dialectical_audit_system import DialecticalAuditSystem, AuditQuestion, DialecticalAuditResult
 
 
 @dataclass
@@ -76,7 +76,7 @@ class RequirementsTraceabilityEngine:
     It provides gap analysis and recommendations for improving traceability.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the requirements traceability engine."""
         self.audit_system = DialecticalAuditSystem()
 
@@ -434,7 +434,7 @@ class RequirementsTraceabilityEngine:
         self, requirement_id: str, code_dir: Path
     ) -> list[str]:
         """Find requirement references in code."""
-        locations = []
+        locations: list[str] = []
 
         if not code_dir.exists():
             return locations
@@ -451,7 +451,7 @@ class RequirementsTraceabilityEngine:
 
         return locations
 
-    def _question_to_gap(self, question) -> TraceabilityGap | None:
+    def _question_to_gap(self, question: AuditQuestion) -> TraceabilityGap | None:
         """Convert audit question to traceability gap."""
         if "has tests but is not documented" in question.question:
             return TraceabilityGap(
@@ -690,7 +690,7 @@ class RequirementsTraceabilityEngine:
         self, requirement_id: str, docs_dir: Path
     ) -> list[str]:
         """Find requirement references in documentation."""
-        locations = []
+        locations: list[str] = []
 
         if not docs_dir.exists():
             return locations
@@ -707,7 +707,7 @@ class RequirementsTraceabilityEngine:
 
         return locations
 
-    def _generate_markdown_matrix(self, audit_result) -> str:
+    def _generate_markdown_matrix(self, audit_result: DialecticalAuditResult) -> str:
         """Generate markdown traceability matrix."""
         template = """# Requirements Traceability Matrix
 
@@ -801,7 +801,7 @@ class RequirementsTraceabilityEngine:
             recommendations=recommendations,
         )
 
-    def _generate_html_matrix(self, audit_result) -> str:
+    def _generate_html_matrix(self, audit_result: DialecticalAuditResult) -> str:
         """Generate HTML traceability matrix."""
         template = """<!DOCTYPE html>
 <html>
@@ -923,7 +923,7 @@ class RequirementsTraceabilityEngine:
             recommendations=recommendations,
         )
 
-    def _generate_json_matrix(self, audit_result) -> str:
+    def _generate_json_matrix(self, audit_result: DialecticalAuditResult) -> str:
         """Generate JSON traceability matrix."""
         import json
 
