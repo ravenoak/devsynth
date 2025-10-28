@@ -7,7 +7,8 @@ import time
 from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable, Optional, Protocol, TypeAlias, cast
+from typing import Optional, Protocol, TypeAlias, cast
+from collections.abc import Iterable
 
 from devsynth.application.memory.dto import (
     GroupedMemoryResults,
@@ -50,7 +51,7 @@ class PendingOperation:
 class FallbackError(Exception):
     """Exception raised when all fallback attempts fail."""
 
-    def __init__(self, message: str, errors: Optional[dict[str, Exception]] = None):
+    def __init__(self, message: str, errors: dict[str, Exception] | None = None):
         """
         Initialize the fallback error.
 
@@ -113,7 +114,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         self,
         primary_store: MemoryStoreProtocol,
         fallback_stores: list[MemoryStoreProtocol],
-        logger: Optional[logging.Logger] = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Initialize a fallback store.

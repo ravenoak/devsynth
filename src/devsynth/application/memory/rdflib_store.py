@@ -13,7 +13,8 @@ import os
 import uuid
 from datetime import datetime
 from types import ModuleType
-from typing import TYPE_CHECKING, Callable, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Optional, cast
+from collections.abc import Callable, Sequence
 
 import numpy as np
 import tiktoken
@@ -350,7 +351,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
                 else:
                     self.graph.add((metadata_uri, predicate, self._literal(str(value))))
 
-    def _triples_to_memory_item(self, item_uri: URIRefType) -> Optional[MemoryItem]:
+    def _triples_to_memory_item(self, item_uri: URIRefType) -> MemoryItem | None:
         """
         Convert RDF triples to a MemoryItem.
 
@@ -442,7 +443,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
 
     def _triples_to_memory_vector(
         self, vector_uri: URIRefType
-    ) -> Optional[MemoryVector]:
+    ) -> MemoryVector | None:
         """
         Convert RDF triples to a MemoryVector.
 
@@ -523,7 +524,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
                 original_error=e,
             )
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve an item from memory by ID.
 

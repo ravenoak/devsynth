@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, AsyncGenerator
+from typing import Any
+from collections.abc import AsyncGenerator
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -68,7 +69,7 @@ class LLMPort:
         prompt: str,
         parameters: dict[str, Any] | None = None,
         provider_type: str | None = None,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str]:
         """Generate text from a prompt with streaming."""
         provider = self._get_provider(provider_type)
         if not isinstance(provider, StreamingLLMProvider):
@@ -86,7 +87,7 @@ class LLMPort:
         context: list[dict[str, str]],
         parameters: dict[str, Any] | None = None,
         provider_type: str | None = None,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str]:
         """Generate text from a prompt with conversation context with streaming."""
         provider = self._get_provider(provider_type)
         if not isinstance(provider, StreamingLLMProvider):

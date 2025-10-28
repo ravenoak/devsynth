@@ -98,7 +98,7 @@ class CommandTableRow(Mapping[str, object]):
         return dict(self._data)
 
     @classmethod
-    def from_mapping(cls, data: Mapping[str, object]) -> "CommandTableRow":
+    def from_mapping(cls, data: Mapping[str, object]) -> CommandTableRow:
         """Create a row from an arbitrary mapping."""
 
         return cls(data=data)
@@ -136,7 +136,7 @@ class CommandTableData(Sequence[CommandTableRow]):
     @classmethod
     def from_iterable(
         cls, rows: Sequence[CommandTableRow | Mapping[str, object]]
-    ) -> "CommandTableData":
+    ) -> CommandTableData:
         """Coerce raw mappings into a structured table sequence."""
 
         coerced = tuple(
@@ -176,7 +176,7 @@ class CommandListData(Sequence[object]):
         return self.items[index]
 
     @classmethod
-    def from_iterable(cls, items: Sequence[object]) -> "CommandListData":
+    def from_iterable(cls, items: Sequence[object]) -> CommandListData:
         return cls(items=tuple(items))
 
 
@@ -209,8 +209,8 @@ class CommandDisplay:
     """Representation of formatted CLI content ready for rendering."""
 
     renderable: RenderableType
-    output_type: "CommandOutputType"
-    output_style: "CommandOutputStyle"
+    output_type: CommandOutputType
+    output_style: CommandOutputStyle
     title: str | None = None
     subtitle: str | None = None
 
@@ -330,7 +330,7 @@ class ProgressSubtaskSpec:
     status: str = "Starting..."
 
     @classmethod
-    def from_mapping(cls, data: Mapping[str, object]) -> "ProgressSubtaskSpec":
+    def from_mapping(cls, data: Mapping[str, object]) -> ProgressSubtaskSpec:
         """Build a :class:`ProgressSubtaskSpec` from a generic mapping."""
 
         def _coerce_total(value: object) -> int:

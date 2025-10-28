@@ -9,7 +9,7 @@ ImportError traces.
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 
 def _fmt_pkg_list(packages: Sequence[str]) -> str:

@@ -7,7 +7,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
+from collections.abc import Callable, Iterable
 
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.domain.models.wsde_facade import WSDETeam
@@ -68,11 +69,11 @@ def _ensure_agent_payload(content: CollaborationPayloadInput) -> AgentPayload:
     return AgentPayload.from_dict(payload.to_dict())
 
 
-def _sorted_mapping(items: Iterable[tuple[str, JSONValue]]) -> Dict[str, JSONValue]:
+def _sorted_mapping(items: Iterable[tuple[str, JSONValue]]) -> dict[str, JSONValue]:
     return dict(sorted(items, key=lambda pair: pair[0]))
 
 
-def _coerce_datetime(value: Any) -> Optional[datetime]:
+def _coerce_datetime(value: Any) -> datetime | None:
     """Convert ISO strings into :class:`datetime` objects when possible."""
 
     if isinstance(value, datetime):
@@ -93,7 +94,7 @@ class AgentMessage:
     recipient_id: str
     message_type: MessageType
     payload: AgentPayload
-    related_task_id: Optional[str] = None
+    related_task_id: str | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -117,7 +118,7 @@ class AgentMessage:
             return {"summary": self.payload.summary}
         return self.payload.to_dict()
 
-    def to_dict(self) -> Dict[str, JSONValue]:
+    def to_dict(self) -> dict[str, JSONValue]:
         """Convert the message to a dictionary."""
 
         return {
@@ -131,7 +132,7 @@ class AgentMessage:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AgentMessage":
+    def from_dict(cls, data: dict[str, Any]) -> AgentMessage:
         message_type = data.get("message_type", MessageType.STATUS_UPDATE)
         if isinstance(message_type, str):
             try:
@@ -166,23 +167,23 @@ class CollaborationTask:
 
     task_type: str
     description: str
-    inputs: Dict[str, Any]
-    required_capabilities: List[str] = field(default_factory=list)
-    parent_task_id: Optional[str] = None
+    inputs: dict[str, Any]
+    required_capabilities: list[str] = field(default_factory=list)
+    parent_task_id: str | None = None
     priority: int = 1
-    descriptor: Optional[TaskDescriptor] = None
+    descriptor: TaskDescriptor | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     status: TaskStatus = TaskStatus.PENDING
-    assigned_agent_id: Optional[str] = None
-    result: Optional[Any] = None
+    assigned_agent_id: str | None = None
+    result: Any | None = None
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    subtasks: List["CollaborationTask"] = field(default_factory=list)
-    dependencies: List[str] = field(default_factory=list)
-    messages: List[AgentMessage] = field(default_factory=list)
-    sync_port: Optional[MemorySyncPort] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    subtasks: list[CollaborationTask] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+    messages: list[AgentMessage] = field(default_factory=list)
+    sync_port: MemorySyncPort | None = None
 
     def __post_init__(self) -> None:
         self.inputs = dict(self.inputs)
@@ -198,7 +199,7 @@ class CollaborationTask:
 
     def _sync_descriptor(self) -> None:
         descriptor = self.descriptor
-        metadata: Dict[str, JSONValue] = {}
+        metadata: dict[str, JSONValue] = {}
         if descriptor:
             metadata.update(descriptor.metadata)
 
@@ -253,7 +254,7 @@ class CollaborationTask:
 
         self._sync_descriptor()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert the task to a dictionary."""
 
         return {
@@ -281,7 +282,7 @@ class CollaborationTask:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "CollaborationTask":
+    def from_dict(cls, data: dict[str, Any]) -> CollaborationTask:
         descriptor_data = data.get("descriptor")
         descriptor = (
             TaskDescriptor.from_dict(descriptor_data)
@@ -325,7 +326,7 @@ class CollaborationTask:
             sync_port=sync_port,
         )
 
-    def add_subtask(self, subtask: "CollaborationTask") -> None:
+    def add_subtask(self, subtask: CollaborationTask) -> None:
         """Add a subtask to this task."""
 
         subtask.parent_task_id = self.id
@@ -400,7 +401,7 @@ class AgentCollaborationSystem:
         logger.info(f"Registered agent {agent_id} with capabilities: {capabilities}")
         return agent_id
 
-    def create_team(self, team_id: str, agent_ids: List[str]) -> WSDETeam:
+    def create_team(self, team_id: str, agent_ids: list[str]) -> WSDETeam:
         """
         Create a new team of agents.
 
@@ -464,7 +465,7 @@ class AgentCollaborationSystem:
         logger.info(f"Created team {team_id} with {len(team.agents)} agents")
         return team
 
-    def _get_team(self, team_id: str) -> Optional[WSDETeam]:
+    def _get_team(self, team_id: str) -> WSDETeam | None:
         """
         Get a team by ID from memory or in-memory dictionary.
 
@@ -513,7 +514,7 @@ class AgentCollaborationSystem:
         return None
 
     def register_task_handler(
-        self, task_type: str, handler: Callable[[CollaborationTask], Dict[str, Any]]
+        self, task_type: str, handler: Callable[[CollaborationTask], dict[str, Any]]
     ) -> None:
         """
         Register a handler function for a specific task type.
@@ -529,11 +530,11 @@ class AgentCollaborationSystem:
         self,
         task_type: str,
         description: str,
-        inputs: Dict[str, Any],
-        required_capabilities: Optional[List[str]] = None,
-        parent_task_id: Optional[str] = None,
+        inputs: dict[str, Any],
+        required_capabilities: list[str] | None = None,
+        parent_task_id: str | None = None,
         priority: int = 1,
-        descriptor: Optional[Any] = None,
+        descriptor: Any | None = None,
     ) -> CollaborationTask:
         """
         Create a new task in the collaboration system.
@@ -551,7 +552,7 @@ class AgentCollaborationSystem:
         Returns:
             The created task
         """
-        descriptor_obj: Optional[TaskDescriptor]
+        descriptor_obj: TaskDescriptor | None
         if descriptor is None:
             descriptor_obj = None
         elif isinstance(descriptor, TaskDescriptor):
@@ -616,7 +617,7 @@ class AgentCollaborationSystem:
         logger.info(f"Created task {task.id} of type {task_type}")
         return task
 
-    def _get_task(self, task_id: str) -> Optional[CollaborationTask]:
+    def _get_task(self, task_id: str) -> CollaborationTask | None:
         """
         Get a task by ID from memory or in-memory dictionary.
 
@@ -653,7 +654,7 @@ class AgentCollaborationSystem:
         recipient_id: str,
         message_type: MessageType,
         content: Any,
-        related_task_id: Optional[str] = None,
+        related_task_id: str | None = None,
     ) -> AgentMessage:
         """
         Send a message from one agent to another.
@@ -726,7 +727,7 @@ class AgentCollaborationSystem:
         logger.info(f"Sent message {message.id} from {sender_id} to {recipient_id}")
         return message
 
-    def _get_message(self, message_id: str) -> Optional[AgentMessage]:
+    def _get_message(self, message_id: str) -> AgentMessage | None:
         """
         Get a message by ID from memory or in-memory dictionary.
 
@@ -759,7 +760,7 @@ class AgentCollaborationSystem:
 
         return None
 
-    def assign_task(self, task_id: str, agent_id: Optional[str] = None) -> bool:
+    def assign_task(self, task_id: str, agent_id: str | None = None) -> bool:
         """
         Assign a task to an agent.
 
@@ -875,7 +876,7 @@ class AgentCollaborationSystem:
         logger.error(f"No suitable agent found for task {task_id}")
         return False
 
-    def _find_best_agent_for_task(self, task: CollaborationTask) -> Optional[str]:
+    def _find_best_agent_for_task(self, task: CollaborationTask) -> str | None:
         """
         Find the most appropriate agent for a task based on capabilities and workload.
 
@@ -900,7 +901,7 @@ class AgentCollaborationSystem:
         # In a more advanced implementation, we would consider workload, performance, etc.
         return suitable_agents[0]
 
-    def execute_task(self, task_id: str) -> Dict[str, Any]:
+    def execute_task(self, task_id: str) -> dict[str, Any]:
         """
         Execute a task using the assigned agent.
 
@@ -1043,7 +1044,7 @@ class AgentCollaborationSystem:
             logger.error(f"Error executing task {task_id}: {str(e)}")
             return {"success": False, "error": str(e)}
 
-    def execute_workflow(self, tasks: List[CollaborationTask]) -> Dict[str, Any]:
+    def execute_workflow(self, tasks: list[CollaborationTask]) -> dict[str, Any]:
         """
         Execute a workflow consisting of multiple tasks.
 
@@ -1096,8 +1097,8 @@ class AgentCollaborationSystem:
         return {"success": True, "results": results}
 
     def _build_dependency_graph(
-        self, tasks: List[CollaborationTask]
-    ) -> Dict[str, Set[str]]:
+        self, tasks: list[CollaborationTask]
+    ) -> dict[str, set[str]]:
         """
         Build a dependency graph for a list of tasks.
 
@@ -1114,18 +1115,18 @@ class AgentCollaborationSystem:
 
         return dependency_graph
 
-    def get_task(self, task_id: str) -> Optional[CollaborationTask]:
+    def get_task(self, task_id: str) -> CollaborationTask | None:
         """Get a task by ID."""
         return self.tasks.get(task_id)
 
-    def get_message(self, message_id: str) -> Optional[AgentMessage]:
+    def get_message(self, message_id: str) -> AgentMessage | None:
         """Get a message by ID."""
         return self.messages.get(message_id)
 
-    def get_agent(self, agent_id: str) -> Optional[Agent]:
+    def get_agent(self, agent_id: str) -> Agent | None:
         """Get an agent by ID."""
         return self.agents.get(agent_id)
 
-    def get_team(self, team_id: str) -> Optional[WSDETeam]:
+    def get_team(self, team_id: str) -> WSDETeam | None:
         """Get a team by ID."""
         return self.teams.get(team_id)

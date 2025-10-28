@@ -191,12 +191,12 @@ def show_requirement(requirement_id: str):
 
 @requirements_app.command("create")
 def create_requirement(
-    title: Optional[str] = typer.Option(
+    title: str | None = typer.Option(
         None,
         prompt=not CLI_CONFIG.non_interactive,
         help="Title of the requirement",
     ),
-    description: Optional[str] = typer.Option(
+    description: str | None = typer.Option(
         None,
         prompt=not CLI_CONFIG.non_interactive,
         help="Description of the requirement",
@@ -275,18 +275,18 @@ def create_requirement(
 @requirements_app.command("update")
 def update_requirement(
     requirement_id: str = typer.Option(..., help="ID of the requirement to update"),
-    title: Optional[str] = typer.Option(None, help="New title of the requirement"),
-    description: Optional[str] = typer.Option(
+    title: str | None = typer.Option(None, help="New title of the requirement"),
+    description: str | None = typer.Option(
         None, help="New description of the requirement"
     ),
-    status: Optional[str] = typer.Option(None, help="New status of the requirement"),
-    priority: Optional[str] = typer.Option(
+    status: str | None = typer.Option(None, help="New status of the requirement"),
+    priority: str | None = typer.Option(
         None, help="New priority of the requirement"
     ),
-    type_: Optional[str] = typer.Option(
+    type_: str | None = typer.Option(
         None, "--type", help="New type of the requirement"
     ),
-    reason: Optional[str] = typer.Option(
+    reason: str | None = typer.Option(
         None,
         prompt=not CLI_CONFIG.non_interactive,
         help="Reason for the update",
@@ -323,9 +323,9 @@ def update_requirement(
     reason = reason or os.environ.get("DEVSYNTH_REQ_REASON", "update")
 
     # Prepare updates
-    status_enum: Optional[RequirementStatus] = None
-    priority_enum: Optional[RequirementPriority] = None
-    type_enum: Optional[RequirementType] = None
+    status_enum: RequirementStatus | None = None
+    priority_enum: RequirementPriority | None = None
+    type_enum: RequirementType | None = None
 
     if status is not None:
         try:
@@ -389,7 +389,7 @@ def update_requirement(
 @requirements_app.command("delete")
 def delete_requirement(
     requirement_id: str = typer.Option(..., help="ID of the requirement to delete"),
-    reason: Optional[str] = typer.Option(
+    reason: str | None = typer.Option(
         None,
         prompt=not CLI_CONFIG.non_interactive,
         help="Reason for the deletion",
@@ -517,7 +517,7 @@ def approve_change(
 @requirements_app.command("reject-change")
 def reject_change(
     change_id: str = typer.Option(..., help="ID of the change to reject"),
-    comment: Optional[str] = typer.Option(
+    comment: str | None = typer.Option(
         None,
         prompt=not CLI_CONFIG.non_interactive,
         help="Comment explaining the rejection",
@@ -557,7 +557,7 @@ def reject_change(
 
 @requirements_app.command("chat")
 def start_chat(
-    change_id: Optional[str] = typer.Option(None, help="ID of the change to discuss"),
+    change_id: str | None = typer.Option(None, help="ID of the change to discuss"),
     user_id: str = typer.Option("admin", help="ID of the user starting the chat"),
 ):
     """
@@ -801,30 +801,30 @@ def wizard_cmd(
         "requirements_wizard.json",
         help="File to store collected requirements",
     ),
-    title: Optional[str] = typer.Option(
+    title: str | None = typer.Option(
         None,
         help="Requirement title",
     ),
-    description: Optional[str] = typer.Option(
+    description: str | None = typer.Option(
         None,
         help="Requirement description",
     ),
-    req_type: Optional[str] = typer.Option(
+    req_type: str | None = typer.Option(
         None,
         help="Requirement type",
     ),
-    priority: Optional[str] = typer.Option(
+    priority: str | None = typer.Option(
         None,
         help="Requirement priority",
     ),
-    constraints: Optional[str] = typer.Option(
+    constraints: str | None = typer.Option(
         None,
         help="Constraints (comma separated)",
     ),
     *,
     bridge: UXBridge = CLIUXBridge(),
-    config: Optional[CLIConfig] = None,
-    ctx: Optional[typer.Context] = None,
+    config: CLIConfig | None = None,
+    ctx: typer.Context | None = None,
 ) -> None:
     """Run the interactive requirements wizard.
 

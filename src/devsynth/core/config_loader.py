@@ -6,7 +6,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Mapping, NotRequired, Optional, Protocol, TypedDict, TypeGuard, cast
+from typing import NotRequired, Optional, Protocol, TypedDict, TypeGuard, cast
+from collections.abc import Mapping
 
 try:  # pragma: no cover - optional dependency
     import yaml
@@ -85,9 +86,9 @@ class CoreConfig:
     project_root: str = "."
     structure: str = "single_package"
     language: str = "python"
-    goals: Optional[str] = None
-    constraints: Optional[str] = None
-    priority: Optional[str] = None
+    goals: str | None = None
+    constraints: str | None = None
+    priority: str | None = None
     directories: DirectoryMap | None = None
     features: FeatureFlags | None = None
     resources: JsonObject | None = None
@@ -357,7 +358,7 @@ def _parse_env(cfg: CoreConfig) -> CoreConfigData:
 def _read_yaml_mapping(path: Path) -> dict[str, object] | None:
     if yaml is None or not path.exists():
         return None
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     if not isinstance(data, dict):
         return None
@@ -403,7 +404,7 @@ def _load_toml(path: Path) -> CoreConfigData:
     return {}
 
 
-def _find_project_config(start: Path) -> Optional[Path]:
+def _find_project_config(start: Path) -> Path | None:
     yaml_path = start / ".devsynth" / "project.yaml"
     if yaml_path.exists():
         return yaml_path
@@ -424,7 +425,7 @@ def _find_project_config(start: Path) -> Optional[Path]:
     return None
 
 
-def load_config(start_path: Optional[str] = None) -> CoreConfig:
+def load_config(start_path: str | None = None) -> CoreConfig:
     """Load configuration merging global, project and environment settings."""
 
     root = Path(start_path or os.getcwd())

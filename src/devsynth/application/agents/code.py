@@ -16,7 +16,7 @@ from devsynth.exceptions import DevSynthError
 class CodeAgent(BaseAgent):
     """Agent responsible for implementing code based on tests."""
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and produce code."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
@@ -64,7 +64,7 @@ class CodeAgent(BaseAgent):
             "role": self.current_role,
         }
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()
         if not capabilities:

@@ -66,7 +66,7 @@ class MemoryErrorLogger:
     def __init__(
         self,
         max_errors: int = 100,
-        log_dir: Optional[str] = None,
+        log_dir: str | None = None,
         persist_errors: bool = True,
     ) -> None:
         self.max_errors = max_errors
@@ -131,9 +131,9 @@ class MemoryErrorLogger:
 
     def get_recent_errors(
         self,
-        operation: Optional[str] = None,
-        adapter_name: Optional[str] = None,
-        error_type: Optional[str] = None,
+        operation: str | None = None,
+        adapter_name: str | None = None,
+        error_type: str | None = None,
         limit: int = 10,
     ) -> list[ErrorRecord]:
         """Get recent errors, optionally filtered by criteria."""

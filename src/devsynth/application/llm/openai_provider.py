@@ -7,7 +7,8 @@ import asyncio
 import json
 import os
 import types
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+from collections.abc import AsyncGenerator
 
 try:  # pragma: no cover - optional dependency
     from openai import AsyncOpenAI, OpenAI
@@ -65,7 +66,7 @@ class OpenAITokenLimitError(DevSynthError):
 class OpenAIProvider(StreamingLLMProvider):
     """OpenAI LLM provider implementation."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         """Initialize the OpenAI provider.
 
         Args:
@@ -165,7 +166,7 @@ class OpenAIProvider(StreamingLLMProvider):
                 f"OpenAI max_retries must be non-negative, got {self.max_retries}"
             )
 
-    def _validate_runtime_parameters(self, parameters: Dict[str, Any]) -> None:
+    def _validate_runtime_parameters(self, parameters: dict[str, Any]) -> None:
         """Validate runtime parameters for API calls."""
         # Validate temperature if provided
         if "temperature" in parameters:
@@ -195,7 +196,7 @@ class OpenAIProvider(StreamingLLMProvider):
 
     def _init_client(self):
         """Initialize the OpenAI client."""
-        client_kwargs: Dict[str, Any] = {"api_key": self.api_key}
+        client_kwargs: dict[str, Any] = {"api_key": self.api_key}
 
         if self.api_base:
             client_kwargs["base_url"] = self.api_base
@@ -304,7 +305,7 @@ class OpenAIProvider(StreamingLLMProvider):
 
         return _wrapped()
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] = None) -> str:
         """Generate text from a prompt using OpenAI.
 
         Args:
@@ -362,8 +363,8 @@ class OpenAIProvider(StreamingLLMProvider):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> str:
         """Generate text from a prompt with conversation context using OpenAI.
 
@@ -421,7 +422,7 @@ class OpenAIProvider(StreamingLLMProvider):
             raise OpenAIConnectionError(error_msg)
 
     async def generate_stream(
-        self, prompt: str, parameters: Dict[str, Any] = None
+        self, prompt: str, parameters: dict[str, Any] = None
     ) -> AsyncGenerator[str, None]:
         """Generate text from a prompt using OpenAI with streaming.
 
@@ -488,8 +489,8 @@ class OpenAIProvider(StreamingLLMProvider):
     async def generate_with_context_stream(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> AsyncGenerator[str, None]:
         """Generate text from a prompt with conversation context using OpenAI with streaming.
 
@@ -554,7 +555,7 @@ class OpenAIProvider(StreamingLLMProvider):
 
         return stream_generator()
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Get an embedding vector for the given text using OpenAI.
 
         Args:

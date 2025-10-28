@@ -10,29 +10,22 @@ from datetime import datetime
 from enum import Enum
 from typing import (
     Any,
-    Callable,
     ClassVar,
     Dict,
-    ItemsView,
-    Iterable,
-    Iterator,
-    KeysView,
     List,
-    Mapping,
     Optional,
     Protocol,
-    Sequence,
     Tuple,
     Type,
     TypeAlias,
     TypeVar,
     Union,
-    ValuesView,
     cast,
     get_args,
     get_origin,
     runtime_checkable,
 )
+from collections.abc import Callable, ItemsView, Iterable, Iterator, KeysView, Mapping, Sequence, ValuesView
 
 __all__ = [
     "AgentPayload",
@@ -77,7 +70,7 @@ JSONMapping: TypeAlias = Mapping[str, JSONValue]
 class AgentPayloadLike(Protocol):
     """Protocol for objects that can convert themselves into :class:`AgentPayload`."""
 
-    def to_agent_payload(self) -> "AgentPayload":
+    def to_agent_payload(self) -> AgentPayload:
         """Return an :class:`AgentPayload` instance."""
 
 
@@ -85,7 +78,7 @@ class AgentPayloadLike(Protocol):
 class TaskDescriptorLike(Protocol):
     """Protocol for objects convertible into :class:`TaskDescriptor`."""
 
-    def to_task_descriptor(self) -> "TaskDescriptor":
+    def to_task_descriptor(self) -> TaskDescriptor:
         """Return a :class:`TaskDescriptor` instance."""
 
 
@@ -93,11 +86,11 @@ class TaskDescriptorLike(Protocol):
 class MessageFilterLike(Protocol):
     """Protocol for objects convertible into :class:`MessageFilter`."""
 
-    def to_message_filter(self) -> "MessageFilter":
+    def to_message_filter(self) -> MessageFilter:
         """Return a :class:`MessageFilter` instance."""
 
 
-def _ordered_mapping(items: Iterable[Tuple[str, JSONValue]]) -> Dict[str, JSONValue]:
+def _ordered_mapping(items: Iterable[tuple[str, JSONValue]]) -> dict[str, JSONValue]:
     return dict(OrderedDict(sorted(items, key=lambda item: item[0])))
 
 
@@ -115,7 +108,7 @@ def _serialize_value(value: Any) -> JSONValue:
     return cast(JSONValue, value)
 
 
-def _normalize_mapping(value: MappingABC[str, Any]) -> Dict[str, JSONValue]:
+def _normalize_mapping(value: MappingABC[str, Any]) -> dict[str, JSONValue]:
     return _ordered_mapping(
         (str(k), _deserialize_arbitrary(v)) for k, v in value.items()
     )
@@ -157,7 +150,7 @@ def _coerce_value(annotation: Any, value: Any) -> Any:
         return value
 
     if isinstance(annotation, type) and issubclass_safe(annotation, BaseDTO):
-        dto_cls = cast(Type[BaseDTO], annotation)
+        dto_cls = cast(type[BaseDTO], annotation)
         mapping_value = cast(Mapping[str, Any], value)
         return dto_cls.from_dict(mapping_value)
 
@@ -172,7 +165,7 @@ def _coerce_value(annotation: Any, value: Any) -> Any:
     return _deserialize_arbitrary(value)
 
 
-def issubclass_safe(candidate: Any, parent: Type[Any]) -> bool:
+def issubclass_safe(candidate: Any, parent: type[Any]) -> bool:
     try:
         return isinstance(candidate, type) and issubclass(candidate, parent)
     except TypeError:
@@ -183,11 +176,11 @@ class BaseDTO:
     """Base helpers for DTO serialization."""
 
     dto_type: ClassVar[str]
-    extra_field_name: ClassVar[Optional[str]] = None
+    extra_field_name: ClassVar[str | None] = None
 
-    def to_dict(self) -> Dict[str, JSONValue]:
-        result_items: List[Tuple[str, JSONValue]] = [("dto_type", self.dto_type)]
-        dataclass_type = cast(Type[Any], type(self))
+    def to_dict(self) -> dict[str, JSONValue]:
+        result_items: list[tuple[str, JSONValue]] = [("dto_type", self.dto_type)]
+        dataclass_type = cast(type[Any], type(self))
         for field_info in fields(dataclass_type):
             value = getattr(self, field_info.name)
             result_items.append((field_info.name, _serialize_value(value)))
@@ -216,22 +209,22 @@ class BaseDTO:
         return self.to_dict().values()
 
     @classmethod
-    def from_dict(cls: Type[T], data: Mapping[str, Any]) -> T:
+    def from_dict(cls: type[T], data: Mapping[str, Any]) -> T:
         if not isinstance(data, MappingABC):
             raise TypeError(
                 f"Expected mapping for {cls.__name__}, received {type(data)!r}"
             )
 
-        prepared: Dict[str, Any] = {}
+        prepared: dict[str, Any] = {}
         for key, value in data.items():
             if key == "dto_type":
                 continue
             prepared[str(key)] = value
 
-        dataclass_type = cast(Type[Any], cls)
+        dataclass_type = cast(type[Any], cls)
         field_map = {f.name: f for f in fields(dataclass_type)}
-        kwargs: Dict[str, Any] = {}
-        extras: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
+        extras: dict[str, Any] = {}
 
         for name, value in prepared.items():
             field_info = field_map.get(name)
@@ -245,7 +238,7 @@ class BaseDTO:
             if extra_field and extra_field in field_map:
                 current = kwargs.get(extra_field)
                 if current is None:
-                    current_map: Dict[str, Any] = {}
+                    current_map: dict[str, Any] = {}
                 elif isinstance(current, MappingABC):
                     current_map = dict(current)
                 else:
@@ -270,11 +263,11 @@ class BaseDTO:
         return cls(**kwargs)
 
 
-def _dto_type_name(cls: Type[BaseDTO]) -> str:
+def _dto_type_name(cls: type[BaseDTO]) -> str:
     return getattr(cls, "dto_type", cls.__name__)
 
 
-def _register_dto(cls: Type[T]) -> Type[T]:
+def _register_dto(cls: type[T]) -> type[T]:
     dto_registry[_dto_type_name(cls)] = cls
     return cls
 
@@ -284,13 +277,13 @@ class AgentPayload(BaseDTO):
     dto_type: ClassVar[str] = "AgentPayload"
     extra_field_name: ClassVar[str] = "attributes"
 
-    agent_id: Optional[str] = None
-    display_name: Optional[str] = None
-    role: Optional[str] = None
-    status: Optional[str] = None
-    summary: Optional[str] = None
+    agent_id: str | None = None
+    display_name: str | None = None
+    role: str | None = None
+    status: str | None = None
+    summary: str | None = None
     attributes: JSONMapping = field(default_factory=dict)
-    payload: Optional[JSONValue] = None
+    payload: JSONValue | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -298,12 +291,12 @@ class TaskDescriptor(BaseDTO):
     dto_type: ClassVar[str] = "TaskDescriptor"
     extra_field_name: ClassVar[str] = "metadata"
 
-    task_id: Optional[str] = None
-    summary: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[str] = None
-    assignee: Optional[str] = None
-    tags: Tuple[str, ...] = ()
+    task_id: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    status: str | None = None
+    assignee: str | None = None
+    tags: tuple[str, ...] = ()
     metadata: JSONMapping = field(default_factory=dict)
 
 
@@ -312,20 +305,20 @@ class ConsensusOutcome(BaseDTO):
     dto_type: ClassVar[str] = "ConsensusOutcome"
     extra_field_name: ClassVar[str] = "metadata"
 
-    consensus_id: Optional[str] = None
-    task_id: Optional[str] = None
-    method: Optional[str] = None
-    achieved: Optional[bool] = None
-    confidence: Optional[float] = None
-    rationale: Optional[str] = None
-    participants: Tuple[str, ...] = ()
-    agent_opinions: Tuple["AgentOpinionRecord", ...] = ()
-    conflicts: Tuple["ConflictRecord", ...] = ()
+    consensus_id: str | None = None
+    task_id: str | None = None
+    method: str | None = None
+    achieved: bool | None = None
+    confidence: float | None = None
+    rationale: str | None = None
+    participants: tuple[str, ...] = ()
+    agent_opinions: tuple[AgentOpinionRecord, ...] = ()
+    conflicts: tuple[ConflictRecord, ...] = ()
     conflicts_identified: int = 0
-    synthesis: Optional["SynthesisArtifact"] = None
-    majority_opinion: Optional[str] = None
-    stakeholder_explanation: Optional[str] = None
-    timestamp: Optional[str] = None
+    synthesis: SynthesisArtifact | None = None
+    majority_opinion: str | None = None
+    stakeholder_explanation: str | None = None
+    timestamp: str | None = None
     metadata: JSONMapping = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -386,11 +379,11 @@ class AgentOpinionRecord(BaseDTO):
     dto_type: ClassVar[str] = "AgentOpinionRecord"
     extra_field_name: ClassVar[str] = "metadata"
 
-    agent_id: Optional[str] = None
-    opinion: Optional[str] = None
-    rationale: Optional[str] = None
-    timestamp: Optional[str] = None
-    weight: Optional[float] = None
+    agent_id: str | None = None
+    opinion: str | None = None
+    rationale: str | None = None
+    timestamp: str | None = None
+    weight: float | None = None
     metadata: JSONMapping = field(default_factory=dict)
 
 
@@ -399,16 +392,16 @@ class ConflictRecord(BaseDTO):
     dto_type: ClassVar[str] = "ConflictRecord"
     extra_field_name: ClassVar[str] = "metadata"
 
-    conflict_id: Optional[str] = None
-    task_id: Optional[str] = None
-    agent_a: Optional[str] = None
-    agent_b: Optional[str] = None
-    opinion_a: Optional[str] = None
-    opinion_b: Optional[str] = None
-    rationale_a: Optional[str] = None
-    rationale_b: Optional[str] = None
-    severity_label: Optional[str] = None
-    severity_score: Optional[float] = None
+    conflict_id: str | None = None
+    task_id: str | None = None
+    agent_a: str | None = None
+    agent_b: str | None = None
+    opinion_a: str | None = None
+    opinion_b: str | None = None
+    rationale_a: str | None = None
+    rationale_b: str | None = None
+    severity_label: str | None = None
+    severity_score: float | None = None
     metadata: JSONMapping = field(default_factory=dict)
 
 
@@ -417,10 +410,10 @@ class SynthesisArtifact(BaseDTO):
     dto_type: ClassVar[str] = "SynthesisArtifact"
     extra_field_name: ClassVar[str] = "metadata"
 
-    text: Optional[str] = None
-    key_points: Tuple[str, ...] = ()
+    text: str | None = None
+    key_points: tuple[str, ...] = ()
     expertise_weights: Mapping[str, float] = field(default_factory=dict)
-    conflict_resolution_method: Optional[str] = None
+    conflict_resolution_method: str | None = None
     readability_score: Mapping[str, float] = field(default_factory=dict)
     metadata: JSONMapping = field(default_factory=dict)
 
@@ -430,11 +423,11 @@ class ReviewDecision(BaseDTO):
     dto_type: ClassVar[str] = "ReviewDecision"
     extra_field_name: ClassVar[str] = "metadata"
 
-    decision_id: Optional[str] = None
-    reviewer: Optional[str] = None
-    approved: Optional[bool] = None
-    notes: Optional[str] = None
-    score: Optional[float] = None
+    decision_id: str | None = None
+    reviewer: str | None = None
+    approved: bool | None = None
+    notes: str | None = None
+    score: float | None = None
     metadata: JSONMapping = field(default_factory=dict)
 
 
@@ -443,11 +436,11 @@ class PeerReviewRecord(BaseDTO):
     dto_type: ClassVar[str] = "PeerReviewRecord"
     extra_field_name: ClassVar[str] = "metadata"
 
-    task: Optional[TaskDescriptor] = None
-    decision: Optional[ReviewDecision] = None
-    consensus: Optional[ConsensusOutcome] = None
-    reviewers: Tuple[str, ...] = ()
-    notes: Optional[str] = None
+    task: TaskDescriptor | None = None
+    decision: ReviewDecision | None = None
+    consensus: ConsensusOutcome | None = None
+    reviewers: tuple[str, ...] = ()
+    notes: str | None = None
     metadata: JSONMapping = field(default_factory=dict)
 
 
@@ -458,7 +451,7 @@ class MemorySyncPort(BaseDTO):
 
     adapter: str = "conversation"
     channel: str = "default"
-    priority: Optional[str] = None
+    priority: str | None = None
     options: JSONMapping = field(default_factory=dict)
 
 
@@ -468,12 +461,12 @@ class MessageFilter(BaseDTO):
 
     dto_type: ClassVar[str] = "MessageFilter"
 
-    message_type: Optional[str] = None
-    sender: Optional[str] = None
-    recipient: Optional[str] = None
-    subject_contains: Optional[str] = None
-    since: Optional[datetime] = None
-    until: Optional[datetime] = None
+    message_type: str | None = None
+    sender: str | None = None
+    recipient: str | None = None
+    subject_contains: str | None = None
+    since: datetime | None = None
+    until: datetime | None = None
 
     def __post_init__(self) -> None:
         for field_name in ("since", "until"):
@@ -487,7 +480,7 @@ class MessageFilter(BaseDTO):
                     ) from exc
                 object.__setattr__(self, field_name, parsed)
 
-    def with_sender(self, sender: Optional[str]) -> "MessageFilter":
+    def with_sender(self, sender: str | None) -> MessageFilter:
         """Return a new filter with the provided sender."""
 
         if sender == self.sender:
@@ -500,7 +493,7 @@ class MessageFilter(BaseDTO):
 MessageFilterInput = Union[MessageFilter, MessageFilterLike, Mapping[str, JSONValue]]
 
 
-dto_registry: Dict[str, Type[BaseDTO]] = {}
+dto_registry: dict[str, type[BaseDTO]] = {}
 
 for cls in (
     AgentPayload,
@@ -534,7 +527,7 @@ CollaborationPayloadInput = Union[
 MessagePayload = Union[CollaborationDTO, JSONValue]
 
 
-def serialize_collaboration_dto(dto: CollaborationDTO) -> Dict[str, JSONValue]:
+def serialize_collaboration_dto(dto: CollaborationDTO) -> dict[str, JSONValue]:
     return dto.to_dict()
 
 
@@ -590,7 +583,7 @@ def deserialize_message_payload(data: Any) -> MessagePayload:
 def ensure_collaboration_payload(
     content: CollaborationPayloadInput,
     *,
-    default: Type[CollaborationDTO] = AgentPayload,
+    default: type[CollaborationDTO] = AgentPayload,
 ) -> CollaborationDTO:
     if isinstance(content, BaseDTO):
         if isinstance(content, MemorySyncPort):
@@ -612,11 +605,11 @@ def ensure_collaboration_payload(
             pass
 
     if isinstance(content, str):
-        dto_default = cast(Type[BaseDTO], default)
+        dto_default = cast(type[BaseDTO], default)
         return cast(CollaborationDTO, dto_default.from_dict({"summary": content}))
 
     if isinstance(content, (int, float, bool)):
-        dto_default = cast(Type[BaseDTO], default)
+        dto_default = cast(type[BaseDTO], default)
         return cast(
             CollaborationDTO,
             dto_default.from_dict({"payload": content}),
@@ -625,14 +618,14 @@ def ensure_collaboration_payload(
     if isinstance(content, SequenceABC) and not isinstance(
         content, (str, bytes, bytearray)
     ):
-        dto_default = cast(Type[BaseDTO], default)
+        dto_default = cast(type[BaseDTO], default)
         return cast(
             CollaborationDTO,
             dto_default.from_dict({"payload": list(content)}),
         )
 
     if content is None:
-        dto_default = cast(Type[BaseDTO], default)
+        dto_default = cast(type[BaseDTO], default)
         return cast(CollaborationDTO, dto_default.from_dict({}))
 
     raise TypeError(
@@ -641,8 +634,8 @@ def ensure_collaboration_payload(
 
 
 def ensure_memory_sync_port(
-    metadata: Optional[Union[MemorySyncPort, Mapping[str, JSONValue]]],
-) -> Optional[MemorySyncPort]:
+    metadata: MemorySyncPort | Mapping[str, JSONValue] | None,
+) -> MemorySyncPort | None:
     if metadata is None:
         return None
     if isinstance(metadata, MemorySyncPort):
@@ -666,16 +659,16 @@ def ensure_memory_sync_port(
 
 
 def serialize_memory_sync_port(
-    metadata: Optional[MemorySyncPort],
-) -> Optional[Dict[str, JSONValue]]:
+    metadata: MemorySyncPort | None,
+) -> dict[str, JSONValue] | None:
     if metadata is None:
         return None
     return metadata.to_dict()
 
 
 def ensure_message_filter(
-    filters: Optional[MessageFilterInput],
-) -> Optional[MessageFilter]:
+    filters: MessageFilterInput | None,
+) -> MessageFilter | None:
     if filters is None:
         return None
     if isinstance(filters, MessageFilter):
@@ -684,7 +677,7 @@ def ensure_message_filter(
         return filters.to_message_filter()
     if isinstance(filters, MappingABC):
         try:
-            base: Dict[str, Any] = dict(filters)
+            base: dict[str, Any] = dict(filters)
             mt_value: Any = base.get("message_type")
             if isinstance(mt_value, Enum):
                 base["message_type"] = str(mt_value.value)

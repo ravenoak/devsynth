@@ -9,7 +9,7 @@ ensures consistent user interaction behaviour across interfaces.
 from __future__ import annotations
 
 import json
-from typing import Callable
+from collections.abc import Callable
 
 try:  # pragma: no cover - optional dependency
     import dearpygui.dearpygui as dpg

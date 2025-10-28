@@ -40,9 +40,9 @@ class UnifiedAgent(BaseAgent):
 
     def __init__(
         self,
-        name: Union[str, None] = None,
+        name: str | None = None,
         agent_type: AgentType = AgentType.ORCHESTRATOR,
-        config: Union[AgentConfig, None] = None,
+        config: AgentConfig | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -64,14 +64,14 @@ class UnifiedAgent(BaseAgent):
 
     def record_prompt_feedback(
         self,
-        success: Union[bool, None] = None,
-        feedback_score: Union[float, None] = None,
+        success: bool | None = None,
+        feedback_score: float | None = None,
     ) -> None:
         """Record feedback used for tuning future prompts."""
         self.prompt_tuner.adjust(success, feedback_score)
 
     def generate_text(
-        self, prompt: str, parameters: Dict[str, Any] | None = None
+        self, prompt: str, parameters: dict[str, Any] | None = None
     ) -> str:
         params = self.prompt_tuner.parameters()
         if parameters:
@@ -81,15 +81,15 @@ class UnifiedAgent(BaseAgent):
     def generate_text_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] | None = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         params = self.prompt_tuner.parameters()
         if parameters:
             params.update(parameters)
         return super().generate_text_with_context(prompt, context, params)
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and produce outputs based on the requested task."""
         # Get the task type from inputs
         task_type = inputs.get("task_type", "")
@@ -113,7 +113,7 @@ class UnifiedAgent(BaseAgent):
             # Default processing if task type is not specified
             return self._process_generic_task(inputs)
 
-    def _process_specification_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_specification_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a specification generation task."""
         # Create a prompt for the LLM
         prompt = f"""
@@ -154,7 +154,7 @@ class UnifiedAgent(BaseAgent):
 
         return {"specification": specification, "wsde": spec_wsde, "agent": self.name}
 
-    def _process_test_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_test_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a test generation task."""
         # Extract test framework from inputs or default to pytest
         test_framework = inputs.get("test_framework", "pytest").lower()
@@ -271,7 +271,7 @@ class UnifiedAgent(BaseAgent):
 
         return {"tests": tests, "wsde": tests_wsde, "agent": self.name}
 
-    def _process_code_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_code_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a code generation task."""
         # Extract programming language from inputs or default to Python
         language = inputs.get("language", "python").lower()
@@ -356,7 +356,7 @@ class UnifiedAgent(BaseAgent):
 
         return {"code": code, "wsde": code_wsde, "agent": self.name}
 
-    def _process_validation_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_validation_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a validation task."""
         # Create a prompt for the LLM
         prompt = f"""
@@ -397,7 +397,7 @@ class UnifiedAgent(BaseAgent):
 
         return {"validation": validation, "wsde": validation_wsde, "agent": self.name}
 
-    def _process_documentation_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_documentation_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a documentation generation task."""
         # Extract documentation format from inputs or default to Markdown
         doc_format = inputs.get("doc_format", "markdown").lower()
@@ -569,8 +569,8 @@ class UnifiedAgent(BaseAgent):
         return {"documentation": documentation, "wsde": doc_wsde, "agent": self.name}
 
     def _process_project_initialization_task(
-        self, inputs: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, inputs: dict[str, Any]
+    ) -> dict[str, Any]:
         """Process a project initialization task."""
         # Create a prompt for the LLM
         prompt = f"""
@@ -612,7 +612,7 @@ class UnifiedAgent(BaseAgent):
             "agent": self.name,
         }
 
-    def _process_generic_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_generic_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a generic task without a specific type."""
         # Create a prompt for the LLM
         prompt = f"""
@@ -644,13 +644,13 @@ class UnifiedAgent(BaseAgent):
 
         return {"result": result, "wsde": result_wsde, "agent": self.name}
 
-    def _process_analyze_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_analyze_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process a requirements analysis task."""
         # Get the requirements from the input file or interactive session
         requirements = ""
         if "input" in inputs:
             try:
-                with open(inputs["input"], "r") as f:
+                with open(inputs["input"]) as f:
                     requirements = f.read()
                 logger.info(f"Read requirements from {inputs['input']}")
             except Exception as e:
@@ -734,7 +734,7 @@ This is a summary of the requirements.
             "agent": self.name,
         }
 
-    def _process_feedback_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_feedback_task(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process feedback on generated artifacts to improve future generations.
 
         This method implements continuous learning by analyzing user modifications
@@ -830,7 +830,7 @@ This is a summary of the requirements.
             "agent": self.name,
         }
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()
         if not capabilities:

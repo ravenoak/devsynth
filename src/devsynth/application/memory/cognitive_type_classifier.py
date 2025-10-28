@@ -26,7 +26,9 @@ class CognitiveTypeClassifier:
         # Classification rules and patterns
         self._setup_classification_rules()
 
-        logger.info(f"Cognitive type classifier initialized with threshold {confidence_threshold}")
+        logger.info(
+            f"Cognitive type classifier initialized with threshold {confidence_threshold}"
+        )
 
     def _setup_classification_rules(self) -> None:
         """Setup classification rules and patterns."""
@@ -42,27 +44,57 @@ class CognitiveTypeClassifier:
             MemeticSource.DOCUMENTATION: CognitiveType.SEMANTIC,
             MemeticSource.API_RESPONSE: CognitiveType.PROCEDURAL,
             MemeticSource.METRIC_DATA: CognitiveType.EPISODIC,
-            MemeticSource.CONFIGURATION: CognitiveType.SEMANTIC
+            MemeticSource.CONFIGURATION: CognitiveType.SEMANTIC,
         }
 
         # Content-based classification patterns
         self.content_patterns = {
             CognitiveType.WORKING: [
-                "task", "current", "active", "immediate", "working",
-                "prompt", "response", "conversation", "chat"
+                "task",
+                "current",
+                "active",
+                "immediate",
+                "working",
+                "prompt",
+                "response",
+                "conversation",
+                "chat",
             ],
             CognitiveType.EPISODIC: [
-                "execution", "result", "output", "error", "trace",
-                "log", "event", "timestamp", "history", "experience"
+                "execution",
+                "result",
+                "output",
+                "error",
+                "trace",
+                "log",
+                "event",
+                "timestamp",
+                "history",
+                "experience",
             ],
             CognitiveType.SEMANTIC: [
-                "knowledge", "concept", "pattern", "documentation",
-                "reference", "guide", "tutorial", "example", "definition"
+                "knowledge",
+                "concept",
+                "pattern",
+                "documentation",
+                "reference",
+                "guide",
+                "tutorial",
+                "example",
+                "definition",
             ],
             CognitiveType.PROCEDURAL: [
-                "procedure", "process", "workflow", "step", "instruction",
-                "api", "function", "method", "algorithm", "skill"
-            ]
+                "procedure",
+                "process",
+                "workflow",
+                "step",
+                "instruction",
+                "api",
+                "function",
+                "method",
+                "algorithm",
+                "skill",
+            ],
         }
 
         # Context-based classification hints
@@ -72,10 +104,12 @@ class CognitiveTypeClassifier:
             "learning_context": CognitiveType.SEMANTIC,
             "debugging_context": CognitiveType.EPISODIC,
             "documentation_context": CognitiveType.SEMANTIC,
-            "testing_context": CognitiveType.EPISODIC
+            "testing_context": CognitiveType.EPISODIC,
         }
 
-    def classify(self, unit: MemeticUnit, context: Dict[str, Any] = None) -> CognitiveType:
+    def classify(
+        self, unit: MemeticUnit, context: dict[str, Any] = None
+    ) -> CognitiveType:
         """Classify a Memetic Unit into appropriate cognitive type."""
         if context is None:
             context = {}
@@ -89,21 +123,27 @@ class CognitiveTypeClassifier:
             context_override = self._check_context_override(context)
             if context_override and source_confidence >= self.confidence_threshold:
                 unit.metadata.cognitive_type = source_type
-                self._record_classification(unit, source_type, "source", source_confidence)
+                self._record_classification(
+                    unit, source_type, "source", source_confidence
+                )
                 return source_type
 
         # Method 2: Content-based classification
         content_type, content_confidence = self._classify_by_content(unit.payload)
         if content_confidence >= self.confidence_threshold:
             unit.metadata.cognitive_type = content_type
-            self._record_classification(unit, content_type, "content", content_confidence)
+            self._record_classification(
+                unit, content_type, "content", content_confidence
+            )
             return content_type
 
         # Method 3: Context-based classification
         context_type, context_confidence = self._classify_by_context(context)
         if context_confidence >= self.confidence_threshold:
             unit.metadata.cognitive_type = context_type
-            self._record_classification(unit, context_type, "context", context_confidence)
+            self._record_classification(
+                unit, context_type, "context", context_confidence
+            )
             return context_type
 
         # Method 4: Hybrid scoring (combine multiple signals)
@@ -119,7 +159,7 @@ class CognitiveTypeClassifier:
         self._record_classification(unit, fallback_type, "fallback", 0.5)
         return fallback_type
 
-    def _check_context_override(self, context: Dict[str, Any]) -> bool:
+    def _check_context_override(self, context: dict[str, Any]) -> bool:
         """Check if context provides strong override signal."""
         # Check for explicit context hints
         for context_key, suggested_type in self.context_hints.items():
@@ -167,7 +207,9 @@ class CognitiveTypeClassifier:
 
         return best_type[0], min(1.0, best_confidence)
 
-    def _classify_by_context(self, context: Dict[str, Any]) -> tuple[CognitiveType, float]:
+    def _classify_by_context(
+        self, context: dict[str, Any]
+    ) -> tuple[CognitiveType, float]:
         """Classify based on context information."""
         if not context:
             return CognitiveType.WORKING, 0.0
@@ -193,9 +235,7 @@ class CognitiveTypeClassifier:
         return CognitiveType.WORKING, 0.4
 
     def _classify_by_hybrid_scoring(
-        self,
-        unit: MemeticUnit,
-        context: Dict[str, Any]
+        self, unit: MemeticUnit, context: dict[str, Any]
     ) -> tuple[CognitiveType, float]:
         """Classify using hybrid scoring of multiple signals."""
         # Weight different classification methods
@@ -204,7 +244,9 @@ class CognitiveTypeClassifier:
         context_weight = 0.2
 
         # Get scores from each method
-        source_type = self.source_mapping.get(unit.metadata.source, CognitiveType.WORKING)
+        source_type = self.source_mapping.get(
+            unit.metadata.source, CognitiveType.WORKING
+        )
         source_score = 0.9 if unit.metadata.source in self.source_mapping else 0.0
 
         content_type, content_score = self._classify_by_content(unit.payload)
@@ -240,11 +282,7 @@ class CognitiveTypeClassifier:
         return best_type[0], min(1.0, best_confidence)
 
     def _record_classification(
-        self,
-        unit: MemeticUnit,
-        cog_type: CognitiveType,
-        method: str,
-        confidence: float
+        self, unit: MemeticUnit, cog_type: CognitiveType, method: str, confidence: float
     ) -> None:
         """Record classification decision for analysis and improvement."""
         classification_record = {
@@ -254,7 +292,7 @@ class CognitiveTypeClassifier:
             "method": method,
             "confidence": confidence,
             "content_length": len(str(unit.payload)),
-            "keywords": unit.metadata.keywords[:5]  # First 5 keywords
+            "keywords": unit.metadata.keywords[:5],  # First 5 keywords
         }
 
         self.classification_history.append(classification_record)
@@ -263,9 +301,11 @@ class CognitiveTypeClassifier:
         if len(self.classification_history) > 1000:
             self.classification_history = self.classification_history[-500:]
 
-        logger.debug(f"Classified unit {unit.metadata.unit_id} as {cog_type.value} via {method} (confidence: {confidence:.2f})")
+        logger.debug(
+            f"Classified unit {unit.metadata.unit_id} as {cog_type.value} via {method} (confidence: {confidence:.2f})"
+        )
 
-    def get_classification_accuracy(self) -> Dict[str, float]:
+    def get_classification_accuracy(self) -> dict[str, float]:
         """Get classification accuracy statistics."""
         if not self.classification_history:
             return {"total_classifications": 0}
@@ -294,17 +334,23 @@ class CognitiveTypeClassifier:
             "total_classifications": len(self.classification_history),
             "method_distribution": method_counts,
             "average_confidence_by_method": method_avg_confidence,
-            "high_confidence_classifications": sum(1 for r in self.classification_history if r["confidence"] >= self.confidence_threshold)
+            "high_confidence_classifications": sum(
+                1
+                for r in self.classification_history
+                if r["confidence"] >= self.confidence_threshold
+            ),
         }
 
-    def suggest_improvements(self) -> List[str]:
+    def suggest_improvements(self) -> list[str]:
         """Suggest improvements based on classification history."""
         suggestions = []
 
         stats = self.get_classification_accuracy()
 
         if stats["total_classifications"] < 100:
-            suggestions.append("Collect more classification examples for better accuracy")
+            suggestions.append(
+                "Collect more classification examples for better accuracy"
+            )
             return suggestions
 
         # Analyze method performance
@@ -314,18 +360,24 @@ class CognitiveTypeClassifier:
         if method_confidence:
             worst_method = min(method_confidence.items(), key=lambda x: x[1])
             if worst_method[1] < 0.6:
-                suggestions.append(f"Improve {worst_method[0]} classification method (low confidence: {worst_method[1]:.2f})")
+                suggestions.append(
+                    f"Improve {worst_method[0]} classification method (low confidence: {worst_method[1]:.2f})"
+                )
 
         # Check for classification bias
         method_distribution = stats["method_distribution"]
         if method_distribution:
             most_common_method = max(method_distribution.items(), key=lambda x: x[1])
             if most_common_method[1] > len(self.classification_history) * 0.8:
-                suggestions.append(f"Reduce reliance on {most_common_method[0]} method (used {most_common_method[1]}/{len(self.classification_history)} times)")
+                suggestions.append(
+                    f"Reduce reliance on {most_common_method[0]} method (used {most_common_method[1]}/{len(self.classification_history)} times)"
+                )
 
         return suggestions
 
-    def batch_classify(self, units: List[MemeticUnit], context: Dict[str, Any] = None) -> List[CognitiveType]:
+    def batch_classify(
+        self, units: list[MemeticUnit], context: dict[str, Any] = None
+    ) -> list[CognitiveType]:
         """Classify multiple units in batch."""
         classifications = []
 
@@ -342,7 +394,12 @@ class CognitiveTypeClassifier:
         logger.info(f"Batch classified {len(units)} units")
         return classifications
 
-    def reclassify_with_feedback(self, unit: MemeticUnit, correct_type: CognitiveType, context: Dict[str, Any] = None) -> None:
+    def reclassify_with_feedback(
+        self,
+        unit: MemeticUnit,
+        correct_type: CognitiveType,
+        context: dict[str, Any] = None,
+    ) -> None:
         """Reclassify unit with feedback for learning."""
         # Update unit classification
         old_type = unit.metadata.cognitive_type
@@ -355,11 +412,13 @@ class CognitiveTypeClassifier:
             "correct_type": correct_type.value,
             "source": unit.metadata.source.value,
             "content_length": len(str(unit.payload)),
-            "context": context or {}
+            "context": context or {},
         }
 
         # Store feedback for analysis (could be used for model improvement)
-        logger.info(f"Reclassified unit {unit.metadata.unit_id} from {old_type.value} to {correct_type.value} based on feedback")
+        logger.info(
+            f"Reclassified unit {unit.metadata.unit_id} from {old_type.value} to {correct_type.value} based on feedback"
+        )
 
         # Update confidence based on feedback
         unit.metadata.confidence_score = min(1.0, unit.metadata.confidence_score + 0.1)

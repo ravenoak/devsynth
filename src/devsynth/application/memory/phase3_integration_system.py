@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from ...logging_setup import DevSynthLogger
 from .automata_synthesis_engine import AutomataSynthesisEngine
 from .contextual_prompting_system import ContextualPromptingSystem
 from .enhanced_graphrag_engine import EnhancedGraphRAGQueryEngine
 from .execution_learning_integration import ExecutionLearningIntegration
 from .hybrid_llm_architecture import HybridLLMArchitecture
 from .metacognitive_training_system import MetacognitiveTrainingSystem
-from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -39,29 +39,25 @@ class Phase3IntegrationSystem:
             enhanced_graph, self.execution_learning
         )
 
-        self.automata_synthesis = AutomataSynthesisEngine(
-            self.execution_learning
-        )
+        self.automata_synthesis = AutomataSynthesisEngine(self.execution_learning)
 
-        self.hybrid_llm = HybridLLMArchitecture(
-            self.execution_learning
-        )
+        self.hybrid_llm = HybridLLMArchitecture(self.execution_learning)
 
         self.metacognitive_training = MetacognitiveTrainingSystem(
             self.execution_learning
         )
 
-        self.contextual_prompting = ContextualPromptingSystem(
-            self.execution_learning
-        )
+        self.contextual_prompting = ContextualPromptingSystem(self.execution_learning)
 
         # Integration state
         self.system_status = "initialized"
         self.performance_metrics = {}
 
-        logger.info("Phase 3 Integration System initialized with all advanced reasoning components")
+        logger.info(
+            "Phase 3 Integration System initialized with all advanced reasoning components"
+        )
 
-    def process_advanced_reasoning_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def process_advanced_reasoning_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """Process a complex reasoning task using all Phase 3 capabilities."""
         task_id = task.get("task_id", f"task_{int(__import__('time').time())}")
 
@@ -77,15 +73,23 @@ class Phase3IntegrationSystem:
         hybrid_results = self._execute_hybrid_llm_processing(task, reasoning_results)
 
         # Phase 4: Metacognitive enhancement
-        metacognitive_results = self._apply_metacognitive_enhancement(task, hybrid_results)
+        metacognitive_results = self._apply_metacognitive_enhancement(
+            task, hybrid_results
+        )
 
         # Phase 5: Contextual prompt optimization
-        contextual_results = self._optimize_contextual_prompts(task, metacognitive_results)
+        contextual_results = self._optimize_contextual_prompts(
+            task, metacognitive_results
+        )
 
         # Phase 6: Integration and validation
         final_result = self._integrate_and_validate_results(
-            task, task_segments, reasoning_results, hybrid_results,
-            metacognitive_results, contextual_results
+            task,
+            task_segments,
+            reasoning_results,
+            hybrid_results,
+            metacognitive_results,
+            contextual_results,
         )
 
         # Update performance metrics
@@ -99,14 +103,18 @@ class Phase3IntegrationSystem:
                 "task_segments": len(task_segments),
                 "reasoning_hops": reasoning_results.get("total_hops", 0),
                 "hybrid_providers_used": len(hybrid_results.get("provider_usage", {})),
-                "metacognitive_insights": len(metacognitive_results.get("insights", [])),
-                "contextual_prompts": len(contextual_results.get("engineered_prompts", [])),
+                "metacognitive_insights": len(
+                    metacognitive_results.get("insights", [])
+                ),
+                "contextual_prompts": len(
+                    contextual_results.get("engineered_prompts", [])
+                ),
                 "execution_time": final_result.get("total_execution_time", 0.0),
-                "confidence_score": final_result.get("overall_confidence", 0.0)
-            }
+                "confidence_score": final_result.get("overall_confidence", 0.0),
+            },
         }
 
-    def _analyze_and_segment_task(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _analyze_and_segment_task(self, task: dict[str, Any]) -> list[dict[str, Any]]:
         """Analyze task and create segmentation using automata synthesis."""
         task_description = task.get("description", "")
         task_type = task.get("type", "general")
@@ -129,14 +137,18 @@ class Phase3IntegrationSystem:
             return segments
 
         # Fallback to simple segmentation
-        return [{
-            "segment_id": "single_segment",
-            "description": "Complete task execution",
-            "objectives": ["execute_task"],
-            "dependencies": []
-        }]
+        return [
+            {
+                "segment_id": "single_segment",
+                "description": "Complete task execution",
+                "objectives": ["execute_task"],
+                "dependencies": [],
+            }
+        ]
 
-    def _generate_task_exploration_data(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _generate_task_exploration_data(
+        self, task: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate exploration data for task automata synthesis."""
         # This would collect real exploration data in a live system
         # For now, generate synthetic data based on task characteristics
@@ -147,17 +159,28 @@ class Phase3IntegrationSystem:
         synthetic_data = [
             {"state": "initial", "action": "task_analysis", "success": True},
             {"state": "processing", "action": "core_execution", "success": True},
-            {"state": "validation", "action": "result_verification", "success": True}
+            {"state": "validation", "action": "result_verification", "success": True},
         ]
 
         # Add complexity-specific states
         if task_complexity == "high":
-            synthetic_data.insert(1, {"state": "planning", "action": "detailed_planning", "success": True})
-            synthetic_data.insert(-1, {"state": "optimization", "action": "performance_optimization", "success": True})
+            synthetic_data.insert(
+                1, {"state": "planning", "action": "detailed_planning", "success": True}
+            )
+            synthetic_data.insert(
+                -1,
+                {
+                    "state": "optimization",
+                    "action": "performance_optimization",
+                    "success": True,
+                },
+            )
 
         return synthetic_data
 
-    def _execute_multi_hop_reasoning(self, task: Dict[str, Any], task_segments: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _execute_multi_hop_reasoning(
+        self, task: dict[str, Any], task_segments: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Execute multi-hop reasoning using enhanced GraphRAG."""
         # Build query from task and segments
         query = self._build_reasoning_query(task, task_segments)
@@ -171,18 +194,16 @@ class Phase3IntegrationSystem:
                 "response": reasoning_response,
                 "total_hops": reasoning_response.reasoning_path.total_hops,
                 "confidence": reasoning_response.confidence,
-                "success": reasoning_response.confidence > 0.7
+                "success": reasoning_response.confidence > 0.7,
             }
 
         except Exception as e:
             logger.error(f"Multi-hop reasoning failed: {e}")
-            return {
-                "query": query,
-                "error": str(e),
-                "success": False
-            }
+            return {"query": query, "error": str(e), "success": False}
 
-    def _build_reasoning_query(self, task: Dict[str, Any], task_segments: List[Dict[str, Any]]) -> str:
+    def _build_reasoning_query(
+        self, task: dict[str, Any], task_segments: list[dict[str, Any]]
+    ) -> str:
         """Build complex reasoning query from task and segments."""
         task_description = task.get("description", "")
         task_type = task.get("type", "general")
@@ -200,14 +221,16 @@ class Phase3IntegrationSystem:
 
         return query
 
-    def _execute_hybrid_llm_processing(self, task: Dict[str, Any], reasoning_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_hybrid_llm_processing(
+        self, task: dict[str, Any], reasoning_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute hybrid LLM processing for the task."""
         task_data = {
             "task_id": task.get("task_id"),
             "description": task.get("description", ""),
             "type": task.get("type", "general"),
             "complexity": task.get("complexity", "medium"),
-            "requirements": task.get("requirements", [])
+            "requirements": task.get("requirements", []),
         }
 
         try:
@@ -218,17 +241,16 @@ class Phase3IntegrationSystem:
                 "result": hybrid_result,
                 "success": hybrid_result.confidence > 0.6,
                 "provider_usage": hybrid_result.provider_usage,
-                "execution_time": hybrid_result.execution_time
+                "execution_time": hybrid_result.execution_time,
             }
 
         except Exception as e:
             logger.error(f"Hybrid LLM processing failed: {e}")
-            return {
-                "error": str(e),
-                "success": False
-            }
+            return {"error": str(e), "success": False}
 
-    def _apply_metacognitive_enhancement(self, task: Dict[str, Any], hybrid_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _apply_metacognitive_enhancement(
+        self, task: dict[str, Any], hybrid_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Apply metacognitive enhancement to the results."""
         try:
             # Start think-aloud session for metacognitive training
@@ -240,26 +262,31 @@ class Phase3IntegrationSystem:
             self.metacognitive_training.record_verbalization(
                 session_id,
                 f"Hybrid processing completed with confidence {hybrid_results.get('result', {}).get('confidence', 0):.2f}",
-                {"processing_confidence": hybrid_results.get("result", {}).get("confidence", 0.0)}
+                {
+                    "processing_confidence": hybrid_results.get("result", {}).get(
+                        "confidence", 0.0
+                    )
+                },
             )
 
             # End session and get insights
-            session_summary = self.metacognitive_training.end_think_aloud_session(session_id)
+            session_summary = self.metacognitive_training.end_think_aloud_session(
+                session_id
+            )
 
             return {
                 "session_summary": session_summary,
                 "insights": session_summary.get("strategy_improvements", []),
-                "success": True
+                "success": True,
             }
 
         except Exception as e:
             logger.error(f"Metacognitive enhancement failed: {e}")
-            return {
-                "error": str(e),
-                "success": False
-            }
+            return {"error": str(e), "success": False}
 
-    def _optimize_contextual_prompts(self, task: Dict[str, Any], metacognitive_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _optimize_contextual_prompts(
+        self, task: dict[str, Any], metacognitive_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Optimize contextual prompts based on metacognitive insights."""
         try:
             # Create contextual prompt with task context
@@ -268,8 +295,10 @@ class Phase3IntegrationSystem:
             task_context = {
                 "task_type": task.get("type", "general"),
                 "complexity": task.get("complexity", "medium"),
-                "metacognitive_insights": len(metacognitive_results.get("insights", [])),
-                "user_expertise": "intermediate"  # Could be determined from user history
+                "metacognitive_insights": len(
+                    metacognitive_results.get("insights", [])
+                ),
+                "user_expertise": "intermediate",  # Could be determined from user history
             }
 
             contextual_prompt = self.contextual_prompting.create_contextual_prompt(
@@ -284,25 +313,22 @@ class Phase3IntegrationSystem:
             return {
                 "contextual_prompt": contextual_prompt,
                 "engineered_result": engineered_result,
-                "success": engineered_result.estimated_effectiveness > 0.6
+                "success": engineered_result.estimated_effectiveness > 0.6,
             }
 
         except Exception as e:
             logger.error(f"Contextual prompt optimization failed: {e}")
-            return {
-                "error": str(e),
-                "success": False
-            }
+            return {"error": str(e), "success": False}
 
     def _integrate_and_validate_results(
         self,
-        task: Dict[str, Any],
-        task_segments: List[Dict[str, Any]],
-        reasoning_results: Dict[str, Any],
-        hybrid_results: Dict[str, Any],
-        metacognitive_results: Dict[str, Any],
-        contextual_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        task: dict[str, Any],
+        task_segments: list[dict[str, Any]],
+        reasoning_results: dict[str, Any],
+        hybrid_results: dict[str, Any],
+        metacognitive_results: dict[str, Any],
+        contextual_results: dict[str, Any],
+    ) -> dict[str, Any]:
         """Integrate results from all components and validate."""
         # Calculate overall confidence
         confidences = []
@@ -315,11 +341,15 @@ class Phase3IntegrationSystem:
             confidences.append(hybrid_confidence)
 
         if metacognitive_results.get("success"):
-            session_confidence = len(metacognitive_results.get("insights", [])) / 10  # Normalize
+            session_confidence = (
+                len(metacognitive_results.get("insights", [])) / 10
+            )  # Normalize
             confidences.append(session_confidence)
 
         if contextual_results.get("success"):
-            contextual_confidence = contextual_results.get("engineered_result", {}).get("estimated_effectiveness", 0.5)
+            contextual_confidence = contextual_results.get("engineered_result", {}).get(
+                "estimated_effectiveness", 0.5
+            )
             confidences.append(contextual_confidence)
 
         overall_confidence = sum(confidences) / len(confidences) if confidences else 0.5
@@ -346,28 +376,34 @@ class Phase3IntegrationSystem:
                 "reasoning": reasoning_results,
                 "hybrid_llm": hybrid_results,
                 "metacognitive": metacognitive_results,
-                "contextual": contextual_results
+                "contextual": contextual_results,
             },
-            "validation_status": "passed" if overall_confidence > 0.7 else "needs_review",
-            "research_alignment": self._validate_research_alignment(task, overall_confidence)
+            "validation_status": (
+                "passed" if overall_confidence > 0.7 else "needs_review"
+            ),
+            "research_alignment": self._validate_research_alignment(
+                task, overall_confidence
+            ),
         }
 
         return final_result
 
-    def _validate_research_alignment(self, task: Dict[str, Any], confidence: float) -> Dict[str, Any]:
+    def _validate_research_alignment(
+        self, task: dict[str, Any], confidence: float
+    ) -> dict[str, Any]:
         """Validate alignment with research benchmarks."""
         research_benchmarks = {
             "semantic_understanding": 0.8,
             "multi_hop_reasoning": 0.85,
             "execution_prediction": 0.8,
             "metacognitive_awareness": 0.75,
-            "contextual_effectiveness": 0.7
+            "contextual_effectiveness": 0.7,
         }
 
         alignment = {
             "overall_alignment": confidence >= 0.8,
             "benchmark_compliance": {},
-            "improvement_areas": []
+            "improvement_areas": [],
         }
 
         for benchmark, threshold in research_benchmarks.items():
@@ -375,41 +411,48 @@ class Phase3IntegrationSystem:
             alignment["benchmark_compliance"][benchmark] = met_benchmark
 
             if not met_benchmark:
-                alignment["improvement_areas"].append(f"{benchmark}: needs {threshold - confidence:.2f} improvement")
+                alignment["improvement_areas"].append(
+                    f"{benchmark}: needs {threshold - confidence:.2f} improvement"
+                )
 
         return alignment
 
-    def _update_performance_metrics(self, result: Dict[str, Any]) -> None:
+    def _update_performance_metrics(self, result: dict[str, Any]) -> None:
         """Update system performance metrics."""
         metrics = {
             "total_tasks_processed": 1,
             "average_confidence": result.get("overall_confidence", 0.0),
             "average_execution_time": result.get("total_execution_time", 0.0),
-            "research_alignment_rate": result.get("research_alignment", {}).get("overall_alignment", False),
-            "last_update": __import__('time').time()
+            "research_alignment_rate": result.get("research_alignment", {}).get(
+                "overall_alignment", False
+            ),
+            "last_update": __import__("time").time(),
         }
 
         # Update cumulative metrics
-        if hasattr(self, '_cumulative_metrics'):
+        if hasattr(self, "_cumulative_metrics"):
             self._cumulative_metrics["total_tasks_processed"] += 1
             self._cumulative_metrics["average_confidence"] = (
-                (self._cumulative_metrics["average_confidence"] * (self._cumulative_metrics["total_tasks_processed"] - 1) +
-                 result.get("overall_confidence", 0.0)) / self._cumulative_metrics["total_tasks_processed"]
-            )
+                self._cumulative_metrics["average_confidence"]
+                * (self._cumulative_metrics["total_tasks_processed"] - 1)
+                + result.get("overall_confidence", 0.0)
+            ) / self._cumulative_metrics["total_tasks_processed"]
             self._cumulative_metrics["average_execution_time"] = (
-                (self._cumulative_metrics["average_execution_time"] * (self._cumulative_metrics["total_tasks_processed"] - 1) +
-                 result.get("total_execution_time", 0.0)) / self._cumulative_metrics["total_tasks_processed"]
-            )
+                self._cumulative_metrics["average_execution_time"]
+                * (self._cumulative_metrics["total_tasks_processed"] - 1)
+                + result.get("total_execution_time", 0.0)
+            ) / self._cumulative_metrics["total_tasks_processed"]
             self._cumulative_metrics["research_alignment_rate"] = (
-                (self._cumulative_metrics["research_alignment_rate"] * (self._cumulative_metrics["total_tasks_processed"] - 1) +
-                 result.get("research_alignment", {}).get("overall_alignment", False)) / self._cumulative_metrics["total_tasks_processed"]
-            )
+                self._cumulative_metrics["research_alignment_rate"]
+                * (self._cumulative_metrics["total_tasks_processed"] - 1)
+                + result.get("research_alignment", {}).get("overall_alignment", False)
+            ) / self._cumulative_metrics["total_tasks_processed"]
         else:
             self._cumulative_metrics = metrics
 
         self.performance_metrics = self._cumulative_metrics
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive system status."""
         return {
             "system_status": self.system_status,
@@ -419,20 +462,28 @@ class Phase3IntegrationSystem:
                 "automata_synthesis": True,
                 "hybrid_llm": True,
                 "metacognitive_training": True,
-                "contextual_prompting": True
+                "contextual_prompting": True,
             },
             "performance_metrics": self.performance_metrics,
             "component_statistics": {
-                "automata_synthesized": len(self.automata_synthesis.synthesized_automata),
-                "patterns_learned": len(self.execution_learning.pattern_library.patterns),
+                "automata_synthesized": len(
+                    self.automata_synthesis.synthesized_automata
+                ),
+                "patterns_learned": len(
+                    self.execution_learning.pattern_library.patterns
+                ),
                 "cached_responses": len(self.enhanced_graphrag.query_cache),
                 "training_sessions": len(self.metacognitive_training.training_sessions),
-                "prompt_frameworks": len(self.contextual_prompting.behavioral_directives) +
-                                   len(self.contextual_prompting.environmental_constraints)
-            }
+                "prompt_frameworks": len(
+                    self.contextual_prompting.behavioral_directives
+                )
+                + len(self.contextual_prompting.environmental_constraints),
+            },
         }
 
-    def benchmark_against_research(self, test_suite: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def benchmark_against_research(
+        self, test_suite: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Benchmark the system against research standards."""
         results = []
 
@@ -442,11 +493,13 @@ class Phase3IntegrationSystem:
                 results.append(result)
             except Exception as e:
                 logger.error(f"Benchmark test failed: {e}")
-                results.append({
-                    "task_id": test_case.get("task_id", "unknown"),
-                    "success": False,
-                    "error": str(e)
-                })
+                results.append(
+                    {
+                        "task_id": test_case.get("task_id", "unknown"),
+                        "success": False,
+                        "error": str(e),
+                    }
+                )
 
         # Calculate benchmark metrics
         successful_results = [r for r in results if r.get("success", False)]
@@ -454,16 +507,39 @@ class Phase3IntegrationSystem:
         benchmark_report = {
             "total_tests": len(test_suite),
             "successful_tests": len(successful_results),
-            "success_rate": len(successful_results) / len(test_suite) if test_suite else 0.0,
-            "average_confidence": sum(r.get("result", {}).get("overall_confidence", 0.0) for r in successful_results) / len(successful_results) if successful_results else 0.0,
-            "research_alignment": sum(1 for r in successful_results if r.get("result", {}).get("research_alignment", {}).get("overall_alignment", False)) / len(successful_results) if successful_results else 0.0,
-            "detailed_results": results
+            "success_rate": (
+                len(successful_results) / len(test_suite) if test_suite else 0.0
+            ),
+            "average_confidence": (
+                sum(
+                    r.get("result", {}).get("overall_confidence", 0.0)
+                    for r in successful_results
+                )
+                / len(successful_results)
+                if successful_results
+                else 0.0
+            ),
+            "research_alignment": (
+                sum(
+                    1
+                    for r in successful_results
+                    if r.get("result", {})
+                    .get("research_alignment", {})
+                    .get("overall_alignment", False)
+                )
+                / len(successful_results)
+                if successful_results
+                else 0.0
+            ),
+            "detailed_results": results,
         }
 
-        logger.info(f"Benchmark complete: {benchmark_report['success_rate']:.1%} success rate, {benchmark_report['research_alignment']:.1%} research alignment")
+        logger.info(
+            f"Benchmark complete: {benchmark_report['success_rate']:.1%} success rate, {benchmark_report['research_alignment']:.1%} research alignment"
+        )
         return benchmark_report
 
-    def export_system_state(self) -> Dict[str, Any]:
+    def export_system_state(self) -> dict[str, Any]:
         """Export complete system state for persistence."""
         return {
             "system_status": self.system_status,
@@ -472,15 +548,17 @@ class Phase3IntegrationSystem:
             "automata_library": self.automata_synthesis.export_automata_library(),
             "metacognitive_state": self.metacognitive_training.export_metacognitive_state(),
             "prompt_framework": self.contextual_prompting.export_prompt_framework(),
-            "export_timestamp": __import__('time').time()
+            "export_timestamp": __import__("time").time(),
         }
 
-    def import_system_state(self, state_data: Dict[str, Any]) -> None:
+    def import_system_state(self, state_data: dict[str, Any]) -> None:
         """Import system state from external source."""
         try:
             # Import execution learning state
             if "execution_learning" in state_data:
-                self.execution_learning.import_learning_state(state_data["execution_learning"])
+                self.execution_learning.import_learning_state(
+                    state_data["execution_learning"]
+                )
 
             # Import automata library
             if "automata_library" in state_data:
@@ -489,11 +567,15 @@ class Phase3IntegrationSystem:
 
             # Import metacognitive state
             if "metacognitive_state" in state_data:
-                self.metacognitive_training.import_metacognitive_state(state_data["metacognitive_state"])
+                self.metacognitive_training.import_metacognitive_state(
+                    state_data["metacognitive_state"]
+                )
 
             # Import prompt framework
             if "prompt_framework" in state_data:
-                self.contextual_prompting.import_prompt_framework(state_data["prompt_framework"])
+                self.contextual_prompting.import_prompt_framework(
+                    state_data["prompt_framework"]
+                )
 
             logger.info("System state imported successfully")
 
@@ -501,14 +583,14 @@ class Phase3IntegrationSystem:
             logger.error(f"Failed to import system state: {e}")
             raise
 
-    def validate_system_integrity(self) -> Dict[str, Any]:
+    def validate_system_integrity(self) -> dict[str, Any]:
         """Validate system integrity and component health."""
         integrity_report = {
             "overall_health": "healthy",
             "component_health": {},
             "integration_status": {},
             "performance_status": {},
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Check component health
@@ -518,13 +600,15 @@ class Phase3IntegrationSystem:
             "automata_synthesis": self.automata_synthesis,
             "hybrid_llm": self.hybrid_llm,
             "metacognitive_training": self.metacognitive_training,
-            "contextual_prompting": self.contextual_prompting
+            "contextual_prompting": self.contextual_prompting,
         }
 
         for component_name, component in components.items():
             try:
                 # Basic health check
-                if hasattr(component, 'get_statistics') or hasattr(component, 'get_status'):
+                if hasattr(component, "get_statistics") or hasattr(
+                    component, "get_status"
+                ):
                     # Component-specific health checks would go here
                     integrity_report["component_health"][component_name] = "healthy"
                 else:
@@ -536,8 +620,14 @@ class Phase3IntegrationSystem:
         # Check integration status
         integration_checks = [
             ("memory_graph_integration", self._check_memory_graph_integration()),
-            ("execution_learning_integration", self._check_execution_learning_integration()),
-            ("automata_metacognitive_integration", self._check_automata_metacognitive_integration())
+            (
+                "execution_learning_integration",
+                self._check_execution_learning_integration(),
+            ),
+            (
+                "automata_metacognitive_integration",
+                self._check_automata_metacognitive_integration(),
+            ),
         ]
 
         for check_name, check_result in integration_checks:
@@ -551,13 +641,17 @@ class Phase3IntegrationSystem:
             integrity_report["performance_status"] = {
                 "average_confidence": avg_confidence,
                 "average_execution_time": avg_time,
-                "performance_healthy": avg_confidence > 0.7 and avg_time < 30.0
+                "performance_healthy": avg_confidence > 0.7 and avg_time < 30.0,
             }
 
             if avg_confidence < 0.7:
-                integrity_report["recommendations"].append("Improve confidence calibration through additional training")
+                integrity_report["recommendations"].append(
+                    "Improve confidence calibration through additional training"
+                )
             if avg_time > 30.0:
-                integrity_report["recommendations"].append("Optimize execution time through caching and parallelization")
+                integrity_report["recommendations"].append(
+                    "Optimize execution time through caching and parallelization"
+                )
         else:
             integrity_report["performance_status"] = {"no_data": True}
 
@@ -567,7 +661,10 @@ class Phase3IntegrationSystem:
         """Check integration between memory system and enhanced graph."""
         try:
             # Basic integration check
-            if hasattr(self.execution_learning, 'memory_manager') and self.enhanced_graph:
+            if (
+                hasattr(self.execution_learning, "memory_manager")
+                and self.enhanced_graph
+            ):
                 return "integrated"
             return "partial"
         except Exception:
@@ -576,8 +673,9 @@ class Phase3IntegrationSystem:
     def _check_execution_learning_integration(self) -> str:
         """Check execution learning integration."""
         try:
-            if (hasattr(self.execution_learning, 'pattern_library') and
-                hasattr(self.execution_learning, 'understanding_engine')):
+            if hasattr(self.execution_learning, "pattern_library") and hasattr(
+                self.execution_learning, "understanding_engine"
+            ):
                 return "integrated"
             return "partial"
         except Exception:
@@ -586,34 +684,41 @@ class Phase3IntegrationSystem:
     def _check_automata_metacognitive_integration(self) -> str:
         """Check integration between automata synthesis and metacognitive training."""
         try:
-            if (hasattr(self.automata_synthesis, 'synthesized_automata') and
-                hasattr(self.metacognitive_training, 'training_sessions')):
+            if hasattr(self.automata_synthesis, "synthesized_automata") and hasattr(
+                self.metacognitive_training, "training_sessions"
+            ):
                 return "integrated"
             return "partial"
         except Exception:
             return "error"
 
-    def optimize_system_performance(self) -> Dict[str, Any]:
+    def optimize_system_performance(self) -> dict[str, Any]:
         """Optimize system performance based on metrics."""
         optimization_report = {
             "optimizations_applied": [],
             "performance_improvements": {},
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Cache optimization
         if len(self.enhanced_graphrag.query_cache) < 100:
             optimization_report["optimizations_applied"].append("cache_optimization")
-            optimization_report["recommendations"].append("Increase cache size for better performance")
+            optimization_report["recommendations"].append(
+                "Increase cache size for better performance"
+            )
 
         # Memory optimization
         if self.performance_metrics.get("average_execution_time", 0) > 20.0:
             optimization_report["optimizations_applied"].append("memory_optimization")
-            optimization_report["performance_improvements"]["execution_time"] = "improved"
+            optimization_report["performance_improvements"][
+                "execution_time"
+            ] = "improved"
 
         # Learning optimization
         if self.performance_metrics.get("average_confidence", 0) < 0.8:
             optimization_report["optimizations_applied"].append("learning_optimization")
-            optimization_report["recommendations"].append("Increase training data for better confidence")
+            optimization_report["recommendations"].append(
+                "Increase training data for better confidence"
+            )
 
         return optimization_report

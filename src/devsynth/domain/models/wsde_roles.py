@@ -14,7 +14,8 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
+from typing import Optional
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 
 from devsynth.domain.models.wsde_core import WSDETeam
 from devsynth.domain.models.wsde_typing import (
@@ -362,7 +363,7 @@ class RoleAssignmentManager:
     # Public API
     # ------------------------------------------------------------------
     def assign(
-        self, mapping: Optional[Mapping[str | RoleName, SupportsTeamAgent]] = None
+        self, mapping: Mapping[str | RoleName, SupportsTeamAgent] | None = None
     ) -> RoleAssignments:
         """Assign roles either from an explicit mapping or via auto-assignment."""
 
@@ -658,7 +659,7 @@ def _manager(team: WSDETeam) -> RoleAssignmentManager:
 
 def assign_roles(
     self: WSDETeam,
-    role_mapping: Optional[Mapping[str | RoleName, SupportsTeamAgent]] = None,
+    role_mapping: Mapping[str | RoleName, SupportsTeamAgent] | None = None,
 ) -> RoleAssignments:
     return _manager(self).assign(role_mapping)
 

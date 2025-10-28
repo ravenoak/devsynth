@@ -28,7 +28,7 @@ logger = DevSynthLogger(__name__)
 # Load default configuration
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
 try:
-    with open(_DEFAULT_CONFIG_PATH, "r") as f:
+    with open(_DEFAULT_CONFIG_PATH) as f:
         _DEFAULT_CONFIG = yaml.safe_load(f) or {}
 except Exception:
     _DEFAULT_CONFIG = {}
@@ -37,16 +37,16 @@ except Exception:
 class AgentCoordinatorImpl(AgentCoordinator):
     """Implementation of the AgentCoordinator interface."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize the agent coordinator."""
-        self.agents: List[Agent] = []
+        self.agents: list[Agent] = []
         self.team = WSDETeam(name="AgentCoordinatorTeam")
         self.config = config or _DEFAULT_CONFIG
         feature_cfg = self.config.get("features", {})
         self.collaboration_enabled = feature_cfg.get("wsde_collaboration", False)
         self.notify = feature_cfg.get("collaboration_notifications", False)
 
-    def _configure_personas_from_payload(self, task: Dict[str, Any]) -> None:
+    def _configure_personas_from_payload(self, task: dict[str, Any]) -> None:
         personas = task.get("research_personas")
         if isinstance(personas, str):
             personas = [part.strip() for part in personas.split(",") if part.strip()]
@@ -64,9 +64,9 @@ class AgentCoordinatorImpl(AgentCoordinator):
         if callable(configure):
             configure(personas)
 
-    def _attach_persona_events(self, payload: Dict[str, Any]) -> None:
+    def _attach_persona_events(self, payload: dict[str, Any]) -> None:
         drain = getattr(self.team, "drain_persona_events", None)
-        events: List[Dict[str, Any]] = []
+        events: list[dict[str, Any]] = []
         if callable(drain):
             events = drain()
         if events:
@@ -78,7 +78,7 @@ class AgentCoordinatorImpl(AgentCoordinator):
         self.agents.append(agent)
         self.team.add_agent(agent)
 
-    def delegate_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def delegate_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Delegate a task to the appropriate agent(s).
 
@@ -124,8 +124,8 @@ class AgentCoordinatorImpl(AgentCoordinator):
             raise CollaborationError(f"Failed to delegate task: {str(e)}")
 
     def _delegate_to_agent_type(
-        self, agent_type: str, task: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, agent_type: str, task: dict[str, Any]
+    ) -> dict[str, Any]:
         """Delegate a task to an agent of a specific type."""
         for agent in self.agents:
             if agent.agent_type == agent_type:
@@ -141,7 +141,7 @@ class AgentCoordinatorImpl(AgentCoordinator):
 
         raise ValidationError(f"No agent found with type: {agent_type}")
 
-    def _handle_team_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_team_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Handle a task that requires team collaboration.
 
@@ -356,7 +356,7 @@ class AgentCoordinatorImpl(AgentCoordinator):
         self._attach_persona_events(response)
         return response
 
-    def _resolve_conflicts(self, *agent_results) -> Dict[str, Any]:
+    def _resolve_conflicts(self, *agent_results) -> dict[str, Any]:
         """Resolve conflicts between agent results using consensus."""
 
         # If there is only one result, return it as the final decision

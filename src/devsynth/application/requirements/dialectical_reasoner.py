@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Tuple
+from collections.abc import Callable, Sequence
 from uuid import UUID, uuid4
 
 from devsynth.application.collaboration.exceptions import (
@@ -64,7 +65,7 @@ class RecommendationEntry:
 
 def _arguments_to_primitives(
     arguments: Sequence[ParsedDialecticalArgument],
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     """Convert parsed argument dataclasses into repository-compatible payloads."""
 
     return [
@@ -79,7 +80,7 @@ def _arguments_to_primitives(
 
 def _recommendations_to_primitives(
     recommendations: Sequence[RecommendationEntry],
-) -> List[str]:
+) -> list[str]:
     """Convert recommendation entries into their textual representations."""
 
     return [entry.text for entry in recommendations]
@@ -105,7 +106,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         chat_repository: ChatRepositoryPort,
         notification_service: NotificationPort,
         llm_service: LLMPort,
-        memory_manager: Optional[object] = None,
+        memory_manager: object | None = None,
     ):
         """
         Initialize the dialectical reasoner service.
@@ -129,7 +130,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         # collaborators (e.g. a WSDETeam instance) to observe evaluation
         # results.  Each hook receives the ``DialecticalReasoning`` instance and
         # a boolean indicating whether consensus was reached.
-        self.evaluation_hooks: List[Callable[[DialecticalReasoning, bool], None]] = []
+        self.evaluation_hooks: list[Callable[[DialecticalReasoning, bool], None]] = []
 
     # ------------------------------------------------------------------
     # Hook registration
@@ -307,7 +308,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         return response_message
 
     def create_session(
-        self, user_id: str, change_id: Optional[UUID] = None
+        self, user_id: str, change_id: UUID | None = None
     ) -> ChatSession:
         """
         Create a new dialectical reasoning chat session.
@@ -560,7 +561,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
     def _generate_arguments(
         self, change: RequirementChange, thesis: str, antithesis: str
-    ) -> List[ParsedDialecticalArgument]:
+    ) -> list[ParsedDialecticalArgument]:
         """
         Generate arguments for and against a requirement change.
 
@@ -576,7 +577,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         arguments_text: str = self.llm_service.query(prompt).strip()
 
         # Parse the arguments and their counterarguments into a structured format
-        arguments: List[ParsedDialecticalArgument] = []
+        arguments: list[ParsedDialecticalArgument] = []
         current_position: str = ""
         current_content: str = ""
         current_counterargument: str = ""
@@ -672,7 +673,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
     def _generate_conclusion_and_recommendation(
         self, change: RequirementChange, synthesis: str
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """
         Generate a conclusion and recommendation based on the synthesis.
 
@@ -730,11 +731,11 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
     def _collect_chat_history_entries(
         self, session: ChatSession
-    ) -> List[ChatHistoryEntry]:
+    ) -> list[ChatHistoryEntry]:
         """Return the most recent chat messages formatted for prompt injection."""
 
-        recent_messages: List[ChatMessage] = session.messages[-5:]
-        history: List[ChatHistoryEntry] = []
+        recent_messages: list[ChatMessage] = session.messages[-5:]
+        history: list[ChatHistoryEntry] = []
         for message in recent_messages:
             label = "User" if message.sender == session.user_id else "Assistant"
             history.append(
@@ -768,7 +769,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         # Generate the welcome message
         return self.llm_service.query(prompt).strip()
 
-    def _identify_affected_requirements(self, change: RequirementChange) -> List[UUID]:
+    def _identify_affected_requirements(self, change: RequirementChange) -> list[UUID]:
         """
         Identify requirements affected by a change.
 
@@ -778,14 +779,14 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         Returns:
             A list of affected requirement IDs (deterministic order).
         """
-        affected_requirements: List[UUID] = []
+        affected_requirements: list[UUID] = []
 
         # If this is a modification or removal, the requirement itself is affected
         if change.requirement_id:
             affected_requirements.append(change.requirement_id)
 
         # Get all requirements
-        all_requirements: List[Requirement] = (
+        all_requirements: list[Requirement] = (
             self.requirement_repository.get_all_requirements()
         )
 
@@ -799,7 +800,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         unique = {str(r): r for r in affected_requirements}
         return [unique[k] for k in sorted(unique.keys())]
 
-    def _identify_affected_components(self, change: RequirementChange) -> List[str]:
+    def _identify_affected_components(self, change: RequirementChange) -> list[str]:
         """
         Identify components affected by a change.
 
@@ -810,7 +811,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             A list of affected component names (deterministic order).
         """
         # For now, use a simple approach based on requirement metadata
-        affected_components: List[str] = []
+        affected_components: list[str] = []
 
         if change.requirement_id:
             requirement = self.requirement_repository.get_requirement(
@@ -826,7 +827,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         return sorted(set(affected_components))
 
     def _assess_risk_level(
-        self, change: RequirementChange, affected_requirements: List[UUID]
+        self, change: RequirementChange, affected_requirements: list[UUID]
     ) -> str:
         """
         Assess the risk level of a change.
@@ -868,8 +869,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
     def _estimate_effort(
         self,
         change: RequirementChange,
-        affected_requirements: List[UUID],
-        affected_components: List[str],
+        affected_requirements: list[UUID],
+        affected_components: list[str],
     ) -> str:
         """
         Estimate the effort required for a change.
@@ -897,8 +898,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
     def _generate_impact_analysis(
         self,
         change: RequirementChange,
-        affected_requirements: List[UUID],
-        affected_components: List[str],
+        affected_requirements: list[UUID],
+        affected_components: list[str],
     ) -> str:
         """
         Generate an impact analysis for a change.
@@ -912,7 +913,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             The impact analysis.
         """
         # Get the affected requirements
-        requirements: List[Requirement] = []
+        requirements: list[Requirement] = []
         for req_id in affected_requirements:
             req = self.requirement_repository.get_requirement(req_id)
             if req:
@@ -928,7 +929,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
     def _generate_impact_recommendations(
         self, change: RequirementChange, analysis: str, risk_level: str
-    ) -> List[RecommendationEntry]:
+    ) -> list[RecommendationEntry]:
         """
         Generate recommendations based on the impact analysis.
 
@@ -949,7 +950,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         recommendations_text: str = self.llm_service.query(prompt).strip()
 
         # Parse the recommendations
-        recommendations: List[RecommendationEntry] = []
+        recommendations: list[RecommendationEntry] = []
         for raw_line in recommendations_text.split("\n"):
             line = raw_line.strip()
             if line.startswith("- ") or line.startswith("* "):
@@ -1186,8 +1187,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         self,
         session: ChatSession,
         message: str,
-        change: Optional[RequirementChange] = None,
-        reasoning: Optional[DialecticalReasoning] = None,
+        change: RequirementChange | None = None,
+        reasoning: DialecticalReasoning | None = None,
     ) -> str:
         """
         Create a prompt for generating a chat response.
@@ -1247,7 +1248,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
     def _create_welcome_message_prompt(
         self,
         reasoning: DialecticalReasoning,
-        change: Optional[RequirementChange] = None,
+        change: RequirementChange | None = None,
     ) -> str:
         """
         Create a prompt for generating a welcome message.
@@ -1298,8 +1299,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
     def _create_impact_analysis_prompt(
         self,
         change: RequirementChange,
-        affected_requirements: List[Requirement],
-        affected_components: List[str],
+        affected_requirements: list[Requirement],
+        affected_components: list[str],
     ) -> str:
         """
         Create a prompt for generating an impact analysis.

@@ -26,12 +26,12 @@ def config_key_autocomplete(ctx: typer.Context, incomplete: str):
 
 @config_app.callback(invoke_without_command=True)
 def config_cmd(
-    key: Optional[str] = typer.Option(None, autocompletion=config_key_autocomplete),
-    value: Optional[str] = None,
+    key: str | None = typer.Option(None, autocompletion=config_key_autocomplete),
+    value: str | None = None,
     list_models: bool = False,
     *,
-    ctx: Optional[typer.Context] = None,
-    bridge: Optional[UXBridge] = None,
+    ctx: typer.Context | None = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """View or set configuration options.
 
@@ -128,7 +128,7 @@ def config_cmd(
 
 
 @config_app.command("enable-feature")
-def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
+def enable_feature_cmd(name: str, *, bridge: UXBridge | None = None) -> None:
     """Enable a feature flag in the project configuration.
 
     Example:

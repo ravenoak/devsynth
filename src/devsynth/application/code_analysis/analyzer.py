@@ -38,9 +38,9 @@ class ClassInfo(TypedDict):
     line: int
     col: int
     docstring: str
-    methods: List[str]
-    attributes: List[str]
-    bases: List[str]
+    methods: list[str]
+    attributes: list[str]
+    bases: list[str]
 
 
 class FunctionInfo(TypedDict):
@@ -50,7 +50,7 @@ class FunctionInfo(TypedDict):
     line: int
     col: int
     docstring: str
-    params: List[str]
+    params: list[str]
     return_type: str
 
 
@@ -77,12 +77,12 @@ class AstVisitor(ast.NodeVisitor):
 
     def __init__(self):
         """Initialize the visitor."""
-        self.imports: List[ImportInfo] = []
-        self.classes: List[ClassInfo] = []
-        self.functions: List[FunctionInfo] = []
-        self.variables: List[VariableInfo] = []
+        self.imports: list[ImportInfo] = []
+        self.classes: list[ClassInfo] = []
+        self.functions: list[FunctionInfo] = []
+        self.variables: list[VariableInfo] = []
         self.docstring: str = ""
-        self.current_class: Optional[ClassInfo] = None
+        self.current_class: ClassInfo | None = None
         self.line_count: int = 0
 
     def visit_Import(self, node: ast.Import) -> None:
@@ -150,7 +150,7 @@ class AstVisitor(ast.NodeVisitor):
         docstring = ast.get_docstring(node) or ""
 
         # Extract parameters
-        params: List[str] = []
+        params: list[str] = []
         for arg in node.args.args:
             params.append(arg.arg)
 
@@ -308,7 +308,7 @@ class CodeAnalyzer(CodeAnalysisProvider):
         """Analyze a single file."""
         try:
             # Read the file content
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 code = f.read()
 
             # Log the file content for debugging
@@ -332,9 +332,9 @@ class CodeAnalyzer(CodeAnalysisProvider):
         self, dir_path: str, recursive: bool = True
     ) -> CodeAnalysisResult:
         """Analyze a directory of files."""
-        files: Dict[str, FileAnalysisResult] = {}
-        symbols: Dict[str, List[SymbolReference]] = {}
-        dependencies: Dict[str, List[str]] = {}
+        files: dict[str, FileAnalysisResult] = {}
+        symbols: dict[str, list[SymbolReference]] = {}
+        dependencies: dict[str, list[str]] = {}
 
         # Find all Python files in the directory
         python_files = self._find_python_files(dir_path, recursive)
@@ -352,7 +352,7 @@ class CodeAnalyzer(CodeAnalysisProvider):
                 module_name = self._get_module_name(file_path, dir_path)
 
                 # Extract dependencies
-                file_dependencies: List[str] = []
+                file_dependencies: list[str] = []
                 for import_info in file_analysis.get_imports():
                     if "from_module" in import_info:
                         file_dependencies.append(import_info["from_module"])
@@ -436,9 +436,9 @@ class CodeAnalyzer(CodeAnalysisProvider):
                 metrics={"error": str(e)},
             )
 
-    def _find_python_files(self, dir_path: str, recursive: bool) -> List[str]:
+    def _find_python_files(self, dir_path: str, recursive: bool) -> list[str]:
         """Find all Python files in a directory."""
-        python_files: List[str] = []
+        python_files: list[str] = []
 
         if recursive:
             for root, _, files in os.walk(dir_path):
@@ -465,7 +465,7 @@ class CodeAnalyzer(CodeAnalysisProvider):
         self,
         file_path: str,
         file_analysis: FileAnalysisResult,
-        symbols: Dict[str, List[SymbolReference]],
+        symbols: dict[str, list[SymbolReference]],
     ) -> None:
         """Extract symbols from a file analysis."""
         # Extract classes
@@ -518,7 +518,7 @@ class CodeAnalyzer(CodeAnalysisProvider):
         exploration_depth: str = "summary",
         include_dependencies: bool = False,
         extract_relationships: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return simple metrics describing the current project structure."""
         project_root = Path(".")
         python_files = self._find_python_files(str(project_root), recursive=True)

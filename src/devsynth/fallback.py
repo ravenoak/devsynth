@@ -164,7 +164,7 @@ def retry_with_exponential_backoff(
     retry_on_result: Callable[[T], bool] | None = None,
     track_metrics: bool = True,
     error_retry_map: ErrorRetryMap | None = None,
-    circuit_breaker: "CircuitBreaker" | None = None,
+    circuit_breaker: CircuitBreaker | None = None,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -582,7 +582,7 @@ def with_fallback(
     should_fallback: Callable[[Exception], bool] | None = None,
     log_original_error: bool = True,
     fallback_conditions: FallbackConditions | None = None,
-    circuit_breaker: "CircuitBreaker" | None = None,
+    circuit_breaker: CircuitBreaker | None = None,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Decorator for providing a fallback function when the primary function fails.

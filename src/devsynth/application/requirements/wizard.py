@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional
+from collections.abc import Sequence
 
 from devsynth.application.cli.config import CLIConfig
 from devsynth.application.wizard_textual import (
@@ -16,7 +17,6 @@ from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.utils.logging import DevSynthLogger
-
 
 REQUIREMENTS_HELP: dict[str, str] = {
     "title": "Provide a concise, descriptive name for the requirement.",
@@ -34,12 +34,12 @@ def requirements_wizard(
     bridge: UXBridge,
     *,
     output_file: str = "requirements_wizard.json",
-    title: Optional[str] = None,
-    description: Optional[str] = None,
-    req_type: Optional[str] = None,
-    priority: Optional[str] = None,
-    constraints: Optional[str] = None,
-    config: Optional[CLIConfig] = None,
+    title: str | None = None,
+    description: str | None = None,
+    req_type: str | None = None,
+    priority: str | None = None,
+    constraints: str | None = None,
+    config: CLIConfig | None = None,
 ) -> None:
     """Collect requirement details via ``bridge`` and persist them.
 
@@ -70,7 +70,7 @@ def requirements_wizard(
         )
         textual_view.set_active_step(0)
 
-    steps: Sequence[tuple[str, str, Optional[Sequence[str]], str]] = [
+    steps: Sequence[tuple[str, str, Sequence[str] | None, str]] = [
         ("title", "Requirement title", None, ""),
         ("description", "Requirement description", None, ""),
         (

@@ -36,7 +36,7 @@ class TieredCache(Generic[T]):
         self.cache: OrderedDict[str, T] = OrderedDict()
         logger.info(f"Tiered cache initialized with max size {max_size}")
 
-    def get(self, key: str) -> Optional[T]:
+    def get(self, key: str) -> T | None:
         """
         Get an item from the cache.
 

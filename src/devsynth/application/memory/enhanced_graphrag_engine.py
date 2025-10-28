@@ -13,10 +13,15 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID, uuid4
 
+from ...domain.models.memory import (
+    CognitiveType,
+    MemeticMetadata,
+    MemeticSource,
+    MemeticUnit,
+)
+from ...logging_setup import DevSynthLogger
 from .enhanced_knowledge_graph import EnhancedKnowledgeGraph, Entity, IntentLink
 from .execution_learning_integration import ExecutionLearningIntegration
-from ...domain.models.memory import MemeticUnit, MemeticMetadata, MemeticSource, CognitiveType
-from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -24,20 +29,24 @@ logger = DevSynthLogger(__name__)
 @dataclass
 class QueryIntent:
     """Represents parsed intent from natural language query."""
-    query_type: str  # "entity_info", "relationship_query", "multi_hop", "impact_analysis"
-    entities: List[str]
-    relationships: List[str]
+
+    query_type: (
+        str  # "entity_info", "relationship_query", "multi_hop", "impact_analysis"
+    )
+    entities: list[str]
+    relationships: list[str]
     required_hops: int
-    semantic_constraints: Dict[str, Any]
+    semantic_constraints: dict[str, Any]
     reasoning_objective: str
 
 
 @dataclass
 class TraversalPlan:
     """Plan for graph traversal in multi-hop queries."""
-    start_entities: List[str]
-    traversal_sequence: List[Dict[str, Any]]
-    semantic_filters: List[Dict[str, Any]]
+
+    start_entities: list[str]
+    traversal_sequence: list[dict[str, Any]]
+    semantic_filters: list[dict[str, Any]]
     max_depth: int
     pruning_strategy: str
 
@@ -45,19 +54,21 @@ class TraversalPlan:
 @dataclass
 class ReasoningStep:
     """Single step in multi-hop reasoning path."""
+
     hop_number: int
-    from_entities: List[str]
+    from_entities: list[str]
     relationship_traversed: str
-    to_entities: List[str]
-    semantic_validation: Dict[str, Any]
+    to_entities: list[str]
+    semantic_validation: dict[str, Any]
     confidence_score: float
 
 
 @dataclass
 class ReasoningPath:
     """Complete reasoning path through knowledge graph."""
-    steps: List[ReasoningStep]
-    final_entities: List[str]
+
+    steps: list[ReasoningStep]
+    final_entities: list[str]
     total_hops: int
     overall_confidence: float
 
@@ -65,22 +76,27 @@ class ReasoningPath:
 @dataclass
 class MultiHopResponse:
     """Response from multi-hop reasoning query."""
+
     answer: str
     confidence: float
     reasoning_path: ReasoningPath
     explanation: str
-    source_entities: List[str]
-    supporting_evidence: List[Dict[str, Any]] = field(default_factory=list)
+    source_entities: list[str]
+    supporting_evidence: list[dict[str, Any]] = field(default_factory=list)
 
 
 class EnhancedGraphRAGQueryEngine:
     """Enhanced GraphRAG engine with multi-hop reasoning capabilities."""
 
-    def __init__(self, enhanced_graph: EnhancedKnowledgeGraph, execution_learning: ExecutionLearningIntegration):
+    def __init__(
+        self,
+        enhanced_graph: EnhancedKnowledgeGraph,
+        execution_learning: ExecutionLearningIntegration,
+    ):
         """Initialize the enhanced GraphRAG query engine."""
         self.enhanced_graph = enhanced_graph
         self.execution_learning = execution_learning
-        self.query_cache: Dict[str, MultiHopResponse] = {}
+        self.query_cache: dict[str, MultiHopResponse] = {}
 
         logger.info("Enhanced GraphRAG query engine initialized")
 
@@ -89,7 +105,9 @@ class EnhancedGraphRAGQueryEngine:
         # Check cache first
         query_hash = self._compute_query_hash(natural_language_query)
         if query_hash in self.query_cache:
-            logger.debug(f"Returning cached response for query: {natural_language_query[:50]}...")
+            logger.debug(
+                f"Returning cached response for query: {natural_language_query[:50]}..."
+            )
             return self.query_cache[query_hash]
 
         # Parse query for intent and entities
@@ -108,26 +126,32 @@ class EnhancedGraphRAGQueryEngine:
         validation_results = self._validate_reasoning_chain(reasoning_path)
 
         # Generate explanation with traceability
-        explanation = self._generate_traceable_explanation(reasoning_path, validation_results)
+        explanation = self._generate_traceable_explanation(
+            reasoning_path, validation_results
+        )
 
         # Synthesize final answer
         answer = self._synthesize_answer(reasoning_path, parsed_query)
 
         # Calculate overall confidence
-        overall_confidence = self._calculate_overall_confidence(validation_results, reasoning_path)
+        overall_confidence = self._calculate_overall_confidence(
+            validation_results, reasoning_path
+        )
 
         response = MultiHopResponse(
             answer=answer,
             confidence=overall_confidence,
             reasoning_path=reasoning_path,
             explanation=explanation,
-            source_entities=self._extract_source_entities(reasoning_path)
+            source_entities=self._extract_source_entities(reasoning_path),
         )
 
         # Cache the response
         self.query_cache[query_hash] = response
 
-        logger.info(f"Processed complex query with {len(reasoning_path.steps)} hops, confidence: {overall_confidence:.2f}")
+        logger.info(
+            f"Processed complex query with {len(reasoning_path.steps)} hops, confidence: {overall_confidence:.2f}"
+        )
         return response
 
     def _parse_query_intent(self, query: str) -> QueryIntent:
@@ -144,7 +168,9 @@ class EnhancedGraphRAGQueryEngine:
         relationships = self._extract_relationships(query_lower)
 
         # Determine required traversal depth
-        required_hops = self._calculate_required_hops(query_type, entities, relationships)
+        required_hops = self._calculate_required_hops(
+            query_type, entities, relationships
+        )
 
         # Identify semantic constraints
         semantic_constraints = self._extract_semantic_constraints(query_lower)
@@ -158,31 +184,43 @@ class EnhancedGraphRAGQueryEngine:
             relationships=relationships,
             required_hops=required_hops,
             semantic_constraints=semantic_constraints,
-            reasoning_objective=reasoning_objective
+            reasoning_objective=reasoning_objective,
         )
 
     def _classify_query_type(self, query: str) -> str:
         """Classify query type based on content analysis."""
         # Entity information queries
-        if any(keyword in query for keyword in ["what is", "describe", "explain", "tell me about"]):
+        if any(
+            keyword in query
+            for keyword in ["what is", "describe", "explain", "tell me about"]
+        ):
             return "entity_info"
 
         # Relationship queries
-        elif any(keyword in query for keyword in ["related to", "connected to", "depends on", "calls"]):
+        elif any(
+            keyword in query
+            for keyword in ["related to", "connected to", "depends on", "calls"]
+        ):
             return "relationship_query"
 
         # Multi-hop queries (complex relationships)
-        elif any(keyword in query for keyword in ["how does", "why", "impact", "affect", "chain", "path"]):
+        elif any(
+            keyword in query
+            for keyword in ["how does", "why", "impact", "affect", "chain", "path"]
+        ):
             return "multi_hop"
 
         # Impact analysis queries
-        elif any(keyword in query for keyword in ["change", "modify", "update", "blast radius", "impact"]):
+        elif any(
+            keyword in query
+            for keyword in ["change", "modify", "update", "blast radius", "impact"]
+        ):
             return "impact_analysis"
 
         # Default to entity info
         return "entity_info"
 
-    def _extract_entities(self, query: str) -> List[str]:
+    def _extract_entities(self, query: str) -> list[str]:
         """Extract entity names from query."""
         # Simple entity extraction based on common patterns
         entities = []
@@ -192,16 +230,27 @@ class EnhancedGraphRAGQueryEngine:
         entities.extend(quoted_matches)
 
         # Look for function/class names (camelCase or snake_case)
-        camel_case = re.findall(r'\b([A-Z][a-z]*[A-Z][a-z]*)\b', query)
-        snake_case = re.findall(r'\b([a-z]+_[a-z]+)\b', query)
+        camel_case = re.findall(r"\b([A-Z][a-z]*[A-Z][a-z]*)\b", query)
+        snake_case = re.findall(r"\b([a-z]+_[a-z]+)\b", query)
 
         entities.extend(camel_case)
         entities.extend(snake_case)
 
         # Look for common technical terms
         technical_terms = [
-            "function", "class", "module", "requirement", "test", "user", "authentication",
-            "payment", "database", "api", "endpoint", "service", "component"
+            "function",
+            "class",
+            "module",
+            "requirement",
+            "test",
+            "user",
+            "authentication",
+            "payment",
+            "database",
+            "api",
+            "endpoint",
+            "service",
+            "component",
         ]
 
         for term in technical_terms:
@@ -210,7 +259,7 @@ class EnhancedGraphRAGQueryEngine:
 
         return list(set(entities))  # Remove duplicates
 
-    def _extract_relationships(self, query: str) -> List[str]:
+    def _extract_relationships(self, query: str) -> list[str]:
         """Extract relationship types from query."""
         relationships = []
 
@@ -221,7 +270,7 @@ class EnhancedGraphRAGQueryEngine:
             "inherits": ["inherits", "extends", "subclass"],
             "depends_on": ["depends on", "requires", "needs"],
             "validates": ["validates", "tests", "verifies"],
-            "affects": ["affects", "impacts", "influences"]
+            "affects": ["affects", "impacts", "influences"],
         }
 
         for rel_type, patterns in relationship_patterns.items():
@@ -230,7 +279,9 @@ class EnhancedGraphRAGQueryEngine:
 
         return relationships
 
-    def _calculate_required_hops(self, query_type: str, entities: List[str], relationships: List[str]) -> int:
+    def _calculate_required_hops(
+        self, query_type: str, entities: list[str], relationships: list[str]
+    ) -> int:
         """Calculate required traversal depth."""
         base_hops = 1
 
@@ -246,25 +297,30 @@ class EnhancedGraphRAGQueryEngine:
 
         return base_hops + entity_bonus + relationship_bonus
 
-    def _extract_semantic_constraints(self, query: str) -> Dict[str, Any]:
+    def _extract_semantic_constraints(self, query: str) -> dict[str, Any]:
         """Extract semantic constraints from query."""
         constraints = {
             "must_include": [],
             "must_exclude": [],
             "priority": "balanced",
-            "confidence_threshold": 0.7
+            "confidence_threshold": 0.7,
         }
 
         # Priority indicators
-        if any(word in query for word in ["critical", "important", "urgent", "high priority"]):
+        if any(
+            word in query
+            for word in ["critical", "important", "urgent", "high priority"]
+        ):
             constraints["priority"] = "high"
-        elif any(word in query for word in ["optional", "nice to have", "low priority"]):
+        elif any(
+            word in query for word in ["optional", "nice to have", "low priority"]
+        ):
             constraints["priority"] = "low"
 
         # Inclusion requirements
         if "only" in query or "specifically" in query:
             # Extract specific requirements
-            specific_matches = re.findall(r'only\s+([a-zA-Z\s]+)', query)
+            specific_matches = re.findall(r"only\s+([a-zA-Z\s]+)", query)
             constraints["must_include"] = specific_matches
 
         return constraints
@@ -284,13 +340,13 @@ class EnhancedGraphRAGQueryEngine:
         else:
             return "general_inquiry"
 
-    def _resolve_entities(self, entities: List[str]) -> Dict[str, Any]:
+    def _resolve_entities(self, entities: list[str]) -> dict[str, Any]:
         """Resolve entity names to graph nodes."""
         entity_mappings = {
             "found_entities": [],
             "unresolved_entities": [],
             "fuzzy_matches": [],
-            "resolution_confidence": 0.0
+            "resolution_confidence": 0.0,
         }
 
         for entity_name in entities:
@@ -309,23 +365,30 @@ class EnhancedGraphRAGQueryEngine:
 
         # Calculate resolution confidence
         total_entities = len(entities)
-        resolved_entities = len(entity_mappings["found_entities"]) + len(entity_mappings["fuzzy_matches"])
-        entity_mappings["resolution_confidence"] = resolved_entities / total_entities if total_entities > 0 else 0.0
+        resolved_entities = len(entity_mappings["found_entities"]) + len(
+            entity_mappings["fuzzy_matches"]
+        )
+        entity_mappings["resolution_confidence"] = (
+            resolved_entities / total_entities if total_entities > 0 else 0.0
+        )
 
         return entity_mappings
 
-    def _find_entity_by_exact_name(self, entity_name: str) -> Optional[str]:
+    def _find_entity_by_exact_name(self, entity_name: str) -> str | None:
         """Find entity by exact name match."""
         # Search through all entities
         for entity in self.enhanced_graph.entities.values():
             # Check entity properties for exact match
             for prop_value in entity.properties.values():
-                if isinstance(prop_value, str) and prop_value.lower() == entity_name.lower():
+                if (
+                    isinstance(prop_value, str)
+                    and prop_value.lower() == entity_name.lower()
+                ):
                     return entity.id
 
         return None
 
-    def _find_entity_by_fuzzy_name(self, entity_name: str) -> List[Dict[str, Any]]:
+    def _find_entity_by_fuzzy_name(self, entity_name: str) -> list[dict[str, Any]]:
         """Find entities by fuzzy name matching."""
         matches = []
 
@@ -339,45 +402,64 @@ class EnhancedGraphRAGQueryEngine:
 
                     # Calculate similarity score
                     if entity_lower in prop_lower or prop_lower in entity_lower:
-                        matches.append({
-                            "entity_id": entity.id,
-                            "matched_property": prop_name,
-                            "matched_value": prop_value,
-                            "similarity": 0.8  # High similarity for substring matches
-                        })
+                        matches.append(
+                            {
+                                "entity_id": entity.id,
+                                "matched_property": prop_name,
+                                "matched_value": prop_value,
+                                "similarity": 0.8,  # High similarity for substring matches
+                            }
+                        )
 
         return matches
 
-    def _plan_multi_hop_traversal(self, parsed_query: QueryIntent, entity_mappings: Dict[str, Any]) -> TraversalPlan:
+    def _plan_multi_hop_traversal(
+        self, parsed_query: QueryIntent, entity_mappings: dict[str, Any]
+    ) -> TraversalPlan:
         """Plan optimal graph traversal strategy."""
         # Start with resolved entities
-        start_entities = [entity["entity_id"] for entity in entity_mappings["found_entities"]]
-        start_entities.extend([match["entity_id"] for match in entity_mappings["fuzzy_matches"]])
+        start_entities = [
+            entity["entity_id"] for entity in entity_mappings["found_entities"]
+        ]
+        start_entities.extend(
+            [match["entity_id"] for match in entity_mappings["fuzzy_matches"]]
+        )
 
         if not start_entities:
             # If no entities found, start with most relevant entity types
             if "function" in parsed_query.entities:
-                start_entities = [eid for eid, entity in self.enhanced_graph.entities.items()
-                                if entity.type == "Function"]
+                start_entities = [
+                    eid
+                    for eid, entity in self.enhanced_graph.entities.items()
+                    if entity.type == "Function"
+                ]
 
         # Plan traversal sequence based on query type
-        traversal_sequence = self._plan_relationship_sequence(parsed_query.relationships, parsed_query.required_hops)
+        traversal_sequence = self._plan_relationship_sequence(
+            parsed_query.relationships, parsed_query.required_hops
+        )
 
         # Add semantic filtering at each hop
-        semantic_filters = self._add_semantic_filters(traversal_sequence, parsed_query.semantic_constraints)
+        semantic_filters = self._add_semantic_filters(
+            traversal_sequence, parsed_query.semantic_constraints
+        )
 
         # Optimize for graph structure and performance
-        optimized_plan = self._optimize_traversal_plan(traversal_sequence, semantic_filters)
+        optimized_plan = self._optimize_traversal_plan(
+            traversal_sequence, semantic_filters
+        )
 
         return TraversalPlan(
             start_entities=start_entities,
             traversal_sequence=optimized_plan,
             semantic_filters=semantic_filters,
             max_depth=parsed_query.required_hops,
-            pruning_strategy=self._select_pruning_strategy(parsed_query)
+            pruning_strategy=self._select_pruning_strategy(parsed_query),
         )
 
-    def _plan_relationship_sequence(self, relationships: List[str], required_hops: int) -> List[Dict[str, Any]]:
+    def _plan_relationship_sequence(
+        self, relationships: list[str], required_hops: int
+    ) -> list[dict[str, Any]]:
         """Plan the sequence of relationships to traverse."""
         sequence = []
 
@@ -387,7 +469,7 @@ class EnhancedGraphRAGQueryEngine:
             "calls": ["CALLS", "CALLED_BY", "USES"],
             "depends_on": ["DEPENDS_ON", "USES", "REQUIRES"],
             "validates": ["VALIDATES", "TESTS", "VERIFIES"],
-            "affects": ["AFFECTS", "IMPACTS", "INFLUENCES"]
+            "affects": ["AFFECTS", "IMPACTS", "INFLUENCES"],
         }
 
         # Build traversal sequence
@@ -401,11 +483,13 @@ class EnhancedGraphRAGQueryEngine:
 
             for rel in related_rels:
                 if hops_completed < required_hops:
-                    sequence.append({
-                        "relationship_type": rel,
-                        "hop_number": hops_completed + 1,
-                        "direction": "bidirectional"  # Default
-                    })
+                    sequence.append(
+                        {
+                            "relationship_type": rel,
+                            "hop_number": hops_completed + 1,
+                            "direction": "bidirectional",  # Default
+                        }
+                    )
                     hops_completed += 1
 
             # Remove processed relationship
@@ -414,16 +498,20 @@ class EnhancedGraphRAGQueryEngine:
 
         # Fill remaining hops with generic traversal
         while hops_completed < required_hops:
-            sequence.append({
-                "relationship_type": "DEPENDS_ON",
-                "hop_number": hops_completed + 1,
-                "direction": "outgoing"
-            })
+            sequence.append(
+                {
+                    "relationship_type": "DEPENDS_ON",
+                    "hop_number": hops_completed + 1,
+                    "direction": "outgoing",
+                }
+            )
             hops_completed += 1
 
         return sequence
 
-    def _add_semantic_filters(self, traversal_sequence: List[Dict], semantic_constraints: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _add_semantic_filters(
+        self, traversal_sequence: list[dict], semantic_constraints: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Add semantic filtering to traversal steps."""
         filters = []
 
@@ -433,13 +521,15 @@ class EnhancedGraphRAGQueryEngine:
                 "min_confidence": semantic_constraints.get("confidence_threshold", 0.7),
                 "must_include": semantic_constraints.get("must_include", []),
                 "must_exclude": semantic_constraints.get("must_exclude", []),
-                "priority": semantic_constraints.get("priority", "balanced")
+                "priority": semantic_constraints.get("priority", "balanced"),
             }
             filters.append(step_filters)
 
         return filters
 
-    def _optimize_traversal_plan(self, traversal_sequence: List[Dict], semantic_filters: List[Dict]) -> List[Dict]:
+    def _optimize_traversal_plan(
+        self, traversal_sequence: list[dict], semantic_filters: list[dict]
+    ) -> list[dict]:
         """Optimize traversal plan for performance."""
         # Remove redundant steps
         optimized = []
@@ -460,9 +550,9 @@ class EnhancedGraphRAGQueryEngine:
         if parsed_query.query_type == "impact_analysis":
             return "breadth_first"  # For impact analysis, explore all connections
         elif len(parsed_query.entities) > 3:
-            return "depth_first"    # For complex queries, prioritize depth
+            return "depth_first"  # For complex queries, prioritize depth
         else:
-            return "balanced"       # Default balanced approach
+            return "balanced"  # Default balanced approach
 
     def _execute_semantic_traversal(self, plan: TraversalPlan) -> ReasoningPath:
         """Execute planned graph traversal with semantic understanding."""
@@ -478,14 +568,22 @@ class EnhancedGraphRAGQueryEngine:
             next_entities = []
 
             for entity_id in current_entities:
-                connected = self.enhanced_graph.get_connected_entities(entity_id, relationship_type)
-                next_entities.extend([e.id for e in connected if e.id not in visited_entities])
+                connected = self.enhanced_graph.get_connected_entities(
+                    entity_id, relationship_type
+                )
+                next_entities.extend(
+                    [e.id for e in connected if e.id not in visited_entities]
+                )
 
             # Apply semantic filtering
-            filtered_entities = self._apply_semantic_filtering(next_entities, plan.semantic_filters[hop_number - 1])
+            filtered_entities = self._apply_semantic_filtering(
+                next_entities, plan.semantic_filters[hop_number - 1]
+            )
 
             # Validate semantic consistency
-            validation = self._validate_semantic_consistency(current_entities, filtered_entities, hop_info)
+            validation = self._validate_semantic_consistency(
+                current_entities, filtered_entities, hop_info
+            )
 
             # Record reasoning step
             reasoning_step = ReasoningStep(
@@ -494,7 +592,7 @@ class EnhancedGraphRAGQueryEngine:
                 relationship_traversed=relationship_type,
                 to_entities=filtered_entities,
                 semantic_validation=validation,
-                confidence_score=validation.get("confidence", 0.5)
+                confidence_score=validation.get("confidence", 0.5),
             )
 
             reasoning_steps.append(reasoning_step)
@@ -511,10 +609,12 @@ class EnhancedGraphRAGQueryEngine:
             steps=reasoning_steps,
             final_entities=current_entities,
             total_hops=len(reasoning_steps),
-            overall_confidence=self._calculate_path_confidence(reasoning_steps)
+            overall_confidence=self._calculate_path_confidence(reasoning_steps),
         )
 
-    def _apply_semantic_filtering(self, entity_ids: List[str], filter_config: Dict[str, Any]) -> List[str]:
+    def _apply_semantic_filtering(
+        self, entity_ids: list[str], filter_config: dict[str, Any]
+    ) -> list[str]:
         """Apply semantic filtering to entity list."""
         filtered = []
 
@@ -526,14 +626,18 @@ class EnhancedGraphRAGQueryEngine:
             # Apply inclusion filters
             must_include = filter_config.get("must_include", [])
             if must_include:
-                entity_text = " ".join(str(v) for v in entity.properties.values()).lower()
+                entity_text = " ".join(
+                    str(v) for v in entity.properties.values()
+                ).lower()
                 if not any(term.lower() in entity_text for term in must_include):
                     continue
 
             # Apply exclusion filters
             must_exclude = filter_config.get("must_exclude", [])
             if must_exclude:
-                entity_text = " ".join(str(v) for v in entity.properties.values()).lower()
+                entity_text = " ".join(
+                    str(v) for v in entity.properties.values()
+                ).lower()
                 if any(term.lower() in entity_text for term in must_exclude):
                     continue
 
@@ -562,13 +666,15 @@ class EnhancedGraphRAGQueryEngine:
 
         return min(1.0, completeness_score * business_context_score)
 
-    def _validate_semantic_consistency(self, from_entities: List[str], to_entities: List[str], hop_info: Dict) -> Dict[str, Any]:
+    def _validate_semantic_consistency(
+        self, from_entities: list[str], to_entities: list[str], hop_info: dict
+    ) -> dict[str, Any]:
         """Validate semantic consistency of traversal step."""
         validation = {
             "consistency_score": 0.5,
             "confidence": 0.5,
             "validation_method": "semantic_consistency_check",
-            "issues": []
+            "issues": [],
         }
 
         if not to_entities:
@@ -580,12 +686,20 @@ class EnhancedGraphRAGQueryEngine:
 
         # Validate that the relationship makes semantic sense
         valid_relationships = [
-            "IMPLEMENTS", "CALLS", "DEPENDS_ON", "VALIDATES",
-            "AFFECTS", "USES", "REQUIRES", "TESTS"
+            "IMPLEMENTS",
+            "CALLS",
+            "DEPENDS_ON",
+            "VALIDATES",
+            "AFFECTS",
+            "USES",
+            "REQUIRES",
+            "TESTS",
         ]
 
         if relationship_type not in valid_relationships:
-            validation["issues"].append(f"Unknown relationship type: {relationship_type}")
+            validation["issues"].append(
+                f"Unknown relationship type: {relationship_type}"
+            )
 
         # Calculate consistency based on entity types and relationships
         from_types = set()
@@ -611,13 +725,15 @@ class EnhancedGraphRAGQueryEngine:
 
         return validation
 
-    def _validate_reasoning_chain(self, reasoning_path: ReasoningPath) -> Dict[str, float]:
+    def _validate_reasoning_chain(
+        self, reasoning_path: ReasoningPath
+    ) -> dict[str, float]:
         """Validate the reasoning chain for accuracy and consistency."""
         validation_results = {
             "path_accuracy": 0.0,
             "consistency_score": 0.0,
             "confidence_calibration": 0.0,
-            "overall_validation": 0.0
+            "overall_validation": 0.0,
         }
 
         if not reasoning_path.steps:
@@ -635,20 +751,26 @@ class EnhancedGraphRAGQueryEngine:
             step_confidences.append(step_confidence)
 
         # Calculate validation metrics
-        validation_results["consistency_score"] = sum(step_consistencies) / len(step_consistencies)
-        validation_results["confidence_calibration"] = sum(step_confidences) / len(step_confidences)
+        validation_results["consistency_score"] = sum(step_consistencies) / len(
+            step_consistencies
+        )
+        validation_results["confidence_calibration"] = sum(step_confidences) / len(
+            step_confidences
+        )
 
         # Path accuracy based on consistency and confidence
         validation_results["path_accuracy"] = (
-            validation_results["consistency_score"] * 0.6 +
-            validation_results["confidence_calibration"] * 0.4
+            validation_results["consistency_score"] * 0.6
+            + validation_results["confidence_calibration"] * 0.4
         )
 
         validation_results["overall_validation"] = validation_results["path_accuracy"]
 
         return validation_results
 
-    def _generate_traceable_explanation(self, reasoning_path: ReasoningPath, validation_results: Dict[str, float]) -> str:
+    def _generate_traceable_explanation(
+        self, reasoning_path: ReasoningPath, validation_results: dict[str, float]
+    ) -> str:
         """Generate explanation with traceability information."""
         if not reasoning_path.steps:
             return "No reasoning steps available for explanation."
@@ -656,7 +778,7 @@ class EnhancedGraphRAGQueryEngine:
         explanation_parts = [
             f"Analysis completed with {reasoning_path.total_hops} reasoning steps.",
             f"Overall confidence: {reasoning_path.overall_confidence:.2f}",
-            f"Path validation score: {validation_results.get('path_accuracy', 0):.2f}"
+            f"Path validation score: {validation_results.get('path_accuracy', 0):.2f}",
         ]
 
         # Add step-by-step explanation
@@ -675,13 +797,17 @@ class EnhancedGraphRAGQueryEngine:
 
         return " ".join(explanation_parts)
 
-    def _synthesize_answer(self, reasoning_path: ReasoningPath, parsed_query: QueryIntent) -> str:
+    def _synthesize_answer(
+        self, reasoning_path: ReasoningPath, parsed_query: QueryIntent
+    ) -> str:
         """Synthesize final answer from reasoning path."""
         if not reasoning_path.final_entities:
             return "No relevant information found for the query."
 
         # Get final entities
-        final_entities = [self.enhanced_graph.get_entity(eid) for eid in reasoning_path.final_entities]
+        final_entities = [
+            self.enhanced_graph.get_entity(eid) for eid in reasoning_path.final_entities
+        ]
         final_entities = [e for e in final_entities if e]
 
         if not final_entities:
@@ -703,7 +829,9 @@ class EnhancedGraphRAGQueryEngine:
         else:
             return self._synthesize_general_answer(final_entities, parsed_query)
 
-    def _synthesize_entity_info_answer(self, entities: List[Entity], parsed_query: QueryIntent) -> str:
+    def _synthesize_entity_info_answer(
+        self, entities: list[Entity], parsed_query: QueryIntent
+    ) -> str:
         """Synthesize answer for entity information queries."""
         if not entities:
             return "No entities found matching the query."
@@ -725,13 +853,19 @@ class EnhancedGraphRAGQueryEngine:
 
             # Add details for first few entities
             for entity in type_entities[:3]:
-                key_props = {k: v for k, v in entity.properties.items() if v and len(str(v)) < 100}
+                key_props = {
+                    k: v
+                    for k, v in entity.properties.items()
+                    if v and len(str(v)) < 100
+                }
                 if key_props:
                     summary_parts.append(f"  - {entity_type}: {key_props}")
 
         return ". ".join(summary_parts)
 
-    def _synthesize_relationship_answer(self, reasoning_path: ReasoningPath, parsed_query: QueryIntent) -> str:
+    def _synthesize_relationship_answer(
+        self, reasoning_path: ReasoningPath, parsed_query: QueryIntent
+    ) -> str:
         """Synthesize answer for relationship queries."""
         # Analyze the reasoning path to understand relationships
         relationship_summary = []
@@ -748,7 +882,9 @@ class EnhancedGraphRAGQueryEngine:
 
         return ". ".join(relationship_summary)
 
-    def _synthesize_multi_hop_answer(self, reasoning_path: ReasoningPath, parsed_query: QueryIntent) -> str:
+    def _synthesize_multi_hop_answer(
+        self, reasoning_path: ReasoningPath, parsed_query: QueryIntent
+    ) -> str:
         """Synthesize answer for multi-hop queries."""
         if len(reasoning_path.steps) == 0:
             return "No multi-hop relationships found."
@@ -766,7 +902,9 @@ class EnhancedGraphRAGQueryEngine:
 
         return f"Multi-hop analysis revealed: {total_path}. Final result: {len(reasoning_path.final_entities)} entities found."
 
-    def _synthesize_impact_analysis_answer(self, reasoning_path: ReasoningPath, parsed_query: QueryIntent) -> str:
+    def _synthesize_impact_analysis_answer(
+        self, reasoning_path: ReasoningPath, parsed_query: QueryIntent
+    ) -> str:
         """Synthesize answer for impact analysis queries."""
         # Calculate impact metrics
         total_entities = len(reasoning_path.final_entities)
@@ -780,11 +918,15 @@ class EnhancedGraphRAGQueryEngine:
         elif reasoning_path.overall_confidence > 0.5:
             impact_summary += " Moderate confidence in impact assessment."
         else:
-            impact_summary += " Low confidence in impact assessment - manual review recommended."
+            impact_summary += (
+                " Low confidence in impact assessment - manual review recommended."
+            )
 
         return impact_summary
 
-    def _synthesize_general_answer(self, entities: List[Entity], parsed_query: QueryIntent) -> str:
+    def _synthesize_general_answer(
+        self, entities: list[Entity], parsed_query: QueryIntent
+    ) -> str:
         """Synthesize general answer for unclassified queries."""
         if not entities:
             return "No relevant information found."
@@ -797,20 +939,24 @@ class EnhancedGraphRAGQueryEngine:
             entity_type = entity.type
             type_counts[entity_type] = type_counts.get(entity_type, 0) + 1
 
-        type_breakdown = ", ".join([f"{count} {entity_type}" for entity_type, count in type_counts.items()])
+        type_breakdown = ", ".join(
+            [f"{count} {entity_type}" for entity_type, count in type_counts.items()]
+        )
         entity_summary += f" Breakdown: {type_breakdown}."
 
         return entity_summary
 
-    def _calculate_overall_confidence(self, validation_results: Dict[str, float], reasoning_path: ReasoningPath) -> float:
+    def _calculate_overall_confidence(
+        self, validation_results: dict[str, float], reasoning_path: ReasoningPath
+    ) -> float:
         """Calculate overall confidence in the response."""
         # Weight validation results and path confidence
         validation_score = validation_results.get("path_accuracy", 0.5)
         path_confidence = reasoning_path.overall_confidence
 
-        return (validation_score * 0.6 + path_confidence * 0.4)
+        return validation_score * 0.6 + path_confidence * 0.4
 
-    def _extract_source_entities(self, reasoning_path: ReasoningPath) -> List[str]:
+    def _extract_source_entities(self, reasoning_path: ReasoningPath) -> list[str]:
         """Extract source entities that contributed to the final result."""
         source_entities = set()
 
@@ -821,7 +967,7 @@ class EnhancedGraphRAGQueryEngine:
 
         return list(source_entities)
 
-    def _calculate_path_confidence(self, reasoning_steps: List[ReasoningStep]) -> float:
+    def _calculate_path_confidence(self, reasoning_steps: list[ReasoningStep]) -> float:
         """Calculate confidence in the reasoning path."""
         if not reasoning_steps:
             return 0.0
@@ -833,6 +979,7 @@ class EnhancedGraphRAGQueryEngine:
     def _compute_query_hash(self, query: str) -> str:
         """Compute hash for query caching."""
         import hashlib
+
         return hashlib.sha256(query.encode()).hexdigest()[:16]
 
     def clear_cache(self) -> None:
@@ -840,9 +987,9 @@ class EnhancedGraphRAGQueryEngine:
         self.query_cache.clear()
         logger.info("Query cache cleared")
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         return {
             "cached_queries": len(self.query_cache),
-            "cache_hit_rate": 0.0  # Would need hit/miss tracking for this
+            "cache_hit_rate": 0.0,  # Would need hit/miss tracking for this
         }

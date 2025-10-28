@@ -8,15 +8,16 @@ from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, cast
+from typing import Any, cast
+from collections.abc import Callable
 
 # ``chromadb`` lacks stable typing information and triggers deep imports.
 # Load it dynamically and coerce the factories into structural protocols so
 # the rest of the module can rely on precise adapter types.
 chromadb_module: ModuleType
 Settings: type[object]
-PersistentClientFactory: Callable[..., "ChromaClientProtocol"]
-EphemeralClientFactory: Callable[..., "ChromaClientProtocol"]
+PersistentClientFactory: Callable[..., ChromaClientProtocol]
+EphemeralClientFactory: Callable[..., ChromaClientProtocol]
 try:  # pragma: no cover - optional dependency
     chromadb_module = importlib.import_module("chromadb")
     Settings = cast(

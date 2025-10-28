@@ -10,7 +10,7 @@ tests that stub or introspect CLI commands stay in sync.
 
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
 # NOTE: ``Mapping`` is used instead of ``dict`` to communicate the intent that
 # consumers should treat this structure as read-only.

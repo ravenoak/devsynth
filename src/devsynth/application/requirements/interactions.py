@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional
+from collections.abc import Sequence
 
 import yaml
 
@@ -71,7 +72,7 @@ def gather_requirements(
         whether YAML or JSON is used.
     """
 
-    steps: Sequence[tuple[str, str, Optional[Sequence[str]], str]] = [
+    steps: Sequence[tuple[str, str, Sequence[str] | None, str]] = [
         ("goals", "Project goals (comma separated)", None, ""),
         ("constraints", "Project constraints (comma separated)", None, ""),
         (

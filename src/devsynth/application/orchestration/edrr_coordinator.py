@@ -1,6 +1,7 @@
 """EDRR coordinator with dialectical reasoning integration."""
 
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.logging_setup import DevSynthLogger

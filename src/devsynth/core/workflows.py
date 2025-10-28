@@ -48,7 +48,7 @@ def filter_args(args: Mapping[str, JSONValue]) -> dict[str, JSONValue]:
     return {k: v for k, v in args.items() if v is not None}
 
 
-def _review_content(content: str, bridge: Optional[UXBridge] = None):
+def _review_content(content: str, bridge: UXBridge | None = None):
     """Run :class:`CritiqueAgent` on ``content`` and surface issues."""
 
     critic = CritiqueAgent()
@@ -77,7 +77,7 @@ def generate_specs(requirements_file: str) -> MutableJSONMapping:
 
 
 def generate_tests(
-    spec_file: str, *, bridge: Optional[UXBridge] = None
+    spec_file: str, *, bridge: UXBridge | None = None
 ) -> MutableJSONMapping:
     """Generate tests from specs and run a critique pass."""
 
@@ -90,7 +90,7 @@ def generate_tests(
     return result
 
 
-def generate_code(*, bridge: Optional[UXBridge] = None) -> MutableJSONMapping:
+def generate_code(*, bridge: UXBridge | None = None) -> MutableJSONMapping:
     """Generate implementation code from tests and critique it."""
 
     empty_payload: dict[str, JSONValue] = {}
@@ -104,7 +104,7 @@ def generate_code(*, bridge: Optional[UXBridge] = None) -> MutableJSONMapping:
 
 
 def run_pipeline(
-    target: Union[str, None] = None, report: Mapping[str, JSONValue] | None = None
+    target: str | None = None, report: Mapping[str, JSONValue] | None = None
 ) -> MutableJSONMapping:
     """Execute the generated code or a specific target.
 
@@ -123,8 +123,8 @@ def run_pipeline(
 
 
 def update_config(
-    key: Union[str, None] = None,
-    value: Union[str, None] = None,
+    key: str | None = None,
+    value: str | None = None,
     *,
     list_models: bool = False,
 ) -> MutableJSONMapping:
@@ -136,7 +136,7 @@ def update_config(
 
 
 def inspect_requirements(
-    input: Union[str, None] = None, *, interactive: bool = False
+    input: str | None = None, *, interactive: bool = False
 ) -> MutableJSONMapping:
     """Inspect requirements interactively or from a file."""
     return execute_command(

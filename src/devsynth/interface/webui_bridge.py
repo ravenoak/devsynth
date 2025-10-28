@@ -36,7 +36,7 @@ class SubtaskState:
     current: float = 0.0
     status: str = "Starting..."
     completed: bool = False
-    nested_subtasks: dict[str, "SubtaskState"] = field(default_factory=dict)
+    nested_subtasks: dict[str, SubtaskState] = field(default_factory=dict)
 
 
 def _safe_text(value: object, *, fallback: str) -> str:

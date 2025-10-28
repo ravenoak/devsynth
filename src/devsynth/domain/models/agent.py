@@ -48,7 +48,7 @@ class AgentConfig:
     capabilities: list[str] | None = None
     expertise: list[str] | None = None
     parameters: dict[str, Any] | None = None
-    workspace_dir: Optional[str] = None
+    workspace_dir: str | None = None
 
     def __post_init__(self) -> None:
         if self.parameters is None:

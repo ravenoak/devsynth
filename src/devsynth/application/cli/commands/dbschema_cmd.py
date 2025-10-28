@@ -23,7 +23,7 @@ def dbschema_cmd(
     path: str = ".",
     force: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate a database schema for the specified database type."""
     bridge = _resolve_bridge(bridge)

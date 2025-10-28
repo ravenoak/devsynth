@@ -5,7 +5,8 @@ from __future__ import annotations
 import contextlib
 import os
 from dataclasses import dataclass, field
-from typing import Mapping, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
+from collections.abc import Mapping
 from urllib.parse import urljoin
 
 import httpx

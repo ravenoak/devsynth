@@ -25,9 +25,9 @@ bridge: UXBridge = CLIUXBridge()
 @pytest.mark.medium
 def test_metrics_cmd(
     days: int = 30,
-    output_file: Optional[str] = None,
+    output_file: str | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Analyze test-first development metrics.
 
@@ -130,7 +130,7 @@ def test_metrics_cmd(
         bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def get_commit_history(days: int = 30) -> List[Dict[str, Any]]:
+def get_commit_history(days: int = 30) -> list[dict[str, Any]]:
     """
     Get the commit history for the specified number of days.
 
@@ -194,7 +194,7 @@ def get_commit_history(days: int = 30) -> List[Dict[str, Any]]:
         return []
 
 
-def analyze_commit(commit: Dict[str, Any]) -> Dict[str, Any]:
+def analyze_commit(commit: dict[str, Any]) -> dict[str, Any]:
     """
     Analyze a commit to determine if it follows test-first development.
 
@@ -264,7 +264,7 @@ def analyze_commit(commit: Dict[str, Any]) -> Dict[str, Any]:
     return result
 
 
-def calculate_metrics(commits: List[Dict[str, Any]]) -> Dict[str, Any]:
+def calculate_metrics(commits: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Calculate metrics based on commit analysis.
 
@@ -352,7 +352,7 @@ def calculate_metrics(commits: List[Dict[str, Any]]) -> Dict[str, Any]:
     return metrics
 
 
-def generate_metrics_report(metrics: Dict[str, Any]) -> str:
+def generate_metrics_report(metrics: dict[str, Any]) -> str:
     """
     Generate a Markdown report of the metrics.
 

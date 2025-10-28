@@ -13,7 +13,7 @@ from .test_cmd import test_cmd
 
 
 def code_cmd(
-    *, auto_confirm: Optional[bool] = None, bridge: Optional[UXBridge] = None
+    *, auto_confirm: bool | None = None, bridge: UXBridge | None = None
 ) -> None:
     """Generate implementation code from tests.
 

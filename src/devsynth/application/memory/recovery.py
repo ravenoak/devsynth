@@ -8,7 +8,8 @@ import os
 import tempfile
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, TypedDict, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, TypedDict, TypeVar, Union, cast
+from collections.abc import Callable
 
 from devsynth.application.memory.dto import (
     MemoryMetadata,
@@ -112,9 +113,9 @@ class MemorySnapshot:
     def __init__(
         self,
         store_id: str,
-        items: Optional[List[Union[MemoryRecord, MemoryItem]]] = None,
-        metadata: Optional[MemoryMetadata] = None,
-        logger: Optional[logging.Logger] = None,
+        items: list[MemoryRecord | MemoryItem] | None = None,
+        metadata: MemoryMetadata | None = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Initialize a memory snapshot.
@@ -126,7 +127,7 @@ class MemorySnapshot:
             logger: Optional logger instance
         """
         self.store_id = store_id
-        self.items: List[MemoryRecord] = []
+        self.items: list[MemoryRecord] = []
         if items:
             self.items = [build_memory_record(item, source=store_id) for item in items]
         self.metadata = (
@@ -163,7 +164,7 @@ class MemorySnapshot:
                 return True
         return False
 
-    def get_item(self, item_id: str) -> Optional[MemoryRecord]:
+    def get_item(self, item_id: str) -> MemoryRecord | None:
         """
         Get a record from the snapshot.
 
@@ -178,7 +179,7 @@ class MemorySnapshot:
                 return item
         return None
 
-    def save(self, directory: Optional[str] = None) -> str:
+    def save(self, directory: str | None = None) -> str:
         """
         Save the snapshot to a file.
 
@@ -214,8 +215,8 @@ class MemorySnapshot:
 
     @classmethod
     def load(
-        cls, filepath: str, logger: Optional[logging.Logger] = None
-    ) -> "MemorySnapshot":
+        cls, filepath: str, logger: logging.Logger | None = None
+    ) -> MemorySnapshot:
         """
         Load a snapshot from a file.
 
@@ -232,7 +233,7 @@ class MemorySnapshot:
         logger = logger or DevSynthLogger(__name__)
 
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 snapshot_data = json.load(f)
 
             # Create a new snapshot
@@ -274,7 +275,7 @@ class OperationLog:
     for recovery purposes.
     """
 
-    def __init__(self, store_id: str, logger: Optional[logging.Logger] = None):
+    def __init__(self, store_id: str, logger: logging.Logger | None = None):
         """
         Initialize an operation log.
 
@@ -283,14 +284,14 @@ class OperationLog:
             logger: Optional logger instance
         """
         self.store_id = store_id
-        self.operations: List[LoggedOperation] = []
+        self.operations: list[LoggedOperation] = []
         self.logger = logger or DevSynthLogger(__name__)
 
     def log_operation(
         self,
         operation_type: str,
         operation_data: OperationPayload,
-        timestamp: Optional[datetime] = None,
+        timestamp: datetime | None = None,
     ) -> None:
         """
         Log an operation.
@@ -314,7 +315,7 @@ class OperationLog:
             f"Logged {operation_type} operation for store {self.store_id}"
         )
 
-    def save(self, directory: Optional[str] = None) -> str:
+    def save(self, directory: str | None = None) -> str:
         """
         Save the operation log to a file.
 
@@ -345,8 +346,8 @@ class OperationLog:
 
     @classmethod
     def load(
-        cls, filepath: str, logger: Optional[logging.Logger] = None
-    ) -> "OperationLog":
+        cls, filepath: str, logger: logging.Logger | None = None
+    ) -> OperationLog:
         """
         Load an operation log from a file.
 
@@ -363,7 +364,7 @@ class OperationLog:
         logger = logger or DevSynthLogger(__name__)
 
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 log_data = json.load(f)
 
             # Create a new log
@@ -385,8 +386,8 @@ class OperationLog:
     def replay(
         self,
         store: Any,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
     ) -> int:
         """
         Replay operations on a memory store.
@@ -460,8 +461,8 @@ class RecoveryManager:
 
     def __init__(
         self,
-        recovery_dir: Optional[str] = None,
-        logger: Optional[logging.Logger] = None,
+        recovery_dir: str | None = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Initialize a recovery manager.
@@ -475,15 +476,15 @@ class RecoveryManager:
         )
         os.makedirs(self.recovery_dir, exist_ok=True)
 
-        self.snapshots: Dict[str, MemorySnapshot] = {}
-        self.operation_logs: Dict[str, OperationLog] = {}
+        self.snapshots: dict[str, MemorySnapshot] = {}
+        self.operation_logs: dict[str, OperationLog] = {}
         self.logger = logger or DevSynthLogger(__name__)
 
     def create_snapshot(
         self,
         store_id: str,
         store: Any,
-        metadata: Optional[MemoryMetadata] = None,
+        metadata: MemoryMetadata | None = None,
     ) -> MemorySnapshot:
         """
         Create a snapshot of a memory store.
@@ -549,7 +550,7 @@ class RecoveryManager:
         log.log_operation(operation_type, operation_data)
 
     def restore_from_snapshot(
-        self, store_id: str, store: Any, snapshot: Optional[MemorySnapshot] = None
+        self, store_id: str, store: Any, snapshot: MemorySnapshot | None = None
     ) -> bool:
         """
         Restore a memory store from a snapshot.
@@ -592,8 +593,8 @@ class RecoveryManager:
         self,
         store_id: str,
         store: Any,
-        snapshot: Optional[MemorySnapshot] = None,
-        operation_log: Optional[OperationLog] = None,
+        snapshot: MemorySnapshot | None = None,
+        operation_log: OperationLog | None = None,
     ) -> bool:
         """
         Recover a memory store using snapshot and operation log.

@@ -9,7 +9,7 @@ from devsynth.logging_setup import DevSynthLogger
 from .providers import factory as _factory
 
 
-def get_llm_provider(config: Dict[str, Any] | None = None):
+def get_llm_provider(config: dict[str, Any] | None = None):
     """Return an LLM provider based on configuration.
 
     When ``offline_mode`` is enabled in the configuration the ``OfflineProvider``

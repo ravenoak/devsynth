@@ -5,7 +5,8 @@ This command requires the GUI extra and may be unavailable in default setups.
 
 from __future__ import annotations
 
-from typing import Callable, Optional
+from typing import Optional
+from collections.abc import Callable
 
 from devsynth.config import get_settings
 from devsynth.interface.ux_bridge import UXBridge
@@ -22,7 +23,7 @@ else:
     run_dpg_ui = _run_dpg_ui
 
 
-def dpg_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def dpg_cmd(*, bridge: UXBridge | None = None) -> None:
     """Launch the Dear PyGUI interface."""
     bridge = _resolve_bridge(bridge)
     settings = get_settings(reload=True)

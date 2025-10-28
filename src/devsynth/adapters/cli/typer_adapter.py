@@ -4,9 +4,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Sequence, Tuple
-
-from typing_extensions import Literal
+from typing import Any, Dict, List, Optional, Tuple
+from collections.abc import Sequence
 
 import click
 import typer
@@ -19,6 +18,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 from typer import completion as typer_completion
+from typing import Literal
 
 # Ensure CLI commands are registered before using the registry
 import devsynth.application.cli
@@ -50,10 +50,10 @@ class CLIThemeOptions:
     """Shared theme configuration propagated from Typer callbacks."""
 
     colorblind_mode: bool = False
-    overrides: Dict[str, str] = field(default_factory=dict)
+    overrides: dict[str, str] = field(default_factory=dict)
 
 
-def _ensure_ctx_state(ctx: typer.Context) -> Dict[str, Any]:
+def _ensure_ctx_state(ctx: typer.Context) -> dict[str, Any]:
     if ctx.obj is None:
         ctx.obj = {}
     return ctx.obj
@@ -79,7 +79,7 @@ def _create_textual_bridge(
     require_textual: bool,
 ) -> UXBridge:
     try:
-        from devsynth.interface import TextualUXBridge, TEXTUAL_AVAILABLE
+        from devsynth.interface import TEXTUAL_AVAILABLE, TextualUXBridge
     except Exception as exc:  # pragma: no cover - degraded optional import
         raise typer.BadParameter("Textual bridge is unavailable.") from exc
 
@@ -191,7 +191,7 @@ def _patch_typer_types() -> None:
 
     orig_get_click_param = typer.main.get_click_param
 
-    def _is_optional_union(annotation: Any) -> Tuple[bool, Tuple[Any, ...]]:
+    def _is_optional_union(annotation: Any) -> tuple[bool, tuple[Any, ...]]:
         try:
             origin = typer.main.get_origin(annotation)
         except Exception:  # pragma: no cover - defensive
@@ -526,9 +526,7 @@ def build_app() -> typer.Typer:
                 config=CLIConfig(non_interactive=False),
             )
         else:
-            raise typer.BadParameter(
-                "Wizard must be 'init' or 'requirements'."
-            )
+            raise typer.BadParameter("Wizard must be 'init' or 'requirements'.")
 
         _run_bridge_event_loop(bridge)
 
@@ -733,9 +731,7 @@ def _build_command_tree(app: Any, filter_set: set[str] | None) -> Tree:
     commands = getattr(app, "registered_commands", []) or []
     for command in sorted(commands, key=lambda c: _command_name(c).lower()):
         tree.add(
-            _format_command_entry(
-                _command_name(command), getattr(command, "help", "")
-            )
+            _format_command_entry(_command_name(command), getattr(command, "help", ""))
         )
 
     for group in _get_command_groups(app):
@@ -783,9 +779,7 @@ def _build_command_table(app: Any, filter_set: set[str] | None) -> Table:
         if filter_set and group_name.lower() not in filter_set:
             continue
         label = Text(sanitize_output(group_name), style="section")
-        description = Text(
-            sanitize_output(str(group.help or "")), style="info"
-        )
+        description = Text(sanitize_output(str(group.help or "")), style="info")
         table.add_row(label, description)
 
     return table

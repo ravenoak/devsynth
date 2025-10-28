@@ -25,7 +25,7 @@ class CounterAPI(Protocol):
 
     def labels(
         self, *args: object, **kwargs: object
-    ) -> "CounterAPI":  # pragma: no cover - protocol
+    ) -> CounterAPI:  # pragma: no cover - protocol
         ...
 
     def inc(self, amount: float = 1.0) -> None:  # pragma: no cover - protocol
@@ -82,8 +82,8 @@ def _create_counter(
 
     prometheus_counter_cls: type[object] | None
     try:  # pragma: no cover - import guarded for optional dependency
-        from prometheus_client import Counter as PrometheusCounter
         from prometheus_client import REGISTRY
+        from prometheus_client import Counter as PrometheusCounter
 
         prometheus_counter_cls = PrometheusCounter
     except Exception:  # pragma: no cover - fallback for minimal environments
@@ -260,7 +260,7 @@ def retry_with_backoff(
     backoff_multiplier: float = 2.0,
     max_backoff: float = 60.0,
     jitter: bool = True,
-    exceptions_to_retry: Sequence[Type[Exception]] | None = None,
+    exceptions_to_retry: Sequence[type[Exception]] | None = None,
     logger: logging.Logger | None = None,
     condition_callbacks: Sequence[ConditionCallback] | None = None,
     retry_conditions: (
@@ -540,7 +540,7 @@ def retry_operation(
     backoff_multiplier: float = 2.0,
     max_backoff: float = 60.0,
     jitter: bool = True,
-    exceptions_to_retry: Sequence[Type[Exception]] | None = None,
+    exceptions_to_retry: Sequence[type[Exception]] | None = None,
     logger: logging.Logger | None = None,
     condition_callbacks: Sequence[ConditionCallback] | None = None,
     retry_conditions: (
@@ -583,7 +583,7 @@ class RetryConfig:
         backoff_multiplier: float = 2.0,
         max_backoff: float = 60.0,
         jitter: bool = True,
-        exceptions_to_retry: Sequence[Type[Exception]] | None = None,
+        exceptions_to_retry: Sequence[type[Exception]] | None = None,
         condition_callbacks: Sequence[ConditionCallback] | None = None,
         retry_conditions: (
             Sequence[RetryCondition | str] | Mapping[str, RetryCondition | str] | None

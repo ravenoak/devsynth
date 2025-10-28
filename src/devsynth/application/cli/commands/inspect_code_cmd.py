@@ -23,9 +23,9 @@ cli_bridge: UXBridge = CLIUXBridge()
 
 
 def inspect_code_cmd(
-    path: Optional[Union[str, Path]] = None,
+    path: str | Path | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Inspect a codebase to understand its architecture and quality.
 

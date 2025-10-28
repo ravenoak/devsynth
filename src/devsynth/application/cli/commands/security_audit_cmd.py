@@ -38,7 +38,7 @@ def run_secrets_scan() -> None:
                 continue
             path = os.path.join(root, name)
             try:
-                with open(path, "r", encoding="utf-8", errors="ignore") as handle:
+                with open(path, encoding="utf-8", errors="ignore") as handle:
                     for lineno, line in enumerate(handle, start=1):
                         if pattern.search(line):
                             findings.append(f"{path}:{lineno}")
@@ -81,7 +81,7 @@ def security_audit_cmd(
     skip_secrets: bool = False,
     skip_owasp: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Execute security audits and monitoring checks.
 

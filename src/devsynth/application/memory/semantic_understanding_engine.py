@@ -13,9 +13,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .execution_learning_algorithm import ExecutionPattern, PatternLibrary
-from ...domain.models.memory import MemeticUnit, MemeticMetadata, MemeticSource, CognitiveType
+from ...domain.models.memory import (
+    CognitiveType,
+    MemeticMetadata,
+    MemeticSource,
+    MemeticUnit,
+)
 from ...logging_setup import DevSynthLogger
+from .execution_learning_algorithm import ExecutionPattern, PatternLibrary
 
 logger = DevSynthLogger(__name__)
 
@@ -23,34 +28,36 @@ logger = DevSynthLogger(__name__)
 @dataclass
 class SemanticComponents:
     """Extracted semantic components from code analysis."""
-    structural_analysis: Dict[str, Any]
-    data_flow_patterns: Dict[str, Any]
-    behavioral_intentions: Dict[str, Any]
-    execution_mappings: Dict[str, Any]
+
+    structural_analysis: dict[str, Any]
+    data_flow_patterns: dict[str, Any]
+    behavioral_intentions: dict[str, Any]
+    execution_mappings: dict[str, Any]
     semantic_fingerprint: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "structural_analysis": self.structural_analysis,
             "data_flow_patterns": self.data_flow_patterns,
             "behavioral_intentions": self.behavioral_intentions,
             "execution_mappings": self.execution_mappings,
-            "semantic_fingerprint": self.semantic_fingerprint
+            "semantic_fingerprint": self.semantic_fingerprint,
         }
 
 
 @dataclass
 class BehavioralIntent:
     """Analysis of code behavioral intentions."""
+
     primary_purpose: str
-    algorithmic_patterns: List[str]
-    business_logic: Dict[str, Any]
-    side_effects: List[str]
+    algorithmic_patterns: list[str]
+    business_logic: dict[str, Any]
+    side_effects: list[str]
     complexity_level: str
     intent_confidence: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "primary_purpose": self.primary_purpose,
@@ -58,7 +65,7 @@ class BehavioralIntent:
             "business_logic": self.business_logic,
             "side_effects": self.side_effects,
             "complexity_level": self.complexity_level,
-            "intent_confidence": self.intent_confidence
+            "intent_confidence": self.intent_confidence,
         }
 
 
@@ -68,8 +75,8 @@ class SemanticUnderstandingEngine:
     def __init__(self, pattern_library: PatternLibrary = None):
         """Initialize the semantic understanding engine."""
         self.pattern_library = pattern_library or PatternLibrary()
-        self.understanding_cache: Dict[str, SemanticComponents] = {}
-        self.intent_cache: Dict[str, BehavioralIntent] = {}
+        self.understanding_cache: dict[str, SemanticComponents] = {}
+        self.intent_cache: dict[str, BehavioralIntent] = {}
 
         logger.info("Semantic understanding engine initialized")
 
@@ -90,7 +97,9 @@ class SemanticUnderstandingEngine:
         behavioral_intent = self._analyze_behavioral_intent(code)
 
         # Map to execution outcomes using pattern library
-        execution_mapping = self._map_to_execution_outcomes(ast_analysis, data_flow, behavioral_intent)
+        execution_mapping = self._map_to_execution_outcomes(
+            ast_analysis, data_flow, behavioral_intent
+        )
 
         # Generate semantic fingerprint
         semantic_fingerprint = self._generate_semantic_fingerprint(execution_mapping)
@@ -98,9 +107,11 @@ class SemanticUnderstandingEngine:
         components = SemanticComponents(
             structural_analysis=ast_analysis,
             data_flow_patterns=data_flow,
-            behavioral_intentions=behavioral_intent.to_dict() if behavioral_intent else {},
+            behavioral_intentions=(
+                behavioral_intent.to_dict() if behavioral_intent else {}
+            ),
             execution_mappings=execution_mapping,
-            semantic_fingerprint=semantic_fingerprint
+            semantic_fingerprint=semantic_fingerprint,
         )
 
         # Cache the result
@@ -131,7 +142,9 @@ class SemanticUnderstandingEngine:
         intent_confidence = self._calculate_intent_confidence(code)
 
         # Determine primary purpose
-        primary_purpose = self._determine_primary_purpose(algorithm_patterns, business_logic)
+        primary_purpose = self._determine_primary_purpose(
+            algorithm_patterns, business_logic
+        )
 
         intent = BehavioralIntent(
             primary_purpose=primary_purpose,
@@ -139,7 +152,7 @@ class SemanticUnderstandingEngine:
             business_logic=business_logic,
             side_effects=side_effects,
             complexity_level=complexity_classification,
-            intent_confidence=intent_confidence
+            intent_confidence=intent_confidence,
         )
 
         # Cache the result
@@ -154,14 +167,14 @@ class SemanticUnderstandingEngine:
             components.structural_analysis.get("hash", ""),
             components.data_flow_patterns.get("signature", ""),
             str(components.behavioral_intentions.get("primary_purpose", "")),
-            components.execution_mappings.get("outcome_signature", "")
+            components.execution_mappings.get("outcome_signature", ""),
         ]
 
         # Create composite hash
         composite_string = "|".join(fingerprint_components)
         return self._compute_code_hash(composite_string)
 
-    def detect_semantic_equivalence(self, code1: str, code2: str) -> Dict[str, Any]:
+    def detect_semantic_equivalence(self, code1: str, code2: str) -> dict[str, Any]:
         """Detect if two code snippets are semantically equivalent despite surface differences."""
         # Extract semantic components from both codes
         components1 = self.extract_semantic_components(code1)
@@ -181,23 +194,28 @@ class SemanticUnderstandingEngine:
         pattern_similarity = self._calculate_pattern_similarity(patterns1, patterns2)
 
         # Calculate behavioral equivalence
-        behavioral_equivalence = self._calculate_behavioral_equivalence(intent1, intent2)
+        behavioral_equivalence = self._calculate_behavioral_equivalence(
+            intent1, intent2
+        )
 
         # Overall equivalence assessment
-        is_equivalent = (similarity_score > 0.8 and
-                        behavioral_equivalence > 0.8 and
-                        pattern_similarity > 0.7)
+        is_equivalent = (
+            similarity_score > 0.8
+            and behavioral_equivalence > 0.8
+            and pattern_similarity > 0.7
+        )
 
         return {
             "is_equivalent": is_equivalent,
             "similarity_score": similarity_score,
             "behavioral_match": behavioral_equivalence,
             "pattern_similarity": pattern_similarity,
-            "semantic_fingerprint_match": components1.semantic_fingerprint == components2.semantic_fingerprint,
-            "validation_method": "multi_faceted_semantic_analysis"
+            "semantic_fingerprint_match": components1.semantic_fingerprint
+            == components2.semantic_fingerprint,
+            "validation_method": "multi_faceted_semantic_analysis",
         }
 
-    def predict_execution_behavior(self, code: str) -> Dict[str, Any]:
+    def predict_execution_behavior(self, code: str) -> dict[str, Any]:
         """Predict execution behavior based on learned patterns."""
         components = self.extract_semantic_components(code)
 
@@ -209,7 +227,7 @@ class SemanticUnderstandingEngine:
                 "prediction": "unknown_behavior",
                 "confidence": 0.0,
                 "supporting_patterns": [],
-                "reasoning": "No matching patterns found in learned knowledge"
+                "reasoning": "No matching patterns found in learned knowledge",
             }
 
         # Aggregate predictions from matching patterns
@@ -225,10 +243,14 @@ class SemanticUnderstandingEngine:
 
         # Determine most likely outcome
         outcome_types = [p.get("success_rate", 0.5) for p in predictions]
-        predicted_success_rate = sum(outcome_types) / len(outcome_types) if outcome_types else 0.5
+        predicted_success_rate = (
+            sum(outcome_types) / len(outcome_types) if outcome_types else 0.5
+        )
 
         return {
-            "prediction": "success" if predicted_success_rate > 0.6 else "potential_failure",
+            "prediction": (
+                "success" if predicted_success_rate > 0.6 else "potential_failure"
+            ),
             "confidence": avg_confidence,
             "predicted_success_rate": predicted_success_rate,
             "supporting_patterns": [
@@ -236,15 +258,15 @@ class SemanticUnderstandingEngine:
                     "pattern_id": p.pattern_id,
                     "pattern_type": p.pattern_type,
                     "confidence": p.confidence,
-                    "expected_outcome": p.expected_outcomes
+                    "expected_outcome": p.expected_outcomes,
                 }
                 for p in matching_patterns[:3]
             ],
             "semantic_analysis": components.to_dict(),
-            "reasoning": f"Based on {len(matching_patterns)} matching behavioral patterns"
+            "reasoning": f"Based on {len(matching_patterns)} matching behavioral patterns",
         }
 
-    def _analyze_ast_structure(self, code: str) -> Dict[str, Any]:
+    def _analyze_ast_structure(self, code: str) -> dict[str, Any]:
         """Analyze AST structure for semantic understanding."""
         try:
             tree = ast.parse(code)
@@ -266,41 +288,45 @@ class SemanticUnderstandingEngine:
 
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
-                    functions.append({
-                        "name": node.name,
-                        "args": [arg.arg for arg in node.args.args],
-                        "line": node.lineno,
-                        "complexity": self._calculate_function_complexity(node)
-                    })
+                    functions.append(
+                        {
+                            "name": node.name,
+                            "args": [arg.arg for arg in node.args.args],
+                            "line": node.lineno,
+                            "complexity": self._calculate_function_complexity(node),
+                        }
+                    )
                 elif isinstance(node, ast.ClassDef):
-                    classes.append({
-                        "name": node.name,
-                        "methods": [n.name for n in node.body if isinstance(n, ast.FunctionDef)],
-                        "line": node.lineno
-                    })
+                    classes.append(
+                        {
+                            "name": node.name,
+                            "methods": [
+                                n.name
+                                for n in node.body
+                                if isinstance(n, ast.FunctionDef)
+                            ],
+                            "line": node.lineno,
+                        }
+                    )
 
             return {
                 "node_counts": dict(node_counts),
                 "functions": functions,
                 "classes": classes,
-                "total_lines": len(code.split('\n')),
-                "hash": self._compute_code_hash(code)
+                "total_lines": len(code.split("\n")),
+                "hash": self._compute_code_hash(code),
             }
 
         except SyntaxError as e:
             return {
                 "error": f"SyntaxError: {e.msg}",
                 "line": e.lineno,
-                "hash": self._compute_code_hash(code)
+                "hash": self._compute_code_hash(code),
             }
 
-    def _analyze_data_flow(self, code: str) -> Dict[str, Any]:
+    def _analyze_data_flow(self, code: str) -> dict[str, Any]:
         """Analyze data flow patterns in the code."""
-        data_flow = {
-            "variables": {},
-            "dependencies": {},
-            "data_transformations": []
-        }
+        data_flow = {"variables": {}, "dependencies": {}, "data_transformations": []}
 
         try:
             tree = ast.parse(code)
@@ -313,11 +339,11 @@ class SemanticUnderstandingEngine:
                     self.references = defaultdict(list)
 
                 def visit_Assign(self, node):
-                    if node.targets and hasattr(node.targets[0], 'id'):
+                    if node.targets and hasattr(node.targets[0], "id"):
                         var_name = node.targets[0].id
                         self.assignments[var_name] = {
                             "line": node.lineno,
-                            "type": self._get_expression_type(node.value)
+                            "type": self._get_expression_type(node.value),
                         }
                         self.variables[var_name] = "assigned"
                     self.generic_visit(node)
@@ -373,7 +399,9 @@ class SemanticUnderstandingEngine:
         intent_confidence = self._calculate_intent_confidence(code)
 
         # Determine primary purpose
-        primary_purpose = self._determine_primary_purpose(algorithm_patterns, business_logic)
+        primary_purpose = self._determine_primary_purpose(
+            algorithm_patterns, business_logic
+        )
 
         return BehavioralIntent(
             primary_purpose=primary_purpose,
@@ -381,26 +409,36 @@ class SemanticUnderstandingEngine:
             business_logic=business_logic,
             side_effects=side_effects,
             complexity_level=complexity_classification,
-            intent_confidence=intent_confidence
+            intent_confidence=intent_confidence,
         )
 
-    def _map_to_execution_outcomes(self, ast_analysis: Dict, data_flow: Dict, behavioral_intent: BehavioralIntent) -> Dict[str, Any]:
+    def _map_to_execution_outcomes(
+        self, ast_analysis: dict, data_flow: dict, behavioral_intent: BehavioralIntent
+    ) -> dict[str, Any]:
         """Map structural analysis to expected execution outcomes."""
         execution_mappings = {
             "expected_behavior": behavioral_intent.primary_purpose,
             "complexity_indicators": {
-                "structural_complexity": self._calculate_structural_complexity(ast_analysis),
+                "structural_complexity": self._calculate_structural_complexity(
+                    ast_analysis
+                ),
                 "data_flow_complexity": self._calculate_data_flow_complexity(data_flow),
-                "algorithmic_complexity": behavioral_intent.complexity_level
+                "algorithmic_complexity": behavioral_intent.complexity_level,
             },
-            "risk_factors": self._identify_risk_factors(ast_analysis, data_flow, behavioral_intent),
-            "performance_characteristics": self._analyze_performance_characteristics(ast_analysis, data_flow),
-            "outcome_signature": self._generate_outcome_signature(ast_analysis, data_flow, behavioral_intent)
+            "risk_factors": self._identify_risk_factors(
+                ast_analysis, data_flow, behavioral_intent
+            ),
+            "performance_characteristics": self._analyze_performance_characteristics(
+                ast_analysis, data_flow
+            ),
+            "outcome_signature": self._generate_outcome_signature(
+                ast_analysis, data_flow, behavioral_intent
+            ),
         }
 
         return execution_mappings
 
-    def _identify_algorithms(self, code: str) -> List[str]:
+    def _identify_algorithms(self, code: str) -> list[str]:
         """Identify algorithmic patterns in the code."""
         patterns = []
         code_lower = code.lower()
@@ -414,7 +452,7 @@ class SemanticUnderstandingEngine:
             "validation": ["if", "check", "validate", "verify"],
             "transformation": ["map", "filter", "transform", "convert"],
             "aggregation": ["sum", "count", "total", "aggregate", "reduce"],
-            "comparison": ["compare", "min", "max", "equal"]
+            "comparison": ["compare", "min", "max", "equal"],
         }
 
         for pattern_name, keywords in algorithm_patterns.items():
@@ -423,24 +461,40 @@ class SemanticUnderstandingEngine:
 
         return patterns
 
-    def _extract_business_logic(self, code: str) -> Dict[str, Any]:
+    def _extract_business_logic(self, code: str) -> dict[str, Any]:
         """Extract business logic from code comments and naming."""
         business_context = {
             "domain_indicators": [],
             "purpose_indicators": [],
-            "stakeholder_indicators": []
+            "stakeholder_indicators": [],
         }
 
-        lines = code.split('\n')
+        lines = code.split("\n")
 
         for line in lines:
             # Check for business domain keywords
             business_domains = [
-                "user", "customer", "client", "account", "profile",
-                "payment", "transaction", "billing", "invoice",
-                "product", "service", "order", "cart",
-                "auth", "login", "security", "permission",
-                "report", "analytics", "dashboard", "metric"
+                "user",
+                "customer",
+                "client",
+                "account",
+                "profile",
+                "payment",
+                "transaction",
+                "billing",
+                "invoice",
+                "product",
+                "service",
+                "order",
+                "cart",
+                "auth",
+                "login",
+                "security",
+                "permission",
+                "report",
+                "analytics",
+                "dashboard",
+                "metric",
             ]
 
             for domain in business_domains:
@@ -449,38 +503,55 @@ class SemanticUnderstandingEngine:
                     break
 
             # Check for purpose indicators
-            purpose_words = ["calculate", "process", "validate", "authenticate", "authorize"]
+            purpose_words = [
+                "calculate",
+                "process",
+                "validate",
+                "authenticate",
+                "authorize",
+            ]
             for purpose in purpose_words:
                 if purpose in line.lower():
                     business_context["purpose_indicators"].append(purpose)
 
         return business_context
 
-    def _analyze_side_effects(self, code: str) -> List[str]:
+    def _analyze_side_effects(self, code: str) -> list[str]:
         """Analyze potential side effects and state changes."""
         side_effects = []
 
         # Check for I/O operations
-        if any(keyword in code.lower() for keyword in ["print", "input", "file", "open", "write", "read"]):
+        if any(
+            keyword in code.lower()
+            for keyword in ["print", "input", "file", "open", "write", "read"]
+        ):
             side_effects.append("io_operations")
 
         # Check for external calls
-        if any(keyword in code.lower() for keyword in ["api", "http", "request", "database", "db"]):
+        if any(
+            keyword in code.lower()
+            for keyword in ["api", "http", "request", "database", "db"]
+        ):
             side_effects.append("external_calls")
 
         # Check for global state modification
-        if any(keyword in code.lower() for keyword in ["global", "class", "static", "singleton"]):
+        if any(
+            keyword in code.lower()
+            for keyword in ["global", "class", "static", "singleton"]
+        ):
             side_effects.append("global_state")
 
         # Check for exception handling (indicates side effects)
-        if any(keyword in code.lower() for keyword in ["try", "except", "raise", "error"]):
+        if any(
+            keyword in code.lower() for keyword in ["try", "except", "raise", "error"]
+        ):
             side_effects.append("exception_handling")
 
         return side_effects
 
     def _classify_complexity(self, code: str) -> str:
         """Classify code complexity level."""
-        lines = code.strip().split('\n')
+        lines = code.strip().split("\n")
         line_count = len(lines)
 
         # Count complexity indicators
@@ -490,17 +561,19 @@ class SemanticUnderstandingEngine:
         complexity_score += min(line_count / 10, 5)  # Cap at 5 points
 
         # Function/class count
-        function_count = code.count('def ')
-        class_count = code.count('class ')
+        function_count = code.count("def ")
+        class_count = code.count("class ")
         complexity_score += function_count * 0.5
         complexity_score += class_count * 1.0
 
         # Control structure count
-        control_structures = code.count('if ') + code.count('for ') + code.count('while ')
+        control_structures = (
+            code.count("if ") + code.count("for ") + code.count("while ")
+        )
         complexity_score += control_structures * 0.3
 
         # Nested structure indicators
-        nesting_indicators = code.count('    ') + code.count('\t')
+        nesting_indicators = code.count("    ") + code.count("\t")
         complexity_score += nesting_indicators * 0.1
 
         # Classify based on score
@@ -518,15 +591,15 @@ class SemanticUnderstandingEngine:
         confidence_factors = []
 
         # Code clarity factors
-        if len(code.strip().split('\n')) < 50:  # Reasonable length
+        if len(code.strip().split("\n")) < 50:  # Reasonable length
             confidence_factors.append(0.2)
 
         # Naming clarity
-        if re.search(r'[a-zA-Z_][a-zA-Z0-9_]*', code):  # Has meaningful names
+        if re.search(r"[a-zA-Z_][a-zA-Z0-9_]*", code):  # Has meaningful names
             confidence_factors.append(0.2)
 
         # Comment presence
-        if '#' in code or '"""' in code:
+        if "#" in code or '"""' in code:
             confidence_factors.append(0.3)
 
         # Structure clarity
@@ -538,7 +611,9 @@ class SemanticUnderstandingEngine:
 
         return min(1.0, max(0.0, sum(confidence_factors)))
 
-    def _determine_primary_purpose(self, algorithm_patterns: List[str], business_logic: Dict[str, Any]) -> str:
+    def _determine_primary_purpose(
+        self, algorithm_patterns: list[str], business_logic: dict[str, Any]
+    ) -> str:
         """Determine the primary purpose of the code."""
         if not algorithm_patterns and not business_logic.get("domain_indicators"):
             return "utility_function"
@@ -549,7 +624,7 @@ class SemanticUnderstandingEngine:
             "transformation": "data_transformation",
             "aggregation": "data_processing",
             "searching": "information_retrieval",
-            "sorting": "data_organization"
+            "sorting": "data_organization",
         }
 
         for pattern in algorithm_patterns:
@@ -563,7 +638,7 @@ class SemanticUnderstandingEngine:
 
         return "general_processing"
 
-    def _calculate_structural_complexity(self, ast_analysis: Dict) -> float:
+    def _calculate_structural_complexity(self, ast_analysis: dict) -> float:
         """Calculate structural complexity from AST analysis."""
         if "error" in ast_analysis:
             return 0.0
@@ -579,7 +654,7 @@ class SemanticUnderstandingEngine:
             "For": 1.5,
             "While": 1.5,
             "Try": 2.0,
-            "Call": 0.5
+            "Call": 0.5,
         }
 
         weighted_complexity = 0.0
@@ -589,7 +664,7 @@ class SemanticUnderstandingEngine:
 
         return min(1.0, weighted_complexity / 50)  # Normalize to 0-1 scale
 
-    def _calculate_data_flow_complexity(self, data_flow: Dict) -> float:
+    def _calculate_data_flow_complexity(self, data_flow: dict) -> float:
         """Calculate data flow complexity."""
         if "error" in data_flow:
             return 0.0
@@ -613,7 +688,9 @@ class SemanticUnderstandingEngine:
 
         return min(1.0, complexity)
 
-    def _identify_risk_factors(self, ast_analysis: Dict, data_flow: Dict, behavioral_intent: BehavioralIntent) -> List[str]:
+    def _identify_risk_factors(
+        self, ast_analysis: dict, data_flow: dict, behavioral_intent: BehavioralIntent
+    ) -> list[str]:
         """Identify potential risk factors in the code."""
         risks = []
 
@@ -625,7 +702,9 @@ class SemanticUnderstandingEngine:
 
         # Data flow risks
         variables = data_flow.get("variables", {})
-        uninitialized_vars = [var for var, status in variables.items() if status == "referenced"]
+        uninitialized_vars = [
+            var for var, status in variables.items() if status == "referenced"
+        ]
         if uninitialized_vars:
             risks.append("uninitialized_variables")
 
@@ -638,13 +717,15 @@ class SemanticUnderstandingEngine:
 
         return risks
 
-    def _analyze_performance_characteristics(self, ast_analysis: Dict, data_flow: Dict) -> Dict[str, Any]:
+    def _analyze_performance_characteristics(
+        self, ast_analysis: dict, data_flow: dict
+    ) -> dict[str, Any]:
         """Analyze expected performance characteristics."""
         performance = {
             "expected_complexity": "unknown",
             "memory_usage": "unknown",
             "io_operations": 0,
-            "nested_loops": 0
+            "nested_loops": 0,
         }
 
         # Analyze loop nesting
@@ -652,7 +733,9 @@ class SemanticUnderstandingEngine:
         if "functions" in ast_analysis:
             # This is simplified - would need full AST traversal for accurate loop counting
             code_text = str(ast_analysis)
-            performance["nested_loops"] = code_text.count("for") + code_text.count("while")
+            performance["nested_loops"] = code_text.count("for") + code_text.count(
+                "while"
+            )
 
         # Analyze I/O operations
         if "Call" in ast_analysis.get("node_counts", {}):
@@ -660,14 +743,16 @@ class SemanticUnderstandingEngine:
 
         return performance
 
-    def _generate_outcome_signature(self, ast_analysis: Dict, data_flow: Dict, behavioral_intent: BehavioralIntent) -> str:
+    def _generate_outcome_signature(
+        self, ast_analysis: dict, data_flow: dict, behavioral_intent: BehavioralIntent
+    ) -> str:
         """Generate signature representing expected execution outcomes."""
         signature_components = [
             behavioral_intent.primary_purpose,
             behavioral_intent.complexity_level,
             str(len(ast_analysis.get("functions", []))),
             str(len(data_flow.get("variables", {}))),
-            ",".join(behavioral_intent.side_effects[:3])
+            ",".join(behavioral_intent.side_effects[:3]),
         ]
 
         return self._compute_code_hash("|".join(signature_components))
@@ -675,32 +760,32 @@ class SemanticUnderstandingEngine:
     def _compute_code_hash(self, code: str) -> str:
         """Compute hash for code content."""
         import hashlib
+
         return hashlib.sha256(code.encode()).hexdigest()[:16]
 
-    def _calculate_semantic_similarity(self, components1: SemanticComponents, components2: SemanticComponents) -> float:
+    def _calculate_semantic_similarity(
+        self, components1: SemanticComponents, components2: SemanticComponents
+    ) -> float:
         """Calculate semantic similarity between two code components."""
         # Compare structural similarity
         structural_sim = self._compare_structural_similarity(
-            components1.structural_analysis,
-            components2.structural_analysis
+            components1.structural_analysis, components2.structural_analysis
         )
 
         # Compare data flow similarity
         data_flow_sim = self._compare_data_flow_similarity(
-            components1.data_flow_patterns,
-            components2.data_flow_patterns
+            components1.data_flow_patterns, components2.data_flow_patterns
         )
 
         # Compare behavioral similarity
         behavioral_sim = self._compare_behavioral_similarity(
-            components1.behavioral_intentions,
-            components2.behavioral_intentions
+            components1.behavioral_intentions, components2.behavioral_intentions
         )
 
         # Weighted combination
-        return (structural_sim * 0.4 + data_flow_sim * 0.3 + behavioral_sim * 0.3)
+        return structural_sim * 0.4 + data_flow_sim * 0.3 + behavioral_sim * 0.3
 
-    def _compare_structural_similarity(self, analysis1: Dict, analysis2: Dict) -> float:
+    def _compare_structural_similarity(self, analysis1: dict, analysis2: dict) -> float:
         """Compare structural similarity between AST analyses."""
         if "error" in analysis1 or "error" in analysis2:
             return 0.0
@@ -723,7 +808,7 @@ class SemanticUnderstandingEngine:
 
         return overlap / union if union > 0 else 0.0
 
-    def _compare_data_flow_similarity(self, flow1: Dict, flow2: Dict) -> float:
+    def _compare_data_flow_similarity(self, flow1: dict, flow2: dict) -> float:
         """Compare data flow similarity."""
         variables1 = set(flow1.get("variables", {}))
         variables2 = set(flow2.get("variables", {}))
@@ -738,7 +823,7 @@ class SemanticUnderstandingEngine:
 
         return overlap / union if union > 0 else 0.0
 
-    def _compare_behavioral_similarity(self, intent1: Dict, intent2: Dict) -> float:
+    def _compare_behavioral_similarity(self, intent1: dict, intent2: dict) -> float:
         """Compare behavioral intention similarity."""
         purpose1 = intent1.get("primary_purpose", "")
         purpose2 = intent2.get("primary_purpose", "")
@@ -750,25 +835,39 @@ class SemanticUnderstandingEngine:
         else:
             return 0.3
 
-    def _calculate_behavioral_equivalence(self, intent1: BehavioralIntent, intent2: BehavioralIntent) -> float:
+    def _calculate_behavioral_equivalence(
+        self, intent1: BehavioralIntent, intent2: BehavioralIntent
+    ) -> float:
         """Calculate behavioral equivalence between two code snippets."""
         # Compare primary purposes
-        purpose_match = 1.0 if intent1.primary_purpose == intent2.primary_purpose else 0.0
+        purpose_match = (
+            1.0 if intent1.primary_purpose == intent2.primary_purpose else 0.0
+        )
 
         # Compare algorithmic patterns
         patterns1 = set(intent1.algorithmic_patterns)
         patterns2 = set(intent2.algorithmic_patterns)
-        pattern_overlap = len(patterns1.intersection(patterns2)) / len(patterns1.union(patterns2)) if patterns1.union(patterns2) else 0.0
+        pattern_overlap = (
+            len(patterns1.intersection(patterns2)) / len(patterns1.union(patterns2))
+            if patterns1.union(patterns2)
+            else 0.0
+        )
 
         # Compare side effects
         effects1 = set(intent1.side_effects)
         effects2 = set(intent2.side_effects)
-        effects_overlap = len(effects1.intersection(effects2)) / len(effects1.union(effects2)) if effects1.union(effects2) else 0.0
+        effects_overlap = (
+            len(effects1.intersection(effects2)) / len(effects1.union(effects2))
+            if effects1.union(effects2)
+            else 0.0
+        )
 
         # Weighted combination
-        return (purpose_match * 0.5 + pattern_overlap * 0.3 + effects_overlap * 0.2)
+        return purpose_match * 0.5 + pattern_overlap * 0.3 + effects_overlap * 0.2
 
-    def _calculate_pattern_similarity(self, patterns1: List[ExecutionPattern], patterns2: List[ExecutionPattern]) -> float:
+    def _calculate_pattern_similarity(
+        self, patterns1: list[ExecutionPattern], patterns2: list[ExecutionPattern]
+    ) -> float:
         """Calculate similarity between pattern sets."""
         if not patterns1 and not patterns2:
             return 1.0
@@ -779,7 +878,11 @@ class SemanticUnderstandingEngine:
         types1 = {p.pattern_type for p in patterns1}
         types2 = {p.pattern_type for p in patterns2}
 
-        type_overlap = len(types1.intersection(types2)) / len(types1.union(types2)) if types1.union(types2) else 0.0
+        type_overlap = (
+            len(types1.intersection(types2)) / len(types1.union(types2))
+            if types1.union(types2)
+            else 0.0
+        )
 
         # Compare pattern confidences
         confidences1 = [p.confidence for p in patterns1]
@@ -790,7 +893,7 @@ class SemanticUnderstandingEngine:
 
         confidence_similarity = 1.0 - abs(avg_confidence1 - avg_confidence2)
 
-        return (type_overlap * 0.6 + confidence_similarity * 0.4)
+        return type_overlap * 0.6 + confidence_similarity * 0.4
 
     def _calculate_function_complexity(self, node: ast.FunctionDef) -> str:
         """Calculate complexity of a function."""

@@ -10,13 +10,12 @@ from typing import (
     Any,
     Dict,
     Literal,
-    Mapping,
     Optional,
     Protocol,
-    Sequence,
     TypedDict,
     Union,
 )
+from collections.abc import Mapping, Sequence
 
 from rich.console import Console, Group
 from rich.markdown import Markdown
@@ -28,20 +27,19 @@ from rich.text import Text
 from devsynth.config import ProjectUnifiedConfig, load_project_config
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.interface.cli import (
-    CLIUXBridge,
     COLORBLIND_THEME,
     DEVSYNTH_THEME,
+    CLIUXBridge,
     _non_interactive,
 )
 from devsynth.interface.prompt_toolkit_adapter import get_prompt_toolkit_adapter
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 from ..wizard_textual import TextualWizardViewModel
-
 from .progress import ProgressManager
 
 
-def _env_flag(name: str) -> Optional[bool]:
+def _env_flag(name: str) -> bool | None:
     """Return boolean value for ``name`` if set, otherwise ``None``."""
     val = os.environ.get(name)
     if val is None:
@@ -49,18 +47,13 @@ def _env_flag(name: str) -> Optional[bool]:
     return val.lower() in {"1", "true", "yes"}
 
 
-FeatureFlags = TypedDict(
-    "FeatureFlags",
-    {
-        "wsde_collaboration": bool,
-        "dialectical_reasoning": bool,
-        "code_generation": bool,
-        "test_generation": bool,
-        "documentation_generation": bool,
-        "experimental_features": bool,
-    },
-    total=False,
-)
+class FeatureFlags(TypedDict, total=False):
+    wsde_collaboration: bool
+    dialectical_reasoning: bool
+    code_generation: bool
+    test_generation: bool
+    documentation_generation: bool
+    experimental_features: bool
 
 
 FeatureName = Literal[
@@ -100,7 +93,7 @@ def _parse_features(value: FeatureInput) -> FeatureFlags:
     if value is None or hasattr(value, "param_decls"):
         return {}
 
-    raw_flags: Dict[str, bool]
+    raw_flags: dict[str, bool]
 
     if isinstance(value, Mapping):
         raw_flags = {k: bool(v) for k, v in value.items() if isinstance(k, str)}
@@ -150,8 +143,8 @@ class WizardSelections:
     root: Path
     language: str
     structure: str
-    constraints: Optional[Path]
-    goals: Optional[str]
+    constraints: Path | None
+    goals: str | None
     memory_backend: str
     offline_mode: bool
     features: FeatureFlags
@@ -164,8 +157,8 @@ class WizardBridge(Protocol):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str: ...
 
@@ -184,7 +177,7 @@ class SetupWizard:
     """Guide the user through project initialization."""
 
     # Help text for each option
-    HELP_TEXT: Dict[str, str | Dict[str, str]] = {
+    HELP_TEXT: dict[str, str | dict[str, str]] = {
         "root": (
             "The root directory of your project. "
             "This is where DevSynth will store configuration files."
@@ -234,7 +227,7 @@ class SetupWizard:
         },
     }
 
-    QUICK_SETUP_PRESETS: Dict[str, QuickSetupPreset] = {
+    QUICK_SETUP_PRESETS: dict[str, QuickSetupPreset] = {
         "minimal": QuickSetupPreset(
             structure="single_package",
             memory_backend="memory",
@@ -276,8 +269,8 @@ class SetupWizard:
         ),
     }
 
-    def __init__(self, bridge: Optional[WizardBridge | UXBridge] = None) -> None:
-        self.bridge: UXBridge = (bridge or CLIUXBridge())  # type: ignore[assignment]
+    def __init__(self, bridge: WizardBridge | UXBridge | None = None) -> None:
+        self.bridge: UXBridge = bridge or CLIUXBridge()  # type: ignore[assignment]
         self.console = Console()
         # Basic, Project, Memory, Features, Finalize
         self.total_steps = 5
@@ -307,7 +300,7 @@ class SetupWizard:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
-    def _show_progress(self, description: str, status: Optional[str] = None) -> None:
+    def _show_progress(self, description: str, status: str | None = None) -> None:
         """Advance the wizard progress indicator with an optional status."""
         self.current_step += 1
         desc = f"Step {self.current_step}/{self.total_steps}: {description}"
@@ -354,7 +347,9 @@ class SetupWizard:
         config_table.add_column("Value", style="value")
         config_table.add_row(_text("Project Root", style="key"), _text(selections.root))
         config_table.add_row(_text("Language", style="key"), _text(selections.language))
-        config_table.add_row(_text("Structure", style="key"), _text(selections.structure))
+        config_table.add_row(
+            _text("Structure", style="key"), _text(selections.structure)
+        )
         if selections.constraints:
             config_table.add_row(
                 _text("Constraints", style="key"), _text(selections.constraints)
@@ -400,7 +395,9 @@ class SetupWizard:
             "Generate code: devsynth code",
         )
         for idx, step in enumerate(steps, start=1):
-            steps_table.add_row(Text(f"{idx}. {sanitize_output(step)}", style="command"))
+            steps_table.add_row(
+                Text(f"{idx}. {sanitize_output(step)}", style="command")
+            )
 
         content = Group(
             Text("Configuration", style="heading"),
@@ -411,9 +408,11 @@ class SetupWizard:
             steps_table,
         )
 
-        return Panel(content, title="Setup Summary", border_style="cyan", padding=(1, 2))
+        return Panel(
+            content, title="Setup Summary", border_style="cyan", padding=(1, 2)
+        )
 
-    def _show_help(self, topic: str, subtopic: Optional[str] = None) -> str:
+    def _show_help(self, topic: str, subtopic: str | None = None) -> str:
         """Show help text for a specific option."""
         if subtopic:
             features_help = self.HELP_TEXT.get("features")
@@ -445,11 +444,11 @@ class SetupWizard:
     def _prompt_features(
         self,
         cfg: ProjectUnifiedConfig,
-        features: Optional[FeatureFlags],
+        features: FeatureFlags | None,
         auto_confirm: bool,
     ) -> FeatureFlags:
         existing: Mapping[str, bool] = cfg.config.features or {}
-        raw_flags: Dict[str, bool] = {}
+        raw_flags: dict[str, bool] = {}
         features = features or {}
 
         self._show_progress("Configure Features", status="selection")
@@ -489,9 +488,7 @@ class SetupWizard:
                         chosen,
                     )
         elif use_prompt_toolkit:
-            options = [
-                (feat, feat.replace("_", " ").title()) for feat in feature_list
-            ]
+            options = [(feat, feat.replace("_", " ").title()) for feat in feature_list]
             defaults = [feat for feat, enabled in default_flags.items() if enabled]
             selected = set(
                 adapter.prompt_multi_select(
@@ -557,14 +554,14 @@ class SetupWizard:
         self,
         *,
         root: Path | str | None = None,
-        structure: Optional[str] = None,
-        language: Optional[str] = None,
+        structure: str | None = None,
+        language: str | None = None,
         constraints: Path | str | None = None,
-        goals: Optional[str] = None,
-        memory_backend: Optional[str] = None,
-        offline_mode: Optional[bool] = None,
+        goals: str | None = None,
+        memory_backend: str | None = None,
+        offline_mode: bool | None = None,
         features: FeatureInput = None,
-        auto_confirm: Optional[bool] = None,
+        auto_confirm: bool | None = None,
     ) -> ProjectUnifiedConfig:
         """Execute the wizard steps and persist configuration."""
 
@@ -603,7 +600,7 @@ class SetupWizard:
             "DevSynth project.[/italic]"
         )
 
-        def _ensure_path(value: Path | str | None) -> Optional[Path]:
+        def _ensure_path(value: Path | str | None) -> Path | None:
             if value is None:
                 return None
             if isinstance(value, Path):
@@ -624,7 +621,7 @@ class SetupWizard:
         offline_mode_value = offline_mode
 
         quick_setup = False
-        preset_config: Optional[QuickSetupPreset] = None
+        preset_config: QuickSetupPreset | None = None
         if not auto_confirm_flag:
             quick_setup = self.bridge.confirm_choice(
                 "Would you like to use quick setup with predefined configurations?",
@@ -643,9 +640,7 @@ class SetupWizard:
             offline_mode_value = preset_config.offline_mode
             feature_flags = preset_config.as_feature_flags()
             if self._textual_view is not None:
-                self._textual_view.record_activity(
-                    f"Preset selected: {preset_choice}"
-                )
+                self._textual_view.record_activity(f"Preset selected: {preset_choice}")
             self._show_progress("Basic Settings", status="preset applied")
             self._show_progress("Project Configuration", status="preset")
             self._show_progress("Memory Configuration", status="preset")
@@ -667,9 +662,7 @@ class SetupWizard:
                 "language", "Primary language", default="python"
             )
         if self._textual_view is not None:
-            self._textual_view.record_field(
-                "language", "Language", language_value
-            )
+            self._textual_view.record_field("language", "Language", language_value)
 
         if not quick_setup:
             self._show_progress("Project Configuration", status="collecting")
@@ -756,11 +749,11 @@ class SetupWizard:
         structure_value = structure_value or "single_package"
 
         if self._textual_view is not None:
+            self._textual_view.record_field("structure", "Structure", structure_value)
             self._textual_view.record_field(
-                "structure", "Structure", structure_value
-            )
-            self._textual_view.record_field(
-                "constraints", "Constraints", str(constraints_path) if constraints_path else None
+                "constraints",
+                "Constraints",
+                str(constraints_path) if constraints_path else None,
             )
             self._textual_view.record_field("goals", "Goals", goals_text)
             self._textual_view.record_field(

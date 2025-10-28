@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Mapping
+from collections.abc import Mapping
 
 MetadataScalar = str | int | float | bool | None
 """Primitive metadata value supported by documentation manifests."""
@@ -30,7 +30,7 @@ class DocumentationManifest:
             payload["id"] = self.identifier
         return payload
 
-    def with_identifier(self, identifier: str) -> "DocumentationManifest":
+    def with_identifier(self, identifier: str) -> DocumentationManifest:
         """Return a new manifest with the provided identifier."""
         return DocumentationManifest(
             content=self.content,
@@ -39,7 +39,7 @@ class DocumentationManifest:
         )
 
     @classmethod
-    def from_dict(cls, payload: Mapping[str, object]) -> "DocumentationManifest":
+    def from_dict(cls, payload: Mapping[str, object]) -> DocumentationManifest:
         """Construct a manifest from a mapping."""
         content = str(payload.get("content", ""))
         metadata = _coerce_metadata(payload.get("metadata", {}))
@@ -68,7 +68,7 @@ class DocumentationChunk:
         }
 
     @classmethod
-    def from_json(cls, payload: Mapping[str, object]) -> "DocumentationChunk":
+    def from_json(cls, payload: Mapping[str, object]) -> DocumentationChunk:
         """Create a chunk from cached JSON data."""
         title = str(payload.get("title", ""))
         content = str(payload.get("content", ""))

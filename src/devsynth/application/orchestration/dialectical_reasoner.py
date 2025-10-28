@@ -16,8 +16,8 @@ class _Coordinator(Protocol):
     """Protocol for coordinator dependencies used by the reasoner."""
 
     def apply_dialectical_reasoning(
-        self, task: Dict[str, Any], critic_agent: Any, memory_integration: Optional[Any]
-    ) -> Optional[DialecticalSequence]: ...
+        self, task: dict[str, Any], critic_agent: Any, memory_integration: Any | None
+    ) -> DialecticalSequence | None: ...
 
 
 class DialecticalReasoner:
@@ -28,10 +28,10 @@ class DialecticalReasoner:
 
     def run(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         critic_agent: Any,
-        memory_integration: Optional[Any] = None,
-    ) -> Optional[DialecticalSequence]:
+        memory_integration: Any | None = None,
+    ) -> DialecticalSequence | None:
         """Execute dialectical reasoning and log consensus failures."""
         try:
             return self.coordinator.apply_dialectical_reasoning(

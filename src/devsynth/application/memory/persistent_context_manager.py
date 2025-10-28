@@ -46,7 +46,7 @@ class PersistentContextManager(StructuredContextManager):
             return {}
 
         try:
-            with open(self.context_file, "r") as f:
+            with open(self.context_file) as f:
                 data = json.load(f)
 
             # Prune expired context items
@@ -101,7 +101,7 @@ class PersistentContextManager(StructuredContextManager):
         # Get context items with timestamps
         context_with_timestamps: dict[str, datetime] = {}
         try:
-            with open(self.context_file, "r") as f:
+            with open(self.context_file) as f:
                 data = json.load(f)
 
             for key, item in data.get("context", {}).items():

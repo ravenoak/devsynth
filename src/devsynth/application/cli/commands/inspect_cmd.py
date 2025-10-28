@@ -11,10 +11,10 @@ from ..utils import _check_services, _resolve_bridge
 
 
 def inspect_cmd(
-    input_file: Optional[str] = None,
+    input_file: str | None = None,
     interactive: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Inspect requirements from a file or interactively.
 

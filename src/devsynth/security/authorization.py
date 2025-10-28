@@ -1,6 +1,7 @@
 """Simple role-based authorization utilities."""
 
-from typing import Dict, Iterable
+from typing import Dict
+from collections.abc import Iterable
 
 from devsynth.exceptions import AuthorizationError
 
@@ -8,7 +9,7 @@ from .validation import parse_bool_env
 
 
 def is_authorized(
-    user_roles: Iterable[str], action: str, acl: Dict[str, Iterable[str]]
+    user_roles: Iterable[str], action: str, acl: dict[str, Iterable[str]]
 ) -> bool:
     """Check whether any of the user's roles grants access to the action.
 
@@ -31,7 +32,7 @@ def is_authorized(
 
 
 def require_authorization(
-    user_roles: Iterable[str], action: str, acl: Dict[str, Iterable[str]]
+    user_roles: Iterable[str], action: str, acl: dict[str, Iterable[str]]
 ) -> None:
     """Raise AuthorizationError if the user is not permitted to perform the action."""
     if not is_authorized(user_roles, action, acl):

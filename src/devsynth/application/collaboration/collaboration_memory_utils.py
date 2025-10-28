@@ -10,16 +10,13 @@ import random
 from datetime import datetime
 from typing import (
     Any,
-    Awaitable,
-    Coroutine,
     Dict,
-    Iterable,
     List,
-    Mapping,
     Optional,
     Union,
     cast,
 )
+from collections.abc import Awaitable, Coroutine, Iterable, Mapping
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logging_setup import DevSynthLogger
@@ -28,7 +25,7 @@ from .agent_collaboration import AgentMessage, CollaborationTask
 from .dto import ensure_memory_sync_port, serialize_memory_sync_port
 from .structures import MemoryQueueEntry, ReviewCycleSpec
 
-PeerReview: Optional[type[Any]]
+PeerReview: type[Any] | None
 try:  # pragma: no cover - optional dependency
     from .peer_review import PeerReview as _PeerReview
 except Exception:  # pragma: no cover - optional dependency
@@ -53,7 +50,7 @@ def _resolve_entity_id(entity: Any) -> str:
     return str(identifier)
 
 
-def flush_memory_queue(memory_manager: Any) -> List[MemoryQueueEntry]:
+def flush_memory_queue(memory_manager: Any) -> list[MemoryQueueEntry]:
     """Flush queued memory updates and return flushed items deterministically.
 
     The sync manager maintains an internal queue protected by ``_queue_lock``.
@@ -76,13 +73,13 @@ def flush_memory_queue(memory_manager: Any) -> List[MemoryQueueEntry]:
     lock = getattr(sync_manager, "_queue_lock", None)
     if lock:
         with lock:
-            queue_snapshot: List[tuple[str, MemoryItem]] = list(
+            queue_snapshot: list[tuple[str, MemoryItem]] = list(
                 getattr(sync_manager, "_queue", [])
             )
     else:
         queue_snapshot = list(getattr(sync_manager, "_queue", []))
 
-    normalized_queue: List[MemoryQueueEntry] = []
+    normalized_queue: list[MemoryQueueEntry] = []
     for store, item in queue_snapshot:
         if item.metadata and "sync_port" in item.metadata:
             try:
@@ -134,7 +131,7 @@ def flush_memory_queue(memory_manager: Any) -> List[MemoryQueueEntry]:
 
 def restore_memory_queue(
     memory_manager: Any,
-    queued_items: Iterable[Union[MemoryQueueEntry, tuple[str, MemoryItem]]],
+    queued_items: Iterable[MemoryQueueEntry | tuple[str, MemoryItem]],
 ) -> None:
     """Requeue memory updates previously returned by :func:`flush_memory_queue`.
 
@@ -197,7 +194,7 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
         raise ValueError(f"Entity {entity} cannot be converted to a dictionary")
 
     use_custom_metadata = False
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
     if hasattr(entity, "memory_metadata"):
         try:
@@ -357,7 +354,7 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
 
     # Handle reviewers - could be a list of agent objects or strings
     reviewers = content.get("reviewers", [])
-    processed_reviewers: List[Any] = []
+    processed_reviewers: list[Any] = []
     for reviewer in reviewers:
         if isinstance(reviewer, dict) and ("id" in reviewer or "name" in reviewer):
             # Similar to author handling
@@ -397,7 +394,7 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
 
     # Handle reviews dictionary - keys might be agent objects
     reviews_dict = content.get("reviews", {})
-    processed_reviews: Dict[Any, Any] = {}
+    processed_reviews: dict[Any, Any] = {}
     for reviewer_key, review_data in reviews_dict.items():
         # If the key is a string representation of an object, try to convert it
         if (
@@ -485,8 +482,8 @@ def store_collaboration_entity(
     entity: Any,
     primary_store: str = "tinydb",
     immediate_sync: bool = False,
-    transaction_id: Optional[str] = None,
-    memory_item: Optional[MemoryItem] = None,
+    transaction_id: str | None = None,
+    memory_item: MemoryItem | None = None,
 ) -> str:
     """
     Store a collaboration entity in memory with optional cross-store synchronization.
@@ -766,7 +763,7 @@ def store_with_retry(
     primary_store: str = "tinydb",
     immediate_sync: bool = False,
     max_retries: int = 3,
-    transaction_id: Optional[str] = None,
+    transaction_id: str | None = None,
     ensure_cross_store_sync: bool = True,
 ) -> str:
     """
@@ -842,7 +839,7 @@ def store_with_retry(
         retries = 0
         last_error = None
         success = False
-        sync_failures: List[tuple[str, str]] = []
+        sync_failures: list[tuple[str, str]] = []
 
         while retries < max_retries and not success:
             try:

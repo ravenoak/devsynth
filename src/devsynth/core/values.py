@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import Iterable
 
 import yaml
 
@@ -12,7 +13,7 @@ import yaml
 class CoreValues:
     """Project core values loaded from a YAML file."""
 
-    statements: List[str] = field(default_factory=list)
+    statements: list[str] = field(default_factory=list)
 
     def add_value(self, value: str) -> None:
         """Add a value to ``statements`` if not already present."""
@@ -26,12 +27,12 @@ class CoreValues:
         for val in values:
             self.add_value(val)
 
-    def validate_report(self, report: Dict[str, Any]) -> List[str]:
+    def validate_report(self, report: dict[str, Any]) -> list[str]:
         """Return any value conflicts found within ``report``."""
         return check_report_for_value_conflicts(report, self)
 
     @classmethod
-    def load(cls, start_path: Optional[str | Path] = None) -> "CoreValues":
+    def load(cls, start_path: str | Path | None = None) -> CoreValues:
         """Load values from ``.devsynth/values.yml``.
 
         Parameters
@@ -44,7 +45,7 @@ class CoreValues:
         values_file = root / ".devsynth" / "values.yml"
         if not values_file.exists():
             return cls()
-        with open(values_file, "r") as f:
+        with open(values_file) as f:
             data = yaml.safe_load(f) or []
         if isinstance(data, dict):
             statements = list(data.get("values", []))
@@ -56,7 +57,7 @@ class CoreValues:
         return cls(statements)
 
 
-def _collect_text(obj: Any, parts: List[str]) -> None:
+def _collect_text(obj: Any, parts: list[str]) -> None:
     if isinstance(obj, str):
         parts.append(obj)
     elif isinstance(obj, dict):
@@ -67,9 +68,9 @@ def _collect_text(obj: Any, parts: List[str]) -> None:
             _collect_text(item, parts)
 
 
-def find_value_conflicts(text: str, core_values: CoreValues) -> List[str]:
+def find_value_conflicts(text: str, core_values: CoreValues) -> list[str]:
     """Return values that appear contradicted in the given text."""
-    conflicts: List[str] = []
+    conflicts: list[str] = []
     lowered = text.lower()
     for val in core_values.statements:
         v = val.lower()
@@ -80,10 +81,10 @@ def find_value_conflicts(text: str, core_values: CoreValues) -> List[str]:
 
 
 def check_report_for_value_conflicts(
-    report: Dict[str, Any], core_values: CoreValues
-) -> List[str]:
+    report: dict[str, Any], core_values: CoreValues
+) -> list[str]:
     """Check a report structure for conflicts with the given values."""
-    text_parts: List[str] = []
+    text_parts: list[str] = []
     _collect_text(report, text_parts)
     combined = " ".join(text_parts)
     return find_value_conflicts(combined, core_values)

@@ -34,15 +34,15 @@ TEST_FILES = ["tests/"]
 CODE_FILES = ["src/"]
 
 
-def is_file_of_type(file_path: str, type_patterns: List[str]) -> bool:
+def is_file_of_type(file_path: str, type_patterns: list[str]) -> bool:
     """Check if a file matches any of the given patterns."""
     return any(pattern in file_path for pattern in type_patterns)
 
 
-def extract_references(file_path: str, pattern: re.Pattern) -> Set[str]:
+def extract_references(file_path: str, pattern: re.Pattern) -> set[str]:
     """Extract references matching the given pattern from a file."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
         return set(pattern.findall(content))
     except Exception as e:
@@ -50,7 +50,7 @@ def extract_references(file_path: str, pattern: re.Pattern) -> Set[str]:
         return set()
 
 
-def get_all_files(directory: str = ".", exclude_dirs: List[str] = None) -> List[str]:
+def get_all_files(directory: str = ".", exclude_dirs: list[str] = None) -> list[str]:
     """Get all files in the given directory and its subdirectories."""
     if exclude_dirs is None:
         exclude_dirs = [
@@ -73,7 +73,7 @@ def get_all_files(directory: str = ".", exclude_dirs: List[str] = None) -> List[
     return all_files
 
 
-def check_requirement_references(files: List[str]) -> List[Dict]:
+def check_requirement_references(files: list[str]) -> list[dict]:
     """Check if specifications reference requirements."""
     issues = []
 
@@ -99,7 +99,7 @@ def check_requirement_references(files: List[str]) -> List[Dict]:
     return issues
 
 
-def check_specification_references(files: List[str]) -> List[Dict]:
+def check_specification_references(files: list[str]) -> list[dict]:
     """Check if tests reference specifications."""
     issues = []
 
@@ -125,7 +125,7 @@ def check_specification_references(files: List[str]) -> List[Dict]:
     return issues
 
 
-def check_test_references(files: List[str]) -> List[Dict]:
+def check_test_references(files: list[str]) -> list[dict]:
     """Check if code references tests."""
     issues = []
 
@@ -151,7 +151,7 @@ def check_test_references(files: List[str]) -> List[Dict]:
     return issues
 
 
-def check_terminology_consistency(files: List[str]) -> List[Dict]:
+def check_terminology_consistency(files: list[str]) -> list[dict]:
     """Check for terminology consistency across artifacts."""
     issues = []
 
@@ -168,7 +168,7 @@ def check_terminology_consistency(files: List[str]) -> List[Dict]:
 
     for file in files:
         try:
-            with open(file, "r", encoding="utf-8") as f:
+            with open(file, encoding="utf-8") as f:
                 content = f.read().lower()
 
                 for term, variants in term_variants.items():
@@ -192,7 +192,7 @@ def check_alignment(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
-) -> List[Dict]:
+) -> list[dict]:
     """Check alignment between SDLC artifacts."""
     logger.info(f"Checking alignment in {path}")
 
@@ -215,7 +215,7 @@ def check_alignment(
     return issues
 
 
-def display_issues(issues: List[Dict], *, bridge: UXBridge = bridge) -> None:
+def display_issues(issues: list[dict], *, bridge: UXBridge = bridge) -> None:
     """Display alignment issues in a table."""
     if not issues:
         bridge.print("[green]No alignment issues found![/green]")
@@ -252,9 +252,9 @@ def align_cmd(
     path: str = ".",
     verbose: bool = False,
     quiet: bool = False,
-    output: Optional[str] = None,
+    output: str | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> bool:
     """Check alignment between SDLC artifacts.
 

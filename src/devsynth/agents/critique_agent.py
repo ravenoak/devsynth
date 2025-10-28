@@ -16,7 +16,7 @@ class Critique:
     """Result returned by :class:`CritiqueAgent`."""
 
     approved: bool
-    issues: List[str]
+    issues: list[str]
 
 
 class CritiqueAgent:
@@ -35,7 +35,7 @@ class CritiqueAgent:
         * Detects failing tests via ``FAIL`` or ``error`` keywords.
         * Warns when a function definition lacks a docstring.
         """
-        issues: List[str] = []
+        issues: list[str] = []
         lower = content.lower()
 
         if "todo" in lower:

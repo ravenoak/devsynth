@@ -9,7 +9,8 @@ import hashlib
 import random
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Optional
+from collections.abc import Callable
 
 if TYPE_CHECKING:
 
@@ -52,7 +53,7 @@ class PromptAutoTuner:
     def __init__(
         self,
         storage_path: str | Path | None = None,
-        selection: Optional[SelectionStrategyConfig] = None,
+        selection: SelectionStrategyConfig | None = None,
     ) -> None:
         """
         Initialize the prompt auto-tuner.
@@ -60,7 +61,7 @@ class PromptAutoTuner:
         Args:
             storage_path: Optional path to store prompt variants
         """
-        self.storage_path: Optional[Path] = Path(storage_path) if storage_path else None
+        self.storage_path: Path | None = Path(storage_path) if storage_path else None
         self.prompt_variants = PromptVariantCollection()
         self._selection: SelectionStrategyConfig = (
             selection if selection is not None else SelectionStrategyConfig()
@@ -189,8 +190,8 @@ class PromptAutoTuner:
         self,
         template_id: str,
         variant_id: str,
-        success: Optional[bool] = None,
-        feedback_score: Optional[float] = None,
+        success: bool | None = None,
+        feedback_score: float | None = None,
     ) -> None:
         """
         Record feedback for a prompt variant.
@@ -592,8 +593,8 @@ class BasicPromptTuner:
 
     def adjust(
         self,
-        success: Optional[bool] = None,
-        feedback_score: Optional[float] = None,
+        success: bool | None = None,
+        feedback_score: float | None = None,
     ) -> None:
         """Adjust the sampling temperature based on feedback."""
         delta = 0.0
@@ -652,7 +653,7 @@ def iterative_prompt_adjustment(
     base_template: str,
     evaluate: Callable[[str], float],
     iterations: int = 3,
-    tuner: Optional[PromptAutoTuner] = None,
+    tuner: PromptAutoTuner | None = None,
 ) -> PromptVariant:
     """Iteratively tune a prompt using ``PromptAutoTuner``.
 

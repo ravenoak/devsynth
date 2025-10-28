@@ -26,7 +26,7 @@ class SearchPatterns:
 
         return self.router.cross_store_query(query)
 
-    def federated_search(self, query: str) -> List[MemoryRecord]:
+    def federated_search(self, query: str) -> list[MemoryRecord]:
         """Search all stores and return a ranked, aggregated list of records."""
 
         return self.router.federated_query(query)

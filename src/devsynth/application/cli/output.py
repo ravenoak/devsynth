@@ -51,7 +51,7 @@ OUTPUT_STYLES = {
 }
 
 
-def colorize(message: str, output_type: Union[OutputType, str]) -> str:
+def colorize(message: str, output_type: OutputType | str) -> str:
     """Colorize a message based on its output type.
 
     Args:
@@ -70,8 +70,8 @@ def colorize(message: str, output_type: Union[OutputType, str]) -> str:
 
 def print_message(
     message: str,
-    output_type: Union[OutputType, str] = OutputType.INFO,
-    console: Optional[Console] = None,
+    output_type: OutputType | str = OutputType.INFO,
+    console: Console | None = None,
 ) -> None:
     """Print a colorized message.
 
@@ -87,7 +87,7 @@ def print_message(
     console.print(colorized_message)
 
 
-def print_info(message: str, console: Optional[Console] = None) -> None:
+def print_info(message: str, console: Console | None = None) -> None:
     """Print an informational message.
 
     Args:
@@ -97,7 +97,7 @@ def print_info(message: str, console: Optional[Console] = None) -> None:
     print_message(message, OutputType.INFO, console)
 
 
-def print_success(message: str, console: Optional[Console] = None) -> None:
+def print_success(message: str, console: Console | None = None) -> None:
     """Print a success message.
 
     Args:
@@ -107,7 +107,7 @@ def print_success(message: str, console: Optional[Console] = None) -> None:
     print_message(message, OutputType.SUCCESS, console)
 
 
-def print_warning(message: str, console: Optional[Console] = None) -> None:
+def print_warning(message: str, console: Console | None = None) -> None:
     """Print a warning message.
 
     Args:
@@ -117,7 +117,7 @@ def print_warning(message: str, console: Optional[Console] = None) -> None:
     print_message(message, OutputType.WARNING, console)
 
 
-def print_error(message: str, console: Optional[Console] = None) -> None:
+def print_error(message: str, console: Console | None = None) -> None:
     """Print an error message.
 
     Args:
@@ -127,7 +127,7 @@ def print_error(message: str, console: Optional[Console] = None) -> None:
     print_message(message, OutputType.ERROR, console)
 
 
-def print_debug(message: str, console: Optional[Console] = None) -> None:
+def print_debug(message: str, console: Console | None = None) -> None:
     """Print a debug message.
 
     Args:
@@ -140,7 +140,7 @@ def print_debug(message: str, console: Optional[Console] = None) -> None:
 def print_code(
     code: str,
     language: str = "python",
-    console: Optional[Console] = None,
+    console: Console | None = None,
 ) -> None:
     """Print code with syntax highlighting.
 
@@ -156,7 +156,7 @@ def print_code(
     console.print(syntax)
 
 
-def print_command(command: str, console: Optional[Console] = None) -> None:
+def print_command(command: str, console: Console | None = None) -> None:
     """Print a command.
 
     Args:
@@ -166,7 +166,7 @@ def print_command(command: str, console: Optional[Console] = None) -> None:
     print_message(command, OutputType.COMMAND, console)
 
 
-def print_result(result: str, console: Optional[Console] = None) -> None:
+def print_result(result: str, console: Console | None = None) -> None:
     """Print a command result.
 
     Args:
@@ -176,7 +176,7 @@ def print_result(result: str, console: Optional[Console] = None) -> None:
     print_message(result, OutputType.RESULT, console)
 
 
-def print_header(header: str, console: Optional[Console] = None) -> None:
+def print_header(header: str, console: Console | None = None) -> None:
     """Print a header.
 
     Args:
@@ -186,7 +186,7 @@ def print_header(header: str, console: Optional[Console] = None) -> None:
     print_message(header, OutputType.HEADER, console)
 
 
-def print_subheader(subheader: str, console: Optional[Console] = None) -> None:
+def print_subheader(subheader: str, console: Console | None = None) -> None:
     """Print a subheader.
 
     Args:
@@ -198,9 +198,9 @@ def print_subheader(subheader: str, console: Optional[Console] = None) -> None:
 
 def print_panel(
     message: str,
-    title: Optional[str] = None,
-    output_type: Union[OutputType, str] = OutputType.INFO,
-    console: Optional[Console] = None,
+    title: str | None = None,
+    output_type: OutputType | str = OutputType.INFO,
+    console: Console | None = None,
 ) -> None:
     """Print a message in a panel.
 
@@ -232,9 +232,9 @@ def _ensure_table_data(
 
 def print_table(
     data: CommandTableData | Sequence[CommandTableRow] | ManifestSummary,
-    columns: Optional[Sequence[str]] = None,
-    title: Optional[str] = None,
-    console: Optional[Console] = None,
+    columns: Sequence[str] | None = None,
+    title: str | None = None,
+    console: Console | None = None,
 ) -> None:
     """Print data in a table.
 
@@ -270,7 +270,7 @@ def print_table(
 def print_list(
     items: CommandListData | Sequence[object],
     *,
-    console: Optional[Console] = None,
+    console: Console | None = None,
 ) -> None:
     """Render a bullet list using the list data model."""
 
@@ -292,7 +292,7 @@ def print_list(
 
 def print_markdown(
     markdown: str,
-    console: Optional[Console] = None,
+    console: Console | None = None,
 ) -> None:
     """Print Markdown-formatted text.
 
@@ -308,7 +308,7 @@ def print_markdown(
 
 def format_output(
     message: str,
-    output_type: Union[OutputType, str] = OutputType.INFO,
+    output_type: OutputType | str = OutputType.INFO,
 ) -> Text:
     """Format a message based on its output type.
 

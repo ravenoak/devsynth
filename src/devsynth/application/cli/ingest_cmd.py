@@ -11,7 +11,8 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Annotated, Optional, Sequence, Union, cast
+from typing import Annotated, Optional, Union, cast
+from collections.abc import Sequence
 
 import typer
 import yaml
@@ -48,14 +49,14 @@ console = Console()
 
 
 def ingest_cmd(
-    manifest_path: Optional[Path | str] = None,
+    manifest_path: Path | str | None = None,
     dry_run: bool = False,
     verbose: bool = False,
     validate_only: bool = False,
     *,
     yes: bool = False,
-    priority: Optional[str] = None,
-    bridge: Annotated[Optional[UXBridge], typer.Option(None, hidden=True)] = None,
+    priority: str | None = None,
+    bridge: Annotated[UXBridge | None, typer.Option(None, hidden=True)] = None,
     auto_phase_transitions: bool = True,
     non_interactive: bool = False,
     defaults: bool = False,
@@ -86,7 +87,7 @@ def ingest_cmd(
     try:
         # Allow environment variables to provide default values when arguments
         # are not supplied. CLI flags still override these settings.
-        path_argument: Optional[Path]
+        path_argument: Path | None
         if manifest_path is None:
             env_path = os.environ.get("DEVSYNTH_MANIFEST_PATH")
             if env_path is None:
@@ -216,7 +217,7 @@ def validate_manifest(
     manifest_path: Path,
     verbose: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """
     Validate the manifest file.
@@ -276,7 +277,7 @@ def validate_manifest(
 
 
 def load_manifest(
-    manifest_path: Optional[Path] = None,
+    manifest_path: Path | None = None,
 ) -> ManifestModel:
     """
     Load the manifest file.
@@ -318,7 +319,7 @@ def load_manifest(
                     )
 
         # Try to open and load the manifest
-        with open(manifest_path, "r") as f:
+        with open(manifest_path) as f:
             manifest_data = yaml.safe_load(f) or {}
         if not isinstance(manifest_data, dict):
             raise ManifestError("Manifest content must be a mapping")
@@ -334,10 +335,10 @@ def expand_phase(
     manifest: ManifestModel,
     verbose: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
-    memory_manager: Union[MemoryManager, None] = None,
-    code_analyzer: Union[CodeAnalyzer, None] = None,
-    wsde_team: Union[WSDETeam, None] = None,
+    bridge: UXBridge | None = None,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> ExpandPhaseResult:
     """Run the Expand phase and gather project metrics.
 
@@ -438,10 +439,10 @@ def differentiate_phase(
     expand_results: ExpandPhaseResult,
     verbose: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
-    memory_manager: Union[MemoryManager, None] = None,
-    code_analyzer: Union[CodeAnalyzer, None] = None,
-    wsde_team: Union[WSDETeam, None] = None,
+    bridge: UXBridge | None = None,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> DifferentiationPhaseResult:
     """Validate the discovered project structure against the manifest."""
 
@@ -531,10 +532,10 @@ def refine_phase(
     differentiate_results: DifferentiationPhaseResult,
     verbose: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
-    memory_manager: Union[MemoryManager, None] = None,
-    code_analyzer: Union[CodeAnalyzer, None] = None,
-    wsde_team: Union[WSDETeam, None] = None,
+    bridge: UXBridge | None = None,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> RefinePhaseResult:
     """Create relationships between artifacts and identify outdated items."""
 
@@ -618,10 +619,10 @@ def retrospect_phase(
     refine_results: RefinePhaseResult,
     verbose: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
-    memory_manager: Union[MemoryManager, None] = None,
-    code_analyzer: Union[CodeAnalyzer, None] = None,
-    wsde_team: Union[WSDETeam, None] = None,
+    bridge: UXBridge | None = None,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> RetrospectPhaseResult:
     """Summarize results and suggest improvements."""
 

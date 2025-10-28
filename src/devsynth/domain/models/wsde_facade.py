@@ -93,7 +93,7 @@ class ImprovementSuggestion(TypedDict, total=False):
     related_patterns: list[str]
 
 
-def _as_base_team(team: "WSDETeam") -> BaseWSDETeam:
+def _as_base_team(team: WSDETeam) -> BaseWSDETeam:
     """Provide a typed view compatible with helper modules."""
 
     return cast(BaseWSDETeam, team)
@@ -376,31 +376,31 @@ def _perform_quality_assurance(
     return qa_summary
 
 
-def _get_worker(self: "WSDETeam") -> SupportsTeamAgent | None:
+def _get_worker(self: WSDETeam) -> SupportsTeamAgent | None:
     """Return the current worker if assigned."""
 
     return self.roles.get(RoleName.WORKER)
 
 
-def _get_supervisor(self: "WSDETeam") -> SupportsTeamAgent | None:
+def _get_supervisor(self: WSDETeam) -> SupportsTeamAgent | None:
     """Return the current supervisor if assigned."""
 
     return self.roles.get(RoleName.SUPERVISOR)
 
 
-def _get_designer(self: "WSDETeam") -> SupportsTeamAgent | None:
+def _get_designer(self: WSDETeam) -> SupportsTeamAgent | None:
     """Return the current designer if assigned."""
 
     return self.roles.get(RoleName.DESIGNER)
 
 
-def _get_evaluator(self: "WSDETeam") -> SupportsTeamAgent | None:
+def _get_evaluator(self: WSDETeam) -> SupportsTeamAgent | None:
     """Return the current evaluator if assigned."""
 
     return self.roles.get(RoleName.EVALUATOR)
 
 
-def _get_agent(self: "WSDETeam", name: str) -> SupportsTeamAgent | None:
+def _get_agent(self: WSDETeam, name: str) -> SupportsTeamAgent | None:
     """Retrieve an agent by name."""
 
     for agent in self.agents:
@@ -878,7 +878,7 @@ def _simple_conduct_peer_review(
 # ---------------------------------------------------------------------------
 
 
-def _flush_updates(self: "WSDETeam") -> None:
+def _flush_updates(self: WSDETeam) -> None:
     """Flush pending memory updates if a manager is attached."""
 
     mem = getattr(self, "memory_manager", None)

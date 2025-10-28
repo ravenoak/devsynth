@@ -28,7 +28,7 @@ logger = DevSynthLogger(__name__)
 class QueryRouter:
     """Route queries to the appropriate memory stores using DTO responses."""
 
-    def __init__(self, memory_manager: "MemoryManager") -> None:
+    def __init__(self, memory_manager: MemoryManager) -> None:
         self.memory_manager = memory_manager
 
     def direct_query(self, query: str, store: str) -> MemoryQueryResults:

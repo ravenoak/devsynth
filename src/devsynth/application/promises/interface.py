@@ -10,7 +10,8 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, Generic, List, Optional, Set, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
+from collections.abc import Callable
 
 from devsynth.exceptions import PromiseStateError
 
@@ -113,7 +114,7 @@ class PromiseInterface(Generic[T], ABC):
     def then(
         self,
         on_fulfilled: Callable[[T], S],
-        on_rejected: Optional[Callable[[Exception], S]] = None,
+        on_rejected: Callable[[Exception], S] | None = None,
     ) -> "PromiseInterface[S]":
         """
         Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -183,12 +184,12 @@ class BasicPromise(PromiseInterface[T], Generic[T]):
 
     def __init__(self) -> None:
         self._state: PromiseState = PromiseState.PENDING
-        self._value: Optional[T] = None
-        self._reason: Optional[Exception] = None
-        self._on_fulfilled: List[Callable[[T], Any]] = []
-        self._on_rejected: List[Callable[[Exception], Any]] = []
+        self._value: T | None = None
+        self._reason: Exception | None = None
+        self._on_fulfilled: list[Callable[[T], Any]] = []
+        self._on_rejected: list[Callable[[Exception], Any]] = []
         self._id: str = str(uuid.uuid4())
-        self._metadata: Dict[str, Any] = {}
+        self._metadata: dict[str, Any] = {}
         self._logger = logging.getLogger(__name__)
 
     # ------------------------------------------------------------------
@@ -250,7 +251,7 @@ class BasicPromise(PromiseInterface[T], Generic[T]):
     def then(
         self,
         on_fulfilled: Callable[[T], S],
-        on_rejected: Optional[Callable[[Exception], S]] = None,
+        on_rejected: Callable[[Exception], S] | None = None,
     ) -> "BasicPromise[S]":
         result_promise: BasicPromise[S] = BasicPromise()
 
@@ -345,7 +346,7 @@ class PromiseMetadata:
     created_at: float  # Unix timestamp
     owner_id: str  # ID of the agent that created the promise
     context_id: str  # Context or task ID this promise belongs to
-    tags: List[str]  # User-defined tags for filtering and organization
+    tags: list[str]  # User-defined tags for filtering and organization
     trace_id: str  # For distributed tracing
     priority: int = 1  # Priority level (higher is more important)
 
@@ -359,13 +360,13 @@ class Promise:
 
     id: str  # Unique identifier
     type: PromiseType  # Type of capability
-    parameters: Dict[str, Any]  # Parameters for this promise
+    parameters: dict[str, Any]  # Parameters for this promise
     state: PromiseState  # Current state
     metadata: PromiseMetadata  # Associated metadata
-    result: Optional[Any] = None  # Result when fulfilled
-    error: Optional[str] = None  # Error message if rejected
-    parent_id: Optional[str] = None  # Parent promise if this is a sub-promise
-    children_ids: List[str] = None  # Child promises if this has sub-promises
+    result: Any | None = None  # Result when fulfilled
+    error: str | None = None  # Error message if rejected
+    parent_id: str | None = None  # Parent promise if this is a sub-promise
+    children_ids: list[str] = None  # Child promises if this has sub-promises
 
     def __post_init__(self):
         if self.children_ids is None:
@@ -382,11 +383,11 @@ class IPromiseManager(ABC):
     def create_promise(
         self,
         type: PromiseType,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         owner_id: str,
         context_id: str,
-        tags: Optional[List[str]] = None,
-        parent_id: Optional[str] = None,
+        tags: list[str] | None = None,
+        parent_id: str | None = None,
         priority: int = 1,
     ) -> Promise:
         """
@@ -464,13 +465,13 @@ class IPromiseManager(ABC):
     @abstractmethod
     def list_promises(
         self,
-        owner_id: Optional[str] = None,
-        context_id: Optional[str] = None,
-        state: Optional[PromiseState] = None,
-        type: Optional[PromiseType] = None,
-        tags: Optional[List[str]] = None,
-        parent_id: Optional[str] = None,
-    ) -> List[Promise]:
+        owner_id: str | None = None,
+        context_id: str | None = None,
+        state: PromiseState | None = None,
+        type: PromiseType | None = None,
+        tags: list[str] | None = None,
+        parent_id: str | None = None,
+    ) -> list[Promise]:
         """
         List promises matching the given filters.
 
@@ -492,9 +493,9 @@ class IPromiseManager(ABC):
         self,
         parent_id: str,
         type: PromiseType,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         owner_id: str,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         priority: int = 1,
     ) -> Promise:
         """
@@ -527,7 +528,7 @@ class IPromiseManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_promise_chain(self, promise_id: str) -> List[Promise]:
+    def get_promise_chain(self, promise_id: str) -> list[Promise]:
         """
         Get all promises in a chain (ancestors and descendants).
 
@@ -548,7 +549,7 @@ class IPromiseAuthority(ABC):
 
     @abstractmethod
     def can_create(
-        self, agent_id: str, promise_type: PromiseType, parameters: Dict[str, Any]
+        self, agent_id: str, promise_type: PromiseType, parameters: dict[str, Any]
     ) -> bool:
         """
         Check if an agent is authorized to create a promise of the given type.
@@ -622,7 +623,7 @@ class IPromiseAuthority(ABC):
 
     @abstractmethod
     def register_capability(
-        self, agent_id: str, promise_type: PromiseType, constraints: Dict[str, Any]
+        self, agent_id: str, promise_type: PromiseType, constraints: dict[str, Any]
     ) -> bool:
         """
         Register an agent as capable of handling promises of a specific type.
@@ -638,7 +639,7 @@ class IPromiseAuthority(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def list_agent_capabilities(self, agent_id: str) -> Dict[PromiseType, Dict]:
+    def list_agent_capabilities(self, agent_id: str) -> dict[PromiseType, dict]:
         """
         List all capabilities registered for an agent.
 

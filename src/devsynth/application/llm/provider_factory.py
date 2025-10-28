@@ -31,8 +31,8 @@ class ProviderFactory(SimpleLLMProviderFactory):
 
     def create_provider(
         self,
-        provider_type: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
+        provider_type: str | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """Create a provider instance.
 

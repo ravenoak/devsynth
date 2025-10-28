@@ -9,7 +9,8 @@ consensus mechanism. The implementation follows the requirements in
 """
 
 from collections import Counter
-from typing import Any, Dict, Iterable, Protocol
+from typing import Any, Dict, Protocol
+from collections.abc import Iterable
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -34,7 +35,7 @@ class MultiAgentCoordinator:
     """Coordinate multiple agents and resolve a consensus decision."""
 
     def __init__(self) -> None:
-        self._agents: Dict[str, Proposer] = {}
+        self._agents: dict[str, Proposer] = {}
 
     def register_agent(self, name: str, agent: Proposer) -> None:
         """Register an agent by ``name``.
@@ -46,10 +47,10 @@ class MultiAgentCoordinator:
 
         self._agents[name] = agent
 
-    def gather_proposals(self, task: Any) -> Dict[str, Any]:
+    def gather_proposals(self, task: Any) -> dict[str, Any]:
         """Return proposals from all registered agents."""
 
-        proposals: Dict[str, Any] = {}
+        proposals: dict[str, Any] = {}
         for name, agent in self._agents.items():
             try:
                 proposals[name] = agent(task)

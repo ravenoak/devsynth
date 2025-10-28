@@ -14,7 +14,8 @@ import os
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import DefaultDict, Sequence
+from typing import DefaultDict
+from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse

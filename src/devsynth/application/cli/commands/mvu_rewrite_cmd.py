@@ -29,7 +29,7 @@ def mvu_rewrite_cmd(
         help="Perform analysis without writing changes.",
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Rewrite commit history into atomic commits."""
 

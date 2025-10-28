@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
 
-from typing_extensions import NotRequired
+from typing import NotRequired
 
 MemoryMetadataValue: TypeAlias = (
     str

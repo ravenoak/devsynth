@@ -17,7 +17,7 @@ from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
-_bridge: Optional[UXBridge] = None
+_bridge: UXBridge | None = None
 
 
 def get_bridge() -> UXBridge:

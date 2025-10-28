@@ -28,21 +28,21 @@ DEFAULT_KUZU_EMBEDDED = True
 class ConfigModel:
     """Dataclass representing project configuration."""
 
-    project_root: Optional[str] = None
+    project_root: str | None = None
     version: str = "1.0"
     structure: str = "single_package"
     language: str = "python"
-    goals: Optional[str] = None
-    constraints: Optional[str] = None
-    priority: Optional[str] = None
-    directories: Dict[str, list[str]] = field(
+    goals: str | None = None
+    constraints: str | None = None
+    priority: str | None = None
+    directories: dict[str, list[str]] = field(
         default_factory=lambda: {
             "source": ["src"],
             "tests": ["tests"],
             "docs": ["docs"],
         }
     )
-    features: Dict[str, bool] = field(
+    features: dict[str, bool] = field(
         default_factory=lambda: {
             "wsde_collaboration": False,
             "dialectical_reasoning": False,
@@ -68,8 +68,8 @@ class ConfigModel:
     memory_store_type: str = "memory"
     kuzu_embedded: bool = DEFAULT_KUZU_EMBEDDED
     offline_mode: bool = False
-    resources: Dict[str, Any] | None = None
-    edrr_settings: Dict[str, Any] = field(
+    resources: dict[str, Any] | None = None
+    edrr_settings: dict[str, Any] = field(
         default_factory=lambda: {
             "max_recursion_depth": 3,
             "enable_memory_integration": True,
@@ -82,7 +82,7 @@ class ConfigModel:
             },
         }
     )
-    wsde_settings: Dict[str, Any] = field(
+    wsde_settings: dict[str, Any] = field(
         default_factory=lambda: {
             "team_size": 5,
             "peer_review_threshold": 0.7,
@@ -94,7 +94,7 @@ class ConfigModel:
             },
         }
     )
-    uxbridge_settings: Dict[str, Any] = field(
+    uxbridge_settings: dict[str, Any] = field(
         default_factory=lambda: {
             "default_interface": "cli",
             "webui_port": 8501,
@@ -103,7 +103,7 @@ class ConfigModel:
         }
     )
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "project_root": self.project_root,
             "version": self.version,
@@ -151,7 +151,7 @@ _VALID_FEATURE_FLAGS = {
 }
 
 
-def _validate_feature_flags(data: Dict[str, Any]) -> None:
+def _validate_feature_flags(data: dict[str, Any]) -> None:
     """Validate and normalize feature flag values in-place."""
     features = data.get("features")
     if not isinstance(features, dict):
@@ -182,7 +182,7 @@ def _validate_feature_flags(data: Dict[str, Any]) -> None:
             features[key] = False
 
 
-def _find_config_path(start: Path) -> Optional[Path]:
+def _find_config_path(start: Path) -> Path | None:
     """Return the configuration file path if one exists."""
     toml_path = start / "pyproject.toml"
     if toml_path.exists():
@@ -207,20 +207,20 @@ def _find_config_path(start: Path) -> Optional[Path]:
     return None
 
 
-def load_config(path: Optional[str | Path] = None) -> ConfigModel:
+def load_config(path: str | Path | None = None) -> ConfigModel:
     """Load configuration from YAML or TOML."""
     root = Path(path) if path is not None else Path(os.getcwd())
     cfg_path = _find_config_path(root)
 
     defaults = ConfigModel()
     defaults.project_root = str(root)
-    data: Dict[str, Any] = defaults.as_dict()
+    data: dict[str, Any] = defaults.as_dict()
 
     if cfg_path is not None:
         parsed: dict[str, Any] = {}
         if cfg_path.name.endswith(".yml") or cfg_path.name.endswith(".yaml"):
             try:
-                with open(cfg_path, "r") as f:
+                with open(cfg_path) as f:
                     parsed = yaml.safe_load(f) or {}
                     if not isinstance(parsed, dict):
                         raise ConfigurationError(
@@ -264,7 +264,7 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
         return str(val).strip().lower() in {"1", "true", "yes", "on"}
 
     # Top-level simple overrides
-    env_overrides: dict[str, Optional[str]] = {
+    env_overrides: dict[str, str | None] = {
         "project_root": os.environ.get("DEVSYNTH_PROJECT_ROOT"),
         "version": os.environ.get("DEVSYNTH_CONFIG_VERSION"),
         "structure": os.environ.get("DEVSYNTH_STRUCTURE"),
@@ -373,13 +373,13 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
 def save_config(
     config: ConfigModel,
     use_pyproject: bool = False,
-    path: Optional[str] = None,
+    path: str | None = None,
 ) -> Path:
     """Persist configuration to disk."""
     root = Path(path or config.project_root or os.getcwd())
     if use_pyproject:
         pyproject = root / "pyproject.toml"
-        tdata: Dict[str, Any] = {}
+        tdata: dict[str, Any] = {}
         if pyproject.exists():
             tdata = toml.load(pyproject)
         tdata.setdefault("tool", {})["devsynth"] = config.as_dict()
@@ -401,7 +401,7 @@ except ImportError:  # pragma: no cover - optional dependency
     typer = None
 
 
-def config_key_autocomplete(ctx: "typer.Context", incomplete: str) -> list[str]:
+def config_key_autocomplete(ctx: typer.Context, incomplete: str) -> list[str]:
     """Autocomplete configuration keys for Typer CLI."""
     _ = ctx  # Typer passes context for future expansion
     return [key for key in ConfigModel.__annotations__ if key.startswith(incomplete)]

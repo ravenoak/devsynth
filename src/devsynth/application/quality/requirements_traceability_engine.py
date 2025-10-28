@@ -14,9 +14,9 @@ Key features:
 """
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-from dataclasses import dataclass
 
 from .dialectical_audit_system import DialecticalAuditSystem
 
@@ -24,30 +24,33 @@ from .dialectical_audit_system import DialecticalAuditSystem
 @dataclass
 class TraceabilityLink:
     """Represents a traceability link between artifacts."""
+
     requirement_id: str
     specification_path: str
     code_path: str
     test_path: str
     link_type: str  # requirement->spec, spec->code, code->test
     valid: bool
-    issues: List[str]
+    issues: list[str]
 
 
 @dataclass
 class TraceabilityGap:
     """Represents a gap in requirements traceability."""
+
     requirement_id: str
     gap_type: str  # missing_implementation, missing_tests, missing_docs
     description: str
     priority: str
     effort: str
     impact: str
-    suggestions: List[str]
+    suggestions: list[str]
 
 
 @dataclass
 class TraceabilityReport:
     """Comprehensive traceability analysis report."""
+
     timestamp: str
     project_path: str
     total_requirements: int
@@ -56,8 +59,8 @@ class TraceabilityReport:
     gaps_found: int
     links_validated: int
     invalid_links: int
-    gaps: List[TraceabilityGap]
-    recommendations: List[str]
+    gaps: list[TraceabilityGap]
+    recommendations: list[str]
 
 
 class RequirementsTraceabilityEngine:
@@ -81,7 +84,7 @@ class RequirementsTraceabilityEngine:
         self.requirement_patterns = [
             r"FR-\d+",  # Functional Requirements
             r"NFR-\d+",  # Non-Functional Requirements
-            r"IR-\d+",   # Implementation Requirements
+            r"IR-\d+",  # Implementation Requirements
             r"REQ-\d+",  # Generic Requirements
         ]
 
@@ -89,16 +92,12 @@ class RequirementsTraceabilityEngine:
         self.link_patterns = [
             r"tests/behavior/features/[\w./-]+\.feature",
             r"src/devsynth/[\w./-]+\.py",
-            r"docs/specifications/[\w./-]+\.md"
+            r"docs/specifications/[\w./-]+\.md",
         ]
 
     def verify_traceability(
-        self,
-        matrix_path: Path,
-        spec_dir: Path,
-        code_dir: Path,
-        test_dir: Path
-    ) -> Tuple[List[str], int, int]:
+        self, matrix_path: Path, spec_dir: Path, code_dir: Path, test_dir: Path
+    ) -> tuple[list[str], int, int]:
         """
         Verify requirements traceability.
 
@@ -125,14 +124,16 @@ class RequirementsTraceabilityEngine:
             req_count, spec_count = self._count_requirements_and_specs(matrix_content)
 
             # Verify each requirement in the matrix
-            errors.extend(self._verify_matrix_links(matrix_content, spec_dir, code_dir, test_dir))
+            errors.extend(
+                self._verify_matrix_links(matrix_content, spec_dir, code_dir, test_dir)
+            )
 
         except (UnicodeDecodeError, OSError) as e:
             errors.append(f"Could not read traceability matrix: {e}")
 
         return errors, req_count, spec_count
 
-    def verify_specification_links(self, spec_path: Path) -> List[str]:
+    def verify_specification_links(self, spec_path: Path) -> list[str]:
         """
         Verify specification contains proper links.
 
@@ -170,7 +171,7 @@ class RequirementsTraceabilityEngine:
 
         return errors
 
-    def verify_bdd_feature_references(self, spec_path: Path) -> List[str]:
+    def verify_bdd_feature_references(self, spec_path: Path) -> list[str]:
         """
         Verify BDD feature files are referenced.
 
@@ -195,14 +196,18 @@ class RequirementsTraceabilityEngine:
                 errors.append(f"{spec_path} missing BDD feature references")
             else:
                 # Validate that referenced feature files exist
-                errors.extend(self._validate_feature_file_references(feature_refs, spec_path))
+                errors.extend(
+                    self._validate_feature_file_references(feature_refs, spec_path)
+                )
 
         except (UnicodeDecodeError, OSError) as e:
             errors.append(f"Could not read specification: {e}")
 
         return errors
 
-    def verify_code_implementation(self, requirement_id: str, code_dir: Path) -> List[str]:
+    def verify_code_implementation(
+        self, requirement_id: str, code_dir: Path
+    ) -> list[str]:
         """
         Verify code implements the specified requirement.
 
@@ -222,11 +227,13 @@ class RequirementsTraceabilityEngine:
         code_locations = self._find_requirement_in_code(requirement_id, code_dir)
 
         if not code_locations:
-            errors.append(f"No code implementation found for requirement {requirement_id}")
+            errors.append(
+                f"No code implementation found for requirement {requirement_id}"
+            )
 
         return errors
 
-    def analyze_traceability_gaps(self, project_root: Path) -> List[TraceabilityGap]:
+    def analyze_traceability_gaps(self, project_root: Path) -> list[TraceabilityGap]:
         """
         Analyze gaps in requirements traceability.
 
@@ -253,9 +260,7 @@ class RequirementsTraceabilityEngine:
         return gaps
 
     def generate_traceability_matrix(
-        self,
-        project_root: Path,
-        output_format: str = "markdown"
+        self, project_root: Path, output_format: str = "markdown"
     ) -> str:
         """
         Generate requirements traceability matrix.
@@ -280,7 +285,7 @@ class RequirementsTraceabilityEngine:
         else:
             return self._generate_markdown_matrix(audit_result)  # Default to markdown
 
-    def _verify_matrix_format(self, content: str) -> List[str]:
+    def _verify_matrix_format(self, content: str) -> list[str]:
         """Verify traceability matrix format."""
         errors = []
 
@@ -304,7 +309,7 @@ class RequirementsTraceabilityEngine:
 
         return errors
 
-    def _count_requirements_and_specs(self, content: str) -> Tuple[int, int]:
+    def _count_requirements_and_specs(self, content: str) -> tuple[int, int]:
         """Count requirements and specifications in matrix."""
         lines = content.splitlines()
         req_count = 0
@@ -312,9 +317,11 @@ class RequirementsTraceabilityEngine:
 
         for line in lines:
             # Count requirement rows
-            if re.match(r"^\s*\|.*FR-\d+.*\|", line) or \
-               re.match(r"^\s*\|.*NFR-\d+.*\|", line) or \
-               re.match(r"^\s*\|.*IR-\d+.*\|", line):
+            if (
+                re.match(r"^\s*\|.*FR-\d+.*\|", line)
+                or re.match(r"^\s*\|.*NFR-\d+.*\|", line)
+                or re.match(r"^\s*\|.*IR-\d+.*\|", line)
+            ):
                 req_count += 1
 
             # Count specification references
@@ -324,12 +331,8 @@ class RequirementsTraceabilityEngine:
         return req_count, spec_count
 
     def _verify_matrix_links(
-        self,
-        content: str,
-        spec_dir: Path,
-        code_dir: Path,
-        test_dir: Path
-    ) -> List[str]:
+        self, content: str, spec_dir: Path, code_dir: Path, test_dir: Path
+    ) -> list[str]:
         """Verify links in traceability matrix."""
         errors = []
         lines = content.splitlines()
@@ -340,9 +343,11 @@ class RequirementsTraceabilityEngine:
                 continue
 
             # Check if this is a requirement row
-            if re.match(r"^\s*\|.*FR-\d+.*\|", line) or \
-               re.match(r"^\s*\|.*NFR-\d+.*\|", line) or \
-               re.match(r"^\s*\|.*IR-\d+.*\|", line):
+            if (
+                re.match(r"^\s*\|.*FR-\d+.*\|", line)
+                or re.match(r"^\s*\|.*NFR-\d+.*\|", line)
+                or re.match(r"^\s*\|.*IR-\d+.*\|", line)
+            ):
 
                 parts = [p.strip() for p in line.split("|")[1:-1]]
                 if len(parts) < 4:
@@ -353,17 +358,23 @@ class RequirementsTraceabilityEngine:
                 # Verify specification link
                 if spec_cell and spec_cell.lower() != "n/a":
                     if not self._link_exists(spec_cell, spec_dir):
-                        errors.append(f"Line {line_num}: Invalid specification link '{spec_cell}' for {req_id}")
+                        errors.append(
+                            f"Line {line_num}: Invalid specification link '{spec_cell}' for {req_id}"
+                        )
 
                 # Verify code link
                 if code_cell and code_cell.lower() != "n/a":
                     if not self._link_exists(code_cell, code_dir):
-                        errors.append(f"Line {line_num}: Invalid code link '{code_cell}' for {req_id}")
+                        errors.append(
+                            f"Line {line_num}: Invalid code link '{code_cell}' for {req_id}"
+                        )
 
                 # Verify test link
                 if test_cell and test_cell.lower() != "n/a":
                     if not self._link_exists(test_cell, test_dir):
-                        errors.append(f"Line {line_num}: Invalid test link '{test_cell}' for {req_id}")
+                        errors.append(
+                            f"Line {line_num}: Invalid test link '{test_cell}' for {req_id}"
+                        )
 
         return errors
 
@@ -376,19 +387,13 @@ class RequirementsTraceabilityEngine:
 
     def _has_bdd_feature_references(self, content: str) -> bool:
         """Check if content has BDD feature references."""
-        return bool(re.search(
-            r"tests/behavior/features/[\w./-]+\.feature",
-            content
-        ))
+        return bool(re.search(r"tests/behavior/features/[\w./-]+\.feature", content))
 
     def _has_implementation_references(self, content: str) -> bool:
         """Check if content has implementation references."""
-        return bool(re.search(
-            r"src/devsynth/[\w./-]+\.py",
-            content
-        ))
+        return bool(re.search(r"src/devsynth/[\w./-]+\.py", content))
 
-    def _validate_specification_links(self, content: str, spec_path: Path) -> List[str]:
+    def _validate_specification_links(self, content: str, spec_path: Path) -> list[str]:
         """Validate links in specification."""
         errors = []
 
@@ -402,10 +407,8 @@ class RequirementsTraceabilityEngine:
         return errors
 
     def _validate_feature_file_references(
-        self,
-        feature_refs: Set[str],
-        spec_path: Path
-    ) -> List[str]:
+        self, feature_refs: set[str], spec_path: Path
+    ) -> list[str]:
         """Validate that referenced feature files exist."""
         errors = []
 
@@ -418,14 +421,18 @@ class RequirementsTraceabilityEngine:
             elif ref.startswith("tests/"):
                 feature_path = (repo_root / ref).resolve()
             else:
-                feature_path = (repo_root / "tests" / "behavior" / "features" / ref).resolve()
+                feature_path = (
+                    repo_root / "tests" / "behavior" / "features" / ref
+                ).resolve()
 
             if not feature_path.exists():
                 errors.append(f"Referenced feature file not found: {feature_path}")
 
         return errors
 
-    def _find_requirement_in_code(self, requirement_id: str, code_dir: Path) -> List[str]:
+    def _find_requirement_in_code(
+        self, requirement_id: str, code_dir: Path
+    ) -> list[str]:
         """Find requirement references in code."""
         locations = []
 
@@ -444,7 +451,7 @@ class RequirementsTraceabilityEngine:
 
         return locations
 
-    def _question_to_gap(self, question) -> Optional[TraceabilityGap]:
+    def _question_to_gap(self, question) -> TraceabilityGap | None:
         """Convert audit question to traceability gap."""
         if "has tests but is not documented" in question.question:
             return TraceabilityGap(
@@ -454,7 +461,7 @@ class RequirementsTraceabilityEngine:
                 priority="medium",
                 effort="low",
                 impact="traceability",
-                suggestions=[question.suggestion]
+                suggestions=[question.suggestion],
             )
         elif "is documented but has no corresponding tests" in question.question:
             return TraceabilityGap(
@@ -464,7 +471,7 @@ class RequirementsTraceabilityEngine:
                 priority="high",
                 effort="medium",
                 impact="verification",
-                suggestions=[question.suggestion]
+                suggestions=[question.suggestion],
             )
         elif "is implemented in code but not documented or tested" in question.question:
             return TraceabilityGap(
@@ -474,12 +481,12 @@ class RequirementsTraceabilityEngine:
                 priority="high",
                 effort="high",
                 impact="completeness",
-                suggestions=[question.suggestion]
+                suggestions=[question.suggestion],
             )
 
         return None
 
-    def _analyze_specific_gaps(self, project_root: Path) -> List[TraceabilityGap]:
+    def _analyze_specific_gaps(self, project_root: Path) -> list[TraceabilityGap]:
         """Analyze specific traceability gaps."""
         gaps = []
 
@@ -494,7 +501,9 @@ class RequirementsTraceabilityEngine:
 
         return gaps
 
-    def _analyze_missing_test_coverage(self, project_root: Path) -> List[TraceabilityGap]:
+    def _analyze_missing_test_coverage(
+        self, project_root: Path
+    ) -> list[TraceabilityGap]:
         """Analyze missing test coverage gaps."""
         gaps = []
 
@@ -503,26 +512,46 @@ class RequirementsTraceabilityEngine:
         test_dir = project_root / "tests"
         if test_dir.exists():
             # Count existing tests
-            unit_tests = len(list((test_dir / "unit").rglob("test_*.py"))) if (test_dir / "unit").exists() else 0
-            integration_tests = len(list((test_dir / "integration").rglob("test_*.py"))) if (test_dir / "integration").exists() else 0
-            behavior_tests = len(list((test_dir / "behavior").rglob("*.feature"))) if (test_dir / "behavior").exists() else 0
+            unit_tests = (
+                len(list((test_dir / "unit").rglob("test_*.py")))
+                if (test_dir / "unit").exists()
+                else 0
+            )
+            integration_tests = (
+                len(list((test_dir / "integration").rglob("test_*.py")))
+                if (test_dir / "integration").exists()
+                else 0
+            )
+            behavior_tests = (
+                len(list((test_dir / "behavior").rglob("*.feature")))
+                if (test_dir / "behavior").exists()
+                else 0
+            )
 
             total_tests = unit_tests + integration_tests + behavior_tests
 
             if total_tests < 10:  # Arbitrary threshold
-                gaps.append(TraceabilityGap(
-                    requirement_id="GENERAL",
-                    gap_type="insufficient_test_coverage",
-                    description="Overall test coverage appears insufficient",
-                    priority="medium",
-                    effort="high",
-                    impact="reliability",
-                    suggestions=["Increase unit test coverage", "Add integration tests", "Create BDD scenarios"]
-                ))
+                gaps.append(
+                    TraceabilityGap(
+                        requirement_id="GENERAL",
+                        gap_type="insufficient_test_coverage",
+                        description="Overall test coverage appears insufficient",
+                        priority="medium",
+                        effort="high",
+                        impact="reliability",
+                        suggestions=[
+                            "Increase unit test coverage",
+                            "Add integration tests",
+                            "Create BDD scenarios",
+                        ],
+                    )
+                )
 
         return gaps
 
-    def _analyze_missing_implementation(self, project_root: Path) -> List[TraceabilityGap]:
+    def _analyze_missing_implementation(
+        self, project_root: Path
+    ) -> list[TraceabilityGap]:
         """Analyze missing implementation gaps."""
         gaps = []
 
@@ -538,22 +567,31 @@ class RequirementsTraceabilityEngine:
                         matches = re.findall(pattern, content, re.IGNORECASE)
                         for req_id in matches:
                             # Check if requirement is implemented
-                            if not self._requirement_is_implemented(req_id, project_root / "src"):
-                                gaps.append(TraceabilityGap(
-                                    requirement_id=req_id,
-                                    gap_type="missing_implementation",
-                                    description=f"Requirement {req_id} is documented but not implemented",
-                                    priority="high",
-                                    effort="high",
-                                    impact="functionality",
-                                    suggestions=[f"Implement requirement {req_id}", "Create implementation plan"]
-                                ))
+                            if not self._requirement_is_implemented(
+                                req_id, project_root / "src"
+                            ):
+                                gaps.append(
+                                    TraceabilityGap(
+                                        requirement_id=req_id,
+                                        gap_type="missing_implementation",
+                                        description=f"Requirement {req_id} is documented but not implemented",
+                                        priority="high",
+                                        effort="high",
+                                        impact="functionality",
+                                        suggestions=[
+                                            f"Implement requirement {req_id}",
+                                            "Create implementation plan",
+                                        ],
+                                    )
+                                )
                 except (UnicodeDecodeError, OSError):
                     continue
 
         return gaps
 
-    def _analyze_missing_documentation(self, project_root: Path) -> List[TraceabilityGap]:
+    def _analyze_missing_documentation(
+        self, project_root: Path
+    ) -> list[TraceabilityGap]:
         """Analyze missing documentation gaps."""
         gaps = []
 
@@ -569,16 +607,23 @@ class RequirementsTraceabilityEngine:
                         matches = re.findall(pattern, content, re.IGNORECASE)
                         for req_id in matches:
                             # Check if requirement is documented
-                            if not self._requirement_is_documented(req_id, project_root / "docs"):
-                                gaps.append(TraceabilityGap(
-                                    requirement_id=req_id,
-                                    gap_type="missing_documentation",
-                                    description=f"Requirement {req_id} is implemented but not documented",
-                                    priority="medium",
-                                    effort="medium",
-                                    impact="maintainability",
-                                    suggestions=[f"Document requirement {req_id}", "Create specification"]
-                                ))
+                            if not self._requirement_is_documented(
+                                req_id, project_root / "docs"
+                            ):
+                                gaps.append(
+                                    TraceabilityGap(
+                                        requirement_id=req_id,
+                                        gap_type="missing_documentation",
+                                        description=f"Requirement {req_id} is implemented but not documented",
+                                        priority="medium",
+                                        effort="medium",
+                                        impact="maintainability",
+                                        suggestions=[
+                                            f"Document requirement {req_id}",
+                                            "Create specification",
+                                        ],
+                                    )
+                                )
                 except (UnicodeDecodeError, OSError):
                     continue
 
@@ -594,7 +639,7 @@ class RequirementsTraceabilityEngine:
 
         return link_path.exists()
 
-    def _extract_bdd_references(self, content: str) -> Set[str]:
+    def _extract_bdd_references(self, content: str) -> set[str]:
         """Extract BDD feature references from content."""
         references = set()
 
@@ -604,16 +649,16 @@ class RequirementsTraceabilityEngine:
 
         return references
 
-    def _extract_all_links(self, content: str) -> List[str]:
+    def _extract_all_links(self, content: str) -> list[str]:
         """Extract all links from content."""
         links = []
 
         # Find markdown-style links
-        markdown_links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+        markdown_links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
         links.extend([link for _, link in markdown_links])
 
         # Find bare links
-        bare_links = re.findall(r'(?:https?://|ftp://|file://)[^\s]+', content)
+        bare_links = re.findall(r"(?:https?://|ftp://|file://)[^\s]+", content)
         links.extend(bare_links)
 
         # Find relative paths
@@ -641,7 +686,9 @@ class RequirementsTraceabilityEngine:
         """Check if a requirement is documented."""
         return len(self._find_requirement_in_docs(requirement_id, docs_dir)) > 0
 
-    def _find_requirement_in_docs(self, requirement_id: str, docs_dir: Path) -> List[str]:
+    def _find_requirement_in_docs(
+        self, requirement_id: str, docs_dir: Path
+    ) -> list[str]:
         """Find requirement references in documentation."""
         locations = []
 
@@ -703,17 +750,23 @@ class RequirementsTraceabilityEngine:
             docs_check = "✅" if artifacts.get("docs", False) else "❌"
             code_check = "✅" if artifacts.get("code", False) else "❌"
             tests_check = "✅" if artifacts.get("tests", False) else "❌"
-            feature_rows.append(f"| {feature} | {docs_check} | {code_check} | {tests_check} |")
+            feature_rows.append(
+                f"| {feature} | {docs_check} | {code_check} | {tests_check} |"
+            )
 
         # Format gaps section
         gaps_section = ""
         if audit_result.questions_generated:
-            gaps_section = "\n".join(f"- {q.question}" for q in audit_result.questions_generated[:10])
+            gaps_section = "\n".join(
+                f"- {q.question}" for q in audit_result.questions_generated[:10]
+            )
             if len(audit_result.questions_generated) > 10:
                 gaps_section += f"\n- ... and {len(audit_result.questions_generated) - 10} more issues"
 
         # Format recommendations
-        recommendations = "\n".join(f"- {rec}" for rec in audit_result.audit_summary.get("recommendations", []))
+        recommendations = "\n".join(
+            f"- {rec}" for rec in audit_result.audit_summary.get("recommendations", [])
+        )
 
         return template.format(
             timestamp=audit_result.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
@@ -722,18 +775,30 @@ class RequirementsTraceabilityEngine:
             total_features=audit_result.total_features_found,
             inconsistencies=audit_result.inconsistencies_found,
             health_score=audit_result.audit_summary.get("health_score", 0),
-            docs_covered=audit_result.coverage_analysis.get("docs", {}).get("covered", 0),
+            docs_covered=audit_result.coverage_analysis.get("docs", {}).get(
+                "covered", 0
+            ),
             docs_total=audit_result.coverage_analysis.get("docs", {}).get("total", 0),
-            docs_percentage=audit_result.coverage_analysis.get("docs", {}).get("percentage", 0),
-            code_covered=audit_result.coverage_analysis.get("code", {}).get("covered", 0),
+            docs_percentage=audit_result.coverage_analysis.get("docs", {}).get(
+                "percentage", 0
+            ),
+            code_covered=audit_result.coverage_analysis.get("code", {}).get(
+                "covered", 0
+            ),
             code_total=audit_result.coverage_analysis.get("code", {}).get("total", 0),
-            code_percentage=audit_result.coverage_analysis.get("code", {}).get("percentage", 0),
-            tests_covered=audit_result.coverage_analysis.get("tests", {}).get("covered", 0),
+            code_percentage=audit_result.coverage_analysis.get("code", {}).get(
+                "percentage", 0
+            ),
+            tests_covered=audit_result.coverage_analysis.get("tests", {}).get(
+                "covered", 0
+            ),
             tests_total=audit_result.coverage_analysis.get("tests", {}).get("total", 0),
-            tests_percentage=audit_result.coverage_analysis.get("tests", {}).get("percentage", 0),
+            tests_percentage=audit_result.coverage_analysis.get("tests", {}).get(
+                "percentage", 0
+            ),
             feature_rows="\n".join(feature_rows),
             gaps_section=gaps_section,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
     def _generate_html_matrix(self, audit_result) -> str:
@@ -793,18 +858,38 @@ class RequirementsTraceabilityEngine:
         # Format feature rows
         feature_rows = []
         for feature, artifacts in audit_result.feature_matrix.items():
-            docs_status = '<span class="status-yes">✓</span>' if artifacts.get("docs", False) else '<span class="status-no">✗</span>'
-            code_status = '<span class="status-yes">✓</span>' if artifacts.get("code", False) else '<span class="status-no">✗</span>'
-            tests_status = '<span class="status-yes">✓</span>' if artifacts.get("tests", False) else '<span class="status-no">✗</span>'
-            feature_rows.append(f'<tr><td>{feature}</td><td>{docs_status}</td><td>{code_status}</td><td>{tests_status}</td></tr>')
+            docs_status = (
+                '<span class="status-yes">✓</span>'
+                if artifacts.get("docs", False)
+                else '<span class="status-no">✗</span>'
+            )
+            code_status = (
+                '<span class="status-yes">✓</span>'
+                if artifacts.get("code", False)
+                else '<span class="status-no">✗</span>'
+            )
+            tests_status = (
+                '<span class="status-yes">✓</span>'
+                if artifacts.get("tests", False)
+                else '<span class="status-no">✗</span>'
+            )
+            feature_rows.append(
+                f"<tr><td>{feature}</td><td>{docs_status}</td><td>{code_status}</td><td>{tests_status}</td></tr>"
+            )
 
         # Format gaps section
         gaps_section = ""
         if audit_result.questions_generated:
-            gaps_section = "\n".join(f'<div class="gap">{q.question}</div>' for q in audit_result.questions_generated[:10])
+            gaps_section = "\n".join(
+                f'<div class="gap">{q.question}</div>'
+                for q in audit_result.questions_generated[:10]
+            )
 
         # Format recommendations
-        recommendations = "\n".join(f'<div class="recommendation">{rec}</div>' for rec in audit_result.audit_summary.get("recommendations", []))
+        recommendations = "\n".join(
+            f'<div class="recommendation">{rec}</div>'
+            for rec in audit_result.audit_summary.get("recommendations", [])
+        )
 
         return template.format(
             timestamp=audit_result.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
@@ -812,18 +897,30 @@ class RequirementsTraceabilityEngine:
             total_features=audit_result.total_features_found,
             inconsistencies=audit_result.inconsistencies_found,
             health_score=audit_result.audit_summary.get("health_score", 0),
-            docs_covered=audit_result.coverage_analysis.get("docs", {}).get("covered", 0),
+            docs_covered=audit_result.coverage_analysis.get("docs", {}).get(
+                "covered", 0
+            ),
             docs_total=audit_result.coverage_analysis.get("docs", {}).get("total", 0),
-            docs_percentage=audit_result.coverage_analysis.get("docs", {}).get("percentage", 0),
-            code_covered=audit_result.coverage_analysis.get("code", {}).get("covered", 0),
+            docs_percentage=audit_result.coverage_analysis.get("docs", {}).get(
+                "percentage", 0
+            ),
+            code_covered=audit_result.coverage_analysis.get("code", {}).get(
+                "covered", 0
+            ),
             code_total=audit_result.coverage_analysis.get("code", {}).get("total", 0),
-            code_percentage=audit_result.coverage_analysis.get("code", {}).get("percentage", 0),
-            tests_covered=audit_result.coverage_analysis.get("tests", {}).get("covered", 0),
+            code_percentage=audit_result.coverage_analysis.get("code", {}).get(
+                "percentage", 0
+            ),
+            tests_covered=audit_result.coverage_analysis.get("tests", {}).get(
+                "covered", 0
+            ),
             tests_total=audit_result.coverage_analysis.get("tests", {}).get("total", 0),
-            tests_percentage=audit_result.coverage_analysis.get("tests", {}).get("percentage", 0),
+            tests_percentage=audit_result.coverage_analysis.get("tests", {}).get(
+                "percentage", 0
+            ),
             feature_rows="\n".join(feature_rows),
             gaps_section=gaps_section,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
     def _generate_json_matrix(self, audit_result) -> str:
@@ -839,7 +936,7 @@ class RequirementsTraceabilityEngine:
             "coverage_analysis": audit_result.coverage_analysis,
             "feature_matrix": audit_result.feature_matrix,
             "questions": [q.question for q in audit_result.questions_generated],
-            "recommendations": audit_result.audit_summary.get("recommendations", [])
+            "recommendations": audit_result.audit_summary.get("recommendations", []),
         }
 
         return json.dumps(data, indent=2, default=str)

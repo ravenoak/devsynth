@@ -104,7 +104,7 @@ class TransactionContext:
         self.operations: list[OperationLogEntry] = []
         self.prepared_adapters: list[MemoryAdapter] = []
 
-    def __enter__(self) -> "TransactionContext":
+    def __enter__(self) -> TransactionContext:
         """
         Begin the transaction on all adapters.
 

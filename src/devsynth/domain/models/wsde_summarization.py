@@ -9,7 +9,7 @@ if TYPE_CHECKING:  # pragma: no cover - for type checkers only
 
 
 def summarize_consensus_result(
-    self: "WSDETeam", consensus_result: Dict[str, Any]
+    self: WSDETeam, consensus_result: dict[str, Any]
 ) -> str:
     """Summarize a consensus result in a human-readable format."""
 
@@ -46,7 +46,7 @@ def summarize_consensus_result(
     return "\n".join(summary_parts)
 
 
-def summarize_voting_result(self: "WSDETeam", voting_result: Dict[str, Any]) -> str:
+def summarize_voting_result(self: WSDETeam, voting_result: dict[str, Any]) -> str:
     """Summarize a voting result in a human-readable format."""
 
     if not voting_result:

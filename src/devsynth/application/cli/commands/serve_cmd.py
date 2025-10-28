@@ -14,7 +14,7 @@ def serve_cmd(
     host: str = "0.0.0.0",  # nosec B104: default open binding for developer convenience
     port: int = 8000,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Run the DevSynth API server.
 

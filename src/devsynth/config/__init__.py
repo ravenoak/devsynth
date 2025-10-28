@@ -85,7 +85,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
     """Configuration wrapper for project.yaml or pyproject.toml."""
 
     @classmethod
-    def load(cls, path: Path | None = None) -> "ProjectUnifiedConfig":
+    def load(cls, path: Path | None = None) -> ProjectUnifiedConfig:
         """Load and validate a project configuration."""
         root = Path(path or os.getcwd())
         yaml_path = root / ".devsynth" / "project.yaml"
@@ -93,7 +93,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
         data: dict[str, Any] = {}
 
         if yaml_path.exists():
-            with open(yaml_path, "r", encoding="utf-8") as f:
+            with open(yaml_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
                 if not isinstance(data, dict):
                     raise DevSynthError(
@@ -115,7 +115,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
             Path(__file__).resolve().parent.parent / "schemas" / "project_schema.json"
         )
         try:
-            with open(schema_file, "r", encoding="utf-8") as sf:
+            with open(schema_file, encoding="utf-8") as sf:
                 schema = json.load(sf)
 
             required_keys = set(schema.get("required", []))

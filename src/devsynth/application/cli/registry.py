@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Callable, Dict
+from typing import Dict
+from collections.abc import Callable
 
-COMMAND_REGISTRY: Dict[str, Callable] = {}
+COMMAND_REGISTRY: dict[str, Callable] = {}
 
 
 def register(name: str, fn: Callable) -> None:

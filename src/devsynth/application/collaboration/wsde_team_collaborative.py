@@ -28,8 +28,8 @@ class CollaborativeWSDETeam(WSDETeam):
     def __init__(
         self,
         name: str,
-        description: Optional[str] = None,
-        memory_manager: Optional[MemoryManager] = None,
+        description: str | None = None,
+        memory_manager: MemoryManager | None = None,
     ) -> None:
         """
         Initialize a new CollaborativeWSDETeam.
@@ -49,7 +49,7 @@ class CollaborativeWSDETeam(WSDETeam):
         self.collaboration_metrics = {}
         self.tracked_decisions = {}
 
-    def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def collaborative_decision(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Make a collaborative decision on a task.
 
@@ -63,7 +63,7 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         return self.build_consensus(task)
 
-    def peer_review_solution(self, work_product: Any, author: Any) -> Dict[str, Any]:
+    def peer_review_solution(self, work_product: Any, author: Any) -> dict[str, Any]:
         """
         Conduct a peer review of a solution.
 

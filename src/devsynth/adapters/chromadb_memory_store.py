@@ -110,7 +110,7 @@ class ChromaDBMemoryStore(MemoryStore):
         self,
         persist_directory: str = None,
         use_provider_system: bool = True,
-        provider_type: Optional[str] = None,
+        provider_type: str | None = None,
         collection_name: str = "devsynth_artifacts",
         max_retries: int = 3,
         retry_delay: float = 0.5,
@@ -302,7 +302,7 @@ class ChromaDBMemoryStore(MemoryStore):
                         f"{operation_name} failed after {self.max_retries} attempts: {e}"
                     ) from last_exception
 
-    def _get_embedding(self, text: Union[str, List[str]]) -> List[float]:
+    def _get_embedding(self, text: str | list[str]) -> list[float]:
         """
         Get embedding for text using the provider system or default embedder.
 
@@ -539,12 +539,12 @@ class ChromaDBMemoryStore(MemoryStore):
 
         return self._with_retries("Delete operation", _delete_operation)
 
-    def get_all_items(self) -> List[MemoryItem]:
+    def get_all_items(self) -> list[MemoryItem]:
         """Return all stored :class:`MemoryItem` objects."""
 
         def _get_operation():
             result = self.collection.get(include=["documents", "metadatas"])
-            items: List[MemoryItem] = []
+            items: list[MemoryItem] = []
             docs = result.get("documents", [])
             metas = result.get("metadatas", [])
             ids = result.get("ids", [])
@@ -694,7 +694,7 @@ class ChromaDBMemoryStore(MemoryStore):
         return transaction is not None and transaction.get("status") == "active"
 
     def add_to_transaction(
-        self, transaction_id: str, operation_type: str, operation_data: Dict[str, Any]
+        self, transaction_id: str, operation_type: str, operation_data: dict[str, Any]
     ) -> bool:
         """Add an operation to a transaction.
 

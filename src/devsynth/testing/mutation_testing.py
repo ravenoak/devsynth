@@ -31,7 +31,8 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, TypedDict, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, TypedDict, Union
+from collections.abc import Iterator
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -51,7 +52,7 @@ class MutationResult:
     killed: bool  # True if tests failed (mutation was caught)
     test_output: str
     execution_time: float
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class MutationTypeStats(TypedDict):
@@ -60,9 +61,9 @@ class MutationTypeStats(TypedDict):
 
 
 class MutationSummary(TypedDict):
-    mutation_types: Dict[str, MutationTypeStats]
-    file_breakdown: Dict[str, MutationTypeStats]
-    slowest_mutations: List[MutationResult]
+    mutation_types: dict[str, MutationTypeStats]
+    file_breakdown: dict[str, MutationTypeStats]
+    slowest_mutations: list[MutationResult]
 
 
 @dataclass
@@ -76,7 +77,7 @@ class MutationReport:
     survived_mutations: int
     mutation_score: float
     execution_time: float
-    mutations: List[MutationResult]
+    mutations: list[MutationResult]
     summary: MutationSummary
 
 
@@ -239,7 +240,7 @@ class ConstantMutator(MutationOperator):
 class MutationGenerator:
     """Generates mutations for Python code using AST transformation."""
 
-    def __init__(self, operators: Optional[List[MutationOperator]] = None) -> None:
+    def __init__(self, operators: list[MutationOperator] | None = None) -> None:
         self.operators = operators or [
             ArithmeticOperatorMutator(),
             ComparisonOperatorMutator(),
@@ -250,7 +251,7 @@ class MutationGenerator:
 
     def generate_mutations(
         self, source_code: str, file_path: str
-    ) -> List[Tuple[str, str, int, str, str]]:
+    ) -> list[tuple[str, str, int, str, str]]:
         """Generate all possible mutations for the given source code.
 
         Returns:
@@ -327,8 +328,8 @@ class MutationTester:
         self,
         target_path: str,
         test_path: str,
-        max_mutations: Optional[int] = None,
-        module_filter: Optional[str] = None,
+        max_mutations: int | None = None,
+        module_filter: str | None = None,
     ) -> MutationReport:
         """Run mutation testing on the specified target and test paths."""
         start_time = time.time()
@@ -359,7 +360,7 @@ class MutationTester:
                 continue  # Skip __init__.py, __pycache__, etc.
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     source_code = f.read()
 
                 file_mutations = self.generator.generate_mutations(

@@ -8,7 +8,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-from typing import Sequence as TypingSequence
+from collections.abc import Sequence as TypingSequence
 from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
@@ -46,7 +46,7 @@ class Critique:
         domains: Iterable[str] | None = None,
         severity: str | None = None,
         metadata: Mapping[str, Any] | None = None,
-    ) -> "Critique":
+    ) -> Critique:
         """Create a :class:`Critique` from free-form text."""
 
         resolved_domains = tuple(domains or ())
@@ -61,7 +61,7 @@ class Critique:
         )
 
     @classmethod
-    def from_dict(cls, payload: Mapping[str, Any]) -> "Critique":
+    def from_dict(cls, payload: Mapping[str, Any]) -> Critique:
         """Reconstruct a :class:`Critique` from serialized data."""
 
         return cls(
@@ -96,7 +96,7 @@ class AntithesisComponents:
     improvement_suggestions: tuple[str, ...] = ()
     alternative_approaches: tuple[str, ...] = ()
 
-    def merge(self, *others: "AntithesisComponents") -> "AntithesisComponents":
+    def merge(self, *others: AntithesisComponents) -> AntithesisComponents:
         """Combine multiple component sets preserving ordering."""
 
         critiques: list[str] = list(self.critiques)
@@ -198,7 +198,7 @@ class ResolutionPlan:
         }
 
     @classmethod
-    def from_dict(cls, payload: Mapping[str, Any]) -> "ResolutionPlan":
+    def from_dict(cls, payload: Mapping[str, Any]) -> ResolutionPlan:
         """Instantiate a plan from serialized content."""
 
         integrated_details = payload.get("integrated_critique_details")
@@ -295,7 +295,7 @@ class DialecticalStep:
         }
 
     @classmethod
-    def from_dict(cls, payload: Mapping[str, Any]) -> "DialecticalStep":
+    def from_dict(cls, payload: Mapping[str, Any]) -> DialecticalStep:
         antithesis_payload = payload.get("antithesis", {})
         resolution_payload = payload.get("synthesis", {})
         if isinstance(resolution_payload, Mapping):
@@ -399,13 +399,13 @@ class DialecticalSequence(Mapping[str, Any]):
         return self.steps[-1] if self.steps else None
 
     @classmethod
-    def failed(cls, *, reason: str) -> "DialecticalSequence":
+    def failed(cls, *, reason: str) -> DialecticalSequence:
         """Create a failure sequence to mirror legacy status payloads."""
 
         return cls(sequence_id=str(uuid4()), steps=(), status="failed", reason=reason)
 
     @classmethod
-    def from_dict(cls, payload: Mapping[str, Any]) -> "DialecticalSequence":
+    def from_dict(cls, payload: Mapping[str, Any]) -> DialecticalSequence:
         steps_payload = payload.get("steps")
         if isinstance(steps_payload, Sequence) and steps_payload:
             steps = tuple(

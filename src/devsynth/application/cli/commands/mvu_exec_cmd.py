@@ -14,7 +14,7 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-def mvu_exec_cmd(command: List[str], *, bridge: Optional[UXBridge] = None) -> int:
+def mvu_exec_cmd(command: list[str], *, bridge: UXBridge | None = None) -> int:
     """Run a shell command and forward its output.
 
     Args:

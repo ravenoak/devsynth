@@ -33,7 +33,7 @@ class RefactorWorkflowManager:
         """Initialize the refactor workflow manager."""
         self.workflow_manager = WorkflowManager()
 
-    def analyze_project_state(self, project_path: str) -> Dict[str, Any]:
+    def analyze_project_state(self, project_path: str) -> dict[str, Any]:
         """
         Analyze the current state of the project.
 
@@ -59,7 +59,7 @@ class RefactorWorkflowManager:
         }
         return merged
 
-    def determine_optimal_workflow(self, project_state: Dict[str, Any]) -> str:
+    def determine_optimal_workflow(self, project_state: dict[str, Any]) -> str:
         """
         Determine the optimal workflow based on the project state.
 
@@ -97,7 +97,7 @@ class RefactorWorkflowManager:
         return "complete"
 
     def determine_entry_point(
-        self, project_state: Dict[str, Any], workflow: str
+        self, project_state: dict[str, Any], workflow: str
     ) -> str:
         """
         Determine the entry point for the workflow based on the project state.
@@ -122,7 +122,7 @@ class RefactorWorkflowManager:
         else:
             return "inspect"
 
-    def suggest_next_steps(self, project_path: str) -> List[Dict[str, Any]]:
+    def suggest_next_steps(self, project_path: str) -> list[dict[str, Any]]:
         """
         Suggest next steps based on the current project state.
 
@@ -216,7 +216,7 @@ class RefactorWorkflowManager:
 
     def initialize_workflow(
         self, project_path: str
-    ) -> Tuple[str, str, List[Dict[str, Any]]]:
+    ) -> tuple[str, str, list[dict[str, Any]]]:
         """
         Initialize a workflow based on the current project state.
 
@@ -242,7 +242,7 @@ class RefactorWorkflowManager:
 
         return workflow, entry_point, suggestions
 
-    def execute_command(self, command: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_command(self, command: str, args: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a command with the standard workflow manager.
 
@@ -268,7 +268,7 @@ class RefactorWorkflowManager:
 
     def execute_refactor_workflow(
         self, project_path: str, max_steps: int = 3
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute a refactor workflow based on the current project state.
 

@@ -16,7 +16,7 @@ from ..utils import _resolve_bridge
 
 
 def refactor_cmd(
-    path: Optional[str] = None, *, bridge: Optional[UXBridge] = None
+    path: str | None = None, *, bridge: UXBridge | None = None
 ) -> None:
     """
     Execute a refactor workflow based on the current project state.

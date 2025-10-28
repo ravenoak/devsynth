@@ -6,12 +6,12 @@ from dataclasses import dataclass, field
 from typing import (
     TYPE_CHECKING,
     Generic,
-    Iterator,
     Protocol,
     TypeAlias,
     TypeVar,
     runtime_checkable,
 )
+from collections.abc import Iterator
 
 ValueT = TypeVar("ValueT")
 Snapshot: TypeAlias = Mapping[str, ValueT]

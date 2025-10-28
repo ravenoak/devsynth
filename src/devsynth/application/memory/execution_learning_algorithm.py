@@ -13,9 +13,14 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from .execution_trajectory_collector import ExecutionTrace, ExecutionStep
-from ...domain.models.memory import MemeticUnit, MemeticMetadata, MemeticSource, CognitiveType
+from ...domain.models.memory import (
+    CognitiveType,
+    MemeticMetadata,
+    MemeticSource,
+    MemeticUnit,
+)
 from ...logging_setup import DevSynthLogger
+from .execution_trajectory_collector import ExecutionStep, ExecutionTrace
 
 logger = DevSynthLogger(__name__)
 
@@ -23,17 +28,20 @@ logger = DevSynthLogger(__name__)
 @dataclass
 class ExecutionPattern:
     """Represents a learned pattern from execution trajectories."""
+
     pattern_id: str
-    pattern_type: str  # "function_behavior", "variable_lifecycle", "error_handling", etc.
-    trigger_conditions: Dict[str, Any]
-    expected_outcomes: Dict[str, Any]
+    pattern_type: (
+        str  # "function_behavior", "variable_lifecycle", "error_handling", etc.
+    )
+    trigger_conditions: dict[str, Any]
+    expected_outcomes: dict[str, Any]
     confidence: float
     frequency: int
-    examples: List[str] = field(default_factory=list)
+    examples: list[str] = field(default_factory=list)
     semantic_fingerprint: str = ""
-    source_traces: List[str] = field(default_factory=list)
+    source_traces: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "pattern_id": self.pattern_id,
@@ -44,46 +52,55 @@ class ExecutionPattern:
             "frequency": self.frequency,
             "examples": self.examples,
             "semantic_fingerprint": self.semantic_fingerprint,
-            "source_traces": self.source_traces
+            "source_traces": self.source_traces,
         }
 
 
 @dataclass
 class SemanticUnderstanding:
     """Enhanced semantic understanding learned from execution patterns."""
+
     entity_id: str
-    semantic_components: Dict[str, Any]
-    behavioral_patterns: List[ExecutionPattern]
+    semantic_components: dict[str, Any]
+    behavioral_patterns: list[ExecutionPattern]
     confidence_score: float
     learning_iterations: int
-    validation_results: Dict[str, Any] = field(default_factory=dict)
+    validation_results: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "entity_id": self.entity_id,
             "semantic_components": self.semantic_components,
-            "behavioral_patterns": [pattern.to_dict() for pattern in self.behavioral_patterns],
+            "behavioral_patterns": [
+                pattern.to_dict() for pattern in self.behavioral_patterns
+            ],
             "confidence_score": self.confidence_score,
             "learning_iterations": self.learning_iterations,
-            "validation_results": self.validation_results
+            "validation_results": self.validation_results,
         }
 
 
 class ExecutionLearningAlgorithm:
     """Algorithm for learning from execution trajectories."""
 
-    def __init__(self, min_pattern_frequency: int = 3, confidence_threshold: float = 0.7):
+    def __init__(
+        self, min_pattern_frequency: int = 3, confidence_threshold: float = 0.7
+    ):
         """Initialize the learning algorithm."""
         self.min_pattern_frequency = min_pattern_frequency
         self.confidence_threshold = confidence_threshold
-        self.learned_patterns: Dict[str, ExecutionPattern] = {}
-        self.semantic_understandings: Dict[str, SemanticUnderstanding] = {}
+        self.learned_patterns: dict[str, ExecutionPattern] = {}
+        self.semantic_understandings: dict[str, SemanticUnderstanding] = {}
         self.pattern_library = PatternLibrary()
 
-        logger.info(f"Execution learning algorithm initialized (min_freq: {min_pattern_frequency}, threshold: {confidence_threshold})")
+        logger.info(
+            f"Execution learning algorithm initialized (min_freq: {min_pattern_frequency}, threshold: {confidence_threshold})"
+        )
 
-    def train_on_trajectories(self, trajectories: List[ExecutionTrace], learning_config: Dict[str, Any] = None) -> Dict[str, Any]:
+    def train_on_trajectories(
+        self, trajectories: list[ExecutionTrace], learning_config: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Train understanding model on execution trajectories."""
         if not trajectories:
             return {"error": "No trajectories provided for training"}
@@ -98,49 +115,67 @@ class ExecutionLearningAlgorithm:
         behavioral_patterns = self._learn_behavioral_patterns(patterns)
 
         # Phase 3: Build semantic understanding
-        semantic_understandings = self._build_semantic_understanding(trajectories, behavioral_patterns)
+        semantic_understandings = self._build_semantic_understanding(
+            trajectories, behavioral_patterns
+        )
 
         # Phase 4: Validate and refine
-        validation_results = self._validate_learning(trajectories, semantic_understandings)
+        validation_results = self._validate_learning(
+            trajectories, semantic_understandings
+        )
 
         # Phase 5: Consolidate knowledge
-        consolidated_patterns = self._consolidate_patterns(behavioral_patterns, validation_results)
+        consolidated_patterns = self._consolidate_patterns(
+            behavioral_patterns, validation_results
+        )
 
         learning_results = {
             "trajectories_processed": len(trajectories),
             "patterns_extracted": len(patterns),
             "behavioral_patterns_learned": len(behavioral_patterns),
             "semantic_understandings_built": len(semantic_understandings),
-            "validation_score": statistics.mean(validation_results.values()) if validation_results else 0.0,
+            "validation_score": (
+                statistics.mean(validation_results.values())
+                if validation_results
+                else 0.0
+            ),
             "learning_iterations": min(max_iterations, len(trajectories) * 10),
             "patterns": consolidated_patterns,
-            "understandings": semantic_understandings
+            "understandings": semantic_understandings,
         }
 
-        logger.info(f"Training complete: {learning_results['patterns_extracted']} patterns, {learning_results['validation_score']:.2f} validation score")
+        logger.info(
+            f"Training complete: {learning_results['patterns_extracted']} patterns, {learning_results['validation_score']:.2f} validation score"
+        )
         return learning_results
 
-    def _extract_patterns_from_trajectories(self, trajectories: List[ExecutionTrace]) -> Dict[str, Any]:
+    def _extract_patterns_from_trajectories(
+        self, trajectories: list[ExecutionTrace]
+    ) -> dict[str, Any]:
         """Extract basic patterns from execution trajectories."""
         patterns = {
             "function_calls": defaultdict(list),
             "variable_changes": defaultdict(list),
             "control_flow": defaultdict(list),
             "error_patterns": defaultdict(list),
-            "performance_patterns": defaultdict(list)
+            "performance_patterns": defaultdict(list),
         }
 
         for trace in trajectories:
             # Extract function call patterns
             for step in trace.execution_steps:
                 for func_call in step.function_calls:
-                    patterns["function_calls"][func_call].append({
-                        "trace_id": str(trace.trace_id),
-                        "step": step.step_number,
-                        "line": step.line_number,
-                        "context": step.code_line,
-                        "outcome": "success" if not trace.execution_error else "error"
-                    })
+                    patterns["function_calls"][func_call].append(
+                        {
+                            "trace_id": str(trace.trace_id),
+                            "step": step.step_number,
+                            "line": step.line_number,
+                            "context": step.code_line,
+                            "outcome": (
+                                "success" if not trace.execution_error else "error"
+                            ),
+                        }
+                    )
 
             # Extract variable change patterns
             for var_name, changes in trace.variable_changes.items():
@@ -148,42 +183,55 @@ class ExecutionLearningAlgorithm:
 
             # Extract control flow patterns
             for step in trace.execution_steps:
-                if any(keyword in step.code_line.lower() for keyword in ["if", "for", "while", "try"]):
-                    patterns["control_flow"]["control_structure"].append({
-                        "trace_id": str(trace.trace_id),
-                        "line": step.line_number,
-                        "type": "control_flow",
-                        "code": step.code_line
-                    })
+                if any(
+                    keyword in step.code_line.lower()
+                    for keyword in ["if", "for", "while", "try"]
+                ):
+                    patterns["control_flow"]["control_structure"].append(
+                        {
+                            "trace_id": str(trace.trace_id),
+                            "line": step.line_number,
+                            "type": "control_flow",
+                            "code": step.code_line,
+                        }
+                    )
 
             # Extract error patterns
             if trace.execution_error:
                 error_type = self._classify_error_pattern(trace.execution_error)
-                patterns["error_patterns"][error_type].append({
-                    "trace_id": str(trace.trace_id),
-                    "error": trace.execution_error,
-                    "code": trace.code
-                })
+                patterns["error_patterns"][error_type].append(
+                    {
+                        "trace_id": str(trace.trace_id),
+                        "error": trace.execution_error,
+                        "code": trace.code,
+                    }
+                )
 
             # Extract performance patterns
             perf_category = self._categorize_execution_performance(trace.execution_time)
-            patterns["performance_patterns"][perf_category].append({
-                "trace_id": str(trace.trace_id),
-                "execution_time": trace.execution_time,
-                "line_count": len(trace.execution_steps),
-                "error": trace.execution_error is not None
-            })
+            patterns["performance_patterns"][perf_category].append(
+                {
+                    "trace_id": str(trace.trace_id),
+                    "execution_time": trace.execution_time,
+                    "line_count": len(trace.execution_steps),
+                    "error": trace.execution_error is not None,
+                }
+            )
 
         return patterns
 
-    def _learn_behavioral_patterns(self, patterns: Dict[str, Any]) -> List[ExecutionPattern]:
+    def _learn_behavioral_patterns(
+        self, patterns: dict[str, Any]
+    ) -> list[ExecutionPattern]:
         """Learn behavioral patterns from extracted patterns."""
         behavioral_patterns = []
 
         # Learn function behavior patterns
         for func_name, calls in patterns["function_calls"].items():
             if len(calls) >= self.min_pattern_frequency:
-                success_rate = sum(1 for call in calls if call["outcome"] == "success") / len(calls)
+                success_rate = sum(
+                    1 for call in calls if call["outcome"] == "success"
+                ) / len(calls)
 
                 if success_rate >= self.confidence_threshold:
                     pattern = ExecutionPattern(
@@ -194,7 +242,7 @@ class ExecutionLearningAlgorithm:
                         confidence=success_rate,
                         frequency=len(calls),
                         examples=[call["context"] for call in calls[:3]],
-                        source_traces=[call["trace_id"] for call in calls[:5]]
+                        source_traces=[call["trace_id"] for call in calls[:5]],
                     )
                     behavioral_patterns.append(pattern)
 
@@ -202,8 +250,14 @@ class ExecutionLearningAlgorithm:
         for var_name, changes in patterns["variable_changes"].items():
             if len(changes) >= self.min_pattern_frequency:
                 # Analyze variable change patterns
-                change_types = [self._classify_variable_change(change) for change in changes]
-                most_common_change = max(set(change_types), key=change_types.count) if change_types else "unknown"
+                change_types = [
+                    self._classify_variable_change(change) for change in changes
+                ]
+                most_common_change = (
+                    max(set(change_types), key=change_types.count)
+                    if change_types
+                    else "unknown"
+                )
 
                 pattern = ExecutionPattern(
                     pattern_id=f"var_lifecycle_{var_name}",
@@ -212,7 +266,7 @@ class ExecutionLearningAlgorithm:
                     expected_outcomes={"common_change_type": most_common_change},
                     confidence=len(changes) / 10,  # Normalize by expected frequency
                     frequency=len(changes),
-                    examples=changes[:3] if changes else []
+                    examples=changes[:3] if changes else [],
                 )
                 behavioral_patterns.append(pattern)
 
@@ -223,17 +277,21 @@ class ExecutionLearningAlgorithm:
                     pattern_id=f"error_pattern_{error_type}",
                     pattern_type="error_handling",
                     trigger_conditions={"error_type": error_type},
-                    expected_outcomes={"occurrence_rate": len(errors) / len(patterns["function_calls"])},
+                    expected_outcomes={
+                        "occurrence_rate": len(errors) / len(patterns["function_calls"])
+                    },
                     confidence=min(1.0, len(errors) / 5),  # Normalize by frequency
                     frequency=len(errors),
-                    examples=[error["code"][:100] for error in errors[:3]]
+                    examples=[error["code"][:100] for error in errors[:3]],
                 )
                 behavioral_patterns.append(pattern)
 
         logger.info(f"Learned {len(behavioral_patterns)} behavioral patterns")
         return behavioral_patterns
 
-    def _build_semantic_understanding(self, trajectories: List[ExecutionTrace], patterns: List[ExecutionPattern]) -> Dict[str, SemanticUnderstanding]:
+    def _build_semantic_understanding(
+        self, trajectories: list[ExecutionTrace], patterns: list[ExecutionPattern]
+    ) -> dict[str, SemanticUnderstanding]:
         """Build semantic understanding from trajectories and patterns."""
         understandings = {}
 
@@ -245,22 +303,28 @@ class ExecutionLearningAlgorithm:
             semantic_components = self._extract_semantic_components(group_trajectories)
 
             # Find relevant patterns for this group
-            relevant_patterns = self._find_relevant_patterns(patterns, semantic_components)
+            relevant_patterns = self._find_relevant_patterns(
+                patterns, semantic_components
+            )
 
             # Build understanding
             understanding = SemanticUnderstanding(
                 entity_id=group_id,
                 semantic_components=semantic_components,
                 behavioral_patterns=relevant_patterns,
-                confidence_score=self._calculate_understanding_confidence(relevant_patterns, group_trajectories),
-                learning_iterations=len(group_trajectories)
+                confidence_score=self._calculate_understanding_confidence(
+                    relevant_patterns, group_trajectories
+                ),
+                learning_iterations=len(group_trajectories),
             )
 
             understandings[group_id] = understanding
 
         return understandings
 
-    def _group_similar_code(self, trajectories: List[ExecutionTrace]) -> Dict[str, List[ExecutionTrace]]:
+    def _group_similar_code(
+        self, trajectories: list[ExecutionTrace]
+    ) -> dict[str, list[ExecutionTrace]]:
         """Group trajectories by code similarity."""
         groups = defaultdict(list)
 
@@ -276,17 +340,19 @@ class ExecutionLearningAlgorithm:
         import hashlib
 
         # Count lines and functions as signature
-        lines = code.strip().split('\n')
+        lines = code.strip().split("\n")
         line_count = len(lines)
 
         # Count function definitions
-        function_count = code.count('def ')
+        function_count = code.count("def ")
 
         # Create signature
         signature = f"lines_{line_count}_funcs_{function_count}"
         return hashlib.md5(signature.encode()).hexdigest()[:8]
 
-    def _extract_semantic_components(self, trajectories: List[ExecutionTrace]) -> Dict[str, Any]:
+    def _extract_semantic_components(
+        self, trajectories: list[ExecutionTrace]
+    ) -> dict[str, Any]:
         """Extract semantic components from trajectories."""
         if not trajectories:
             return {}
@@ -315,14 +381,21 @@ class ExecutionLearningAlgorithm:
                 errors.append(self._classify_error_pattern(trace.execution_error))
 
         return {
-            "function_calls": dict(sorted(function_calls.items(), key=lambda x: x[1], reverse=True)[:10]),
+            "function_calls": dict(
+                sorted(function_calls.items(), key=lambda x: x[1], reverse=True)[:10]
+            ),
             "variables": sorted(list(variables))[:10],
             "error_types": list(set(errors)),
-            "avg_execution_time": statistics.mean(t.execution_time for t in trajectories),
-            "success_rate": sum(1 for t in trajectories if not t.execution_error) / len(trajectories)
+            "avg_execution_time": statistics.mean(
+                t.execution_time for t in trajectories
+            ),
+            "success_rate": sum(1 for t in trajectories if not t.execution_error)
+            / len(trajectories),
         }
 
-    def _find_relevant_patterns(self, patterns: List[ExecutionPattern], components: Dict[str, Any]) -> List[ExecutionPattern]:
+    def _find_relevant_patterns(
+        self, patterns: list[ExecutionPattern], components: dict[str, Any]
+    ) -> list[ExecutionPattern]:
         """Find patterns relevant to the given semantic components."""
         relevant_patterns = []
 
@@ -331,7 +404,9 @@ class ExecutionLearningAlgorithm:
             for pattern in patterns:
                 if pattern.pattern_type == "function_behavior":
                     for func_name in components["function_calls"]:
-                        if func_name in pattern.trigger_conditions.get("function_name", ""):
+                        if func_name in pattern.trigger_conditions.get(
+                            "function_name", ""
+                        ):
                             relevant_patterns.append(pattern)
                             break
 
@@ -340,54 +415,85 @@ class ExecutionLearningAlgorithm:
             for pattern in patterns:
                 if pattern.pattern_type == "variable_lifecycle":
                     for var_name in components["variables"]:
-                        if var_name in pattern.trigger_conditions.get("variable_name", ""):
+                        if var_name in pattern.trigger_conditions.get(
+                            "variable_name", ""
+                        ):
                             relevant_patterns.append(pattern)
                             break
 
         return relevant_patterns
 
-    def _calculate_understanding_confidence(self, patterns: List[ExecutionPattern], trajectories: List[ExecutionTrace]) -> float:
+    def _calculate_understanding_confidence(
+        self, patterns: list[ExecutionPattern], trajectories: list[ExecutionTrace]
+    ) -> float:
         """Calculate confidence in semantic understanding."""
         if not patterns or not trajectories:
             return 0.0
 
         # Base confidence on pattern quality
         pattern_confidences = [p.confidence for p in patterns]
-        avg_pattern_confidence = statistics.mean(pattern_confidences) if pattern_confidences else 0.0
+        avg_pattern_confidence = (
+            statistics.mean(pattern_confidences) if pattern_confidences else 0.0
+        )
 
         # Boost confidence for multiple trajectories
-        trajectory_diversity = min(1.0, len(trajectories) / 5)  # Normalize to 5+ trajectories
+        trajectory_diversity = min(
+            1.0, len(trajectories) / 5
+        )  # Normalize to 5+ trajectories
 
         # Boost confidence for successful executions
-        success_rate = sum(1 for t in trajectories if not t.execution_error) / len(trajectories)
+        success_rate = sum(1 for t in trajectories if not t.execution_error) / len(
+            trajectories
+        )
 
-        return min(1.0, (avg_pattern_confidence * 0.5 + trajectory_diversity * 0.3 + success_rate * 0.2))
+        return min(
+            1.0,
+            (
+                avg_pattern_confidence * 0.5
+                + trajectory_diversity * 0.3
+                + success_rate * 0.2
+            ),
+        )
 
-    def _validate_learning(self, trajectories: List[ExecutionTrace], understandings: Dict[str, SemanticUnderstanding]) -> Dict[str, float]:
+    def _validate_learning(
+        self,
+        trajectories: list[ExecutionTrace],
+        understandings: dict[str, SemanticUnderstanding],
+    ) -> dict[str, float]:
         """Validate learning results against trajectories."""
         validation_scores = {}
 
         for group_id, understanding in understandings.items():
             # Find trajectories for this understanding
-            group_trajectories = [t for t in trajectories if self._generate_code_signature(t.code) == group_id]
+            group_trajectories = [
+                t
+                for t in trajectories
+                if self._generate_code_signature(t.code) == group_id
+            ]
 
             if not group_trajectories:
                 validation_scores[group_id] = 0.0
                 continue
 
             # Validate pattern predictions
-            prediction_accuracy = self._validate_pattern_predictions(understanding.behavioral_patterns, group_trajectories)
+            prediction_accuracy = self._validate_pattern_predictions(
+                understanding.behavioral_patterns, group_trajectories
+            )
 
             # Validate semantic component extraction
-            component_accuracy = self._validate_semantic_components(understanding.semantic_components, group_trajectories)
+            component_accuracy = self._validate_semantic_components(
+                understanding.semantic_components, group_trajectories
+            )
 
             # Combine validation scores
-            overall_score = (prediction_accuracy * 0.6 + component_accuracy * 0.4)
+            overall_score = prediction_accuracy * 0.6 + component_accuracy * 0.4
             validation_scores[group_id] = overall_score
 
         return validation_scores
 
-    def _validate_pattern_predictions(self, patterns: List[ExecutionPattern], trajectories: List[ExecutionTrace]) -> float:
+    def _validate_pattern_predictions(
+        self, patterns: list[ExecutionPattern], trajectories: list[ExecutionTrace]
+    ) -> float:
         """Validate how well patterns predict trajectory outcomes."""
         if not patterns:
             return 0.0
@@ -399,15 +505,23 @@ class ExecutionLearningAlgorithm:
             if pattern.pattern_type == "function_behavior":
                 # Check if pattern correctly predicts function behavior
                 relevant_trajectories = [
-                    t for t in trajectories
-                    if any(pattern.trigger_conditions.get("function_name", "") in step.code_line
-                          for step in t.execution_steps)
+                    t
+                    for t in trajectories
+                    if any(
+                        pattern.trigger_conditions.get("function_name", "")
+                        in step.code_line
+                        for step in t.execution_steps
+                    )
                 ]
 
                 if relevant_trajectories:
                     # Check prediction accuracy for success rate
-                    expected_success_rate = pattern.expected_outcomes.get("success_rate", 0.5)
-                    actual_success_rate = sum(1 for t in relevant_trajectories if not t.execution_error) / len(relevant_trajectories)
+                    expected_success_rate = pattern.expected_outcomes.get(
+                        "success_rate", 0.5
+                    )
+                    actual_success_rate = sum(
+                        1 for t in relevant_trajectories if not t.execution_error
+                    ) / len(relevant_trajectories)
 
                     # Allow some tolerance for prediction accuracy
                     if abs(expected_success_rate - actual_success_rate) < 0.2:
@@ -417,7 +531,9 @@ class ExecutionLearningAlgorithm:
 
         return correct_predictions / total_predictions if total_predictions > 0 else 0.0
 
-    def _validate_semantic_components(self, components: Dict[str, Any], trajectories: List[ExecutionTrace]) -> float:
+    def _validate_semantic_components(
+        self, components: dict[str, Any], trajectories: list[ExecutionTrace]
+    ) -> float:
         """Validate semantic component extraction accuracy."""
         if not components or not trajectories:
             return 0.0
@@ -437,7 +553,9 @@ class ExecutionLearningAlgorithm:
 
         return 0.5  # Neutral score if no functions to compare
 
-    def _consolidate_patterns(self, patterns: List[ExecutionPattern], validation_results: Dict[str, float]) -> Dict[str, ExecutionPattern]:
+    def _consolidate_patterns(
+        self, patterns: list[ExecutionPattern], validation_results: dict[str, float]
+    ) -> dict[str, ExecutionPattern]:
         """Consolidate patterns based on validation results."""
         consolidated = {}
 
@@ -446,7 +564,11 @@ class ExecutionLearningAlgorithm:
             if pattern.confidence >= self.confidence_threshold:
                 # Update confidence based on validation
                 if pattern.pattern_id in validation_results:
-                    pattern.confidence = min(1.0, pattern.confidence * 0.8 + validation_results[pattern.pattern_id] * 0.2)
+                    pattern.confidence = min(
+                        1.0,
+                        pattern.confidence * 0.8
+                        + validation_results[pattern.pattern_id] * 0.2,
+                    )
 
                 consolidated[pattern.pattern_id] = pattern
 
@@ -455,14 +577,18 @@ class ExecutionLearningAlgorithm:
 
         return consolidated
 
-    def predict_execution_outcome(self, code: str, learned_patterns: Dict[str, ExecutionPattern]) -> Dict[str, Any]:
+    def predict_execution_outcome(
+        self, code: str, learned_patterns: dict[str, ExecutionPattern]
+    ) -> dict[str, Any]:
         """Predict execution outcome for new code based on learned patterns."""
         # Extract semantic components from code
         code_signature = self._generate_code_signature(code)
         components = self._extract_semantic_components_from_code(code)
 
         # Find relevant patterns
-        relevant_patterns = self._find_relevant_patterns(list(learned_patterns.values()), components)
+        relevant_patterns = self._find_relevant_patterns(
+            list(learned_patterns.values()), components
+        )
 
         # Make predictions
         predictions = {
@@ -470,12 +596,14 @@ class ExecutionLearningAlgorithm:
             "predicted_execution_time": 1.0,
             "predicted_error_types": [],
             "confidence": 0.0,
-            "supporting_patterns": []
+            "supporting_patterns": [],
         }
 
         if relevant_patterns:
             # Aggregate predictions from relevant patterns
-            success_rates = [p.expected_outcomes.get("success_rate", 0.5) for p in relevant_patterns]
+            success_rates = [
+                p.expected_outcomes.get("success_rate", 0.5) for p in relevant_patterns
+            ]
             predictions["predicted_success_rate"] = statistics.mean(success_rates)
 
             # Calculate overall confidence
@@ -488,43 +616,52 @@ class ExecutionLearningAlgorithm:
                     "pattern_id": p.pattern_id,
                     "pattern_type": p.pattern_type,
                     "confidence": p.confidence,
-                    "frequency": p.frequency
+                    "frequency": p.frequency,
                 }
                 for p in relevant_patterns
             ]
 
         return predictions
 
-    def _extract_semantic_components_from_code(self, code: str) -> Dict[str, Any]:
+    def _extract_semantic_components_from_code(self, code: str) -> dict[str, Any]:
         """Extract semantic components from code string."""
         components = {
             "function_calls": {},
             "variables": set(),
-            "control_structures": []
+            "control_structures": [],
         }
 
         # Simple parsing to extract components
-        lines = code.strip().split('\n')
+        lines = code.strip().split("\n")
 
         for line in lines:
             line = line.strip()
 
             # Extract function calls
-            if '(' in line and ')' in line:
+            if "(" in line and ")" in line:
                 # Look for function call patterns
                 import re
-                func_matches = re.findall(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', line)
+
+                func_matches = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", line)
                 for func in func_matches:
-                    components["function_calls"][func] = components["function_calls"].get(func, 0) + 1
+                    components["function_calls"][func] = (
+                        components["function_calls"].get(func, 0) + 1
+                    )
 
             # Extract variable assignments
-            if '=' in line and not line.startswith('def ') and not line.startswith('class '):
-                var_match = re.match(r'\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=', line)
+            if (
+                "=" in line
+                and not line.startswith("def ")
+                and not line.startswith("class ")
+            ):
+                var_match = re.match(r"\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=", line)
                 if var_match:
                     components["variables"].add(var_match.group(1))
 
             # Extract control structures
-            if any(keyword in line for keyword in ['if', 'for', 'while', 'try', 'except']):
+            if any(
+                keyword in line for keyword in ["if", "for", "while", "try", "except"]
+            ):
                 components["control_structures"].append(line)
 
         components["variables"] = list(components["variables"])
@@ -534,19 +671,30 @@ class ExecutionLearningAlgorithm:
         """Classify error message into pattern categories."""
         error_lower = error_message.lower()
 
-        if any(keyword in error_lower for keyword in ["nameerror", "undefined", "not defined"]):
+        if any(
+            keyword in error_lower
+            for keyword in ["nameerror", "undefined", "not defined"]
+        ):
             return "undefined_variable"
         elif any(keyword in error_lower for keyword in ["typeerror", "type", "cannot"]):
             return "type_mismatch"
-        elif any(keyword in error_lower for keyword in ["valueerror", "invalid", "value"]):
+        elif any(
+            keyword in error_lower for keyword in ["valueerror", "invalid", "value"]
+        ):
             return "invalid_value"
-        elif any(keyword in error_lower for keyword in ["indexerror", "index", "range"]):
+        elif any(
+            keyword in error_lower for keyword in ["indexerror", "index", "range"]
+        ):
             return "index_out_of_range"
-        elif any(keyword in error_lower for keyword in ["keyerror", "key", "not found"]):
+        elif any(
+            keyword in error_lower for keyword in ["keyerror", "key", "not found"]
+        ):
             return "missing_key"
         elif any(keyword in error_lower for keyword in ["attributeerror", "attribute"]):
             return "missing_attribute"
-        elif any(keyword in error_lower for keyword in ["importerror", "import", "module"]):
+        elif any(
+            keyword in error_lower for keyword in ["importerror", "import", "module"]
+        ):
             return "import_error"
         elif any(keyword in error_lower for keyword in ["syntaxerror", "syntax"]):
             return "syntax_error"
@@ -581,7 +729,9 @@ class ExecutionLearningAlgorithm:
         else:
             return "very_slow"
 
-    def create_memetic_units_from_learning(self, learning_results: Dict[str, Any]) -> List[MemeticUnit]:
+    def create_memetic_units_from_learning(
+        self, learning_results: dict[str, Any]
+    ) -> list[MemeticUnit]:
         """Create Memetic Units from learning results."""
         units = []
 
@@ -596,9 +746,9 @@ class ExecutionLearningAlgorithm:
                     topic=f"execution_pattern_{pattern.pattern_type}",
                     keywords=self._extract_pattern_keywords(pattern.to_dict()),
                     confidence_score=pattern.confidence,
-                    summary=f"Learned execution pattern: {pattern.pattern_type}"
+                    summary=f"Learned execution pattern: {pattern.pattern_type}",
                 ),
-                payload=pattern.to_dict()
+                payload=pattern.to_dict(),
             )
             units.append(semantic_unit)
 
@@ -613,16 +763,16 @@ class ExecutionLearningAlgorithm:
                     topic="code_behavior_model",
                     keywords=["execution", "behavior", "pattern", "understanding"],
                     confidence_score=understanding.confidence_score,
-                    summary=f"Semantic understanding of code behavior: {understanding_id}"
+                    summary=f"Semantic understanding of code behavior: {understanding_id}",
                 ),
-                payload=understanding.to_dict()
+                payload=understanding.to_dict(),
             )
             units.append(procedural_unit)
 
         logger.info(f"Created {len(units)} Memetic Units from learning results")
         return units
 
-    def _extract_pattern_keywords(self, pattern_data: Dict[str, Any]) -> List[str]:
+    def _extract_pattern_keywords(self, pattern_data: dict[str, Any]) -> list[str]:
         """Extract keywords from pattern data."""
         keywords = []
 
@@ -646,23 +796,27 @@ class PatternLibrary:
 
     def __init__(self):
         """Initialize pattern library."""
-        self.patterns: Dict[str, ExecutionPattern] = {}
-        self.pattern_index: Dict[str, List[str]] = defaultdict(list)
+        self.patterns: dict[str, ExecutionPattern] = {}
+        self.pattern_index: dict[str, list[str]] = defaultdict(list)
 
         logger.info("Pattern library initialized")
 
-    def update_patterns(self, new_patterns: List[ExecutionPattern]) -> None:
+    def update_patterns(self, new_patterns: list[ExecutionPattern]) -> None:
         """Update pattern library with new patterns."""
         for pattern in new_patterns:
             self.patterns[pattern.pattern_id] = pattern
 
             # Update indexes
             self.pattern_index["type"][pattern.pattern_type].append(pattern.pattern_id)
-            self.pattern_index["confidence"][f"confidence_{pattern.confidence:.1f}"].append(pattern.pattern_id)
+            self.pattern_index["confidence"][
+                f"confidence_{pattern.confidence:.1f}"
+            ].append(pattern.pattern_id)
 
         logger.debug(f"Updated pattern library with {len(new_patterns)} new patterns")
 
-    def find_matches(self, semantic_components: Dict[str, Any], min_confidence: float = 0.5) -> List[ExecutionPattern]:
+    def find_matches(
+        self, semantic_components: dict[str, Any], min_confidence: float = 0.5
+    ) -> list[ExecutionPattern]:
         """Find patterns that match the given semantic components."""
         matching_patterns = []
 
@@ -671,24 +825,33 @@ class PatternLibrary:
                 continue
 
             # Check if pattern matches components
-            match_score = self._calculate_pattern_match_score(pattern, semantic_components)
+            match_score = self._calculate_pattern_match_score(
+                pattern, semantic_components
+            )
 
             if match_score > 0.6:  # Match threshold
                 pattern.match_score = match_score  # Add match score to pattern
                 matching_patterns.append(pattern)
 
         # Sort by match score and confidence
-        matching_patterns.sort(key=lambda p: (p.match_score, p.confidence), reverse=True)
+        matching_patterns.sort(
+            key=lambda p: (p.match_score, p.confidence), reverse=True
+        )
 
         return matching_patterns
 
-    def _calculate_pattern_match_score(self, pattern: ExecutionPattern, components: Dict[str, Any]) -> float:
+    def _calculate_pattern_match_score(
+        self, pattern: ExecutionPattern, components: dict[str, Any]
+    ) -> float:
         """Calculate how well a pattern matches the given components."""
         score = 0.0
         matches = 0
 
         # Check function call matches
-        if "function_calls" in components and pattern.pattern_type == "function_behavior":
+        if (
+            "function_calls" in components
+            and pattern.pattern_type == "function_behavior"
+        ):
             for func_name in components["function_calls"]:
                 if func_name in pattern.trigger_conditions.get("function_name", ""):
                     score += 0.5
@@ -707,24 +870,32 @@ class PatternLibrary:
 
         return min(1.0, score)
 
-    def get_patterns_by_type(self, pattern_type: str) -> List[ExecutionPattern]:
+    def get_patterns_by_type(self, pattern_type: str) -> list[ExecutionPattern]:
         """Get all patterns of a specific type."""
         pattern_ids = self.pattern_index["type"].get(pattern_type, [])
         return [self.patterns[pid] for pid in pattern_ids if pid in self.patterns]
 
-    def get_high_confidence_patterns(self, min_confidence: float = 0.8) -> List[ExecutionPattern]:
+    def get_high_confidence_patterns(
+        self, min_confidence: float = 0.8
+    ) -> list[ExecutionPattern]:
         """Get patterns with high confidence scores."""
-        return [pattern for pattern in self.patterns.values() if pattern.confidence >= min_confidence]
+        return [
+            pattern
+            for pattern in self.patterns.values()
+            if pattern.confidence >= min_confidence
+        ]
 
-    def export_patterns(self) -> Dict[str, Any]:
+    def export_patterns(self) -> dict[str, Any]:
         """Export all patterns for persistence."""
         return {
-            "patterns": {pid: pattern.to_dict() for pid, pattern in self.patterns.items()},
+            "patterns": {
+                pid: pattern.to_dict() for pid, pattern in self.patterns.items()
+            },
             "index": dict(self.pattern_index),
-            "total_patterns": len(self.patterns)
+            "total_patterns": len(self.patterns),
         }
 
-    def import_patterns(self, pattern_data: Dict[str, Any]) -> None:
+    def import_patterns(self, pattern_data: dict[str, Any]) -> None:
         """Import patterns from external source."""
         patterns_dict = pattern_data.get("patterns", {})
 
@@ -738,7 +909,7 @@ class PatternLibrary:
                 frequency=pattern_info["frequency"],
                 examples=pattern_info.get("examples", []),
                 semantic_fingerprint=pattern_info.get("semantic_fingerprint", ""),
-                source_traces=pattern_info.get("source_traces", [])
+                source_traces=pattern_info.get("source_traces", []),
             )
 
             self.patterns[pattern_id] = pattern

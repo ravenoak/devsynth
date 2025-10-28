@@ -12,7 +12,8 @@ into smaller, more focused modules.
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Mapping, Optional, cast
+from typing import Any, Dict, List, Optional, cast
+from collections.abc import Mapping
 
 from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
@@ -54,8 +55,8 @@ class CollaborativeWSDETeam(
     def __init__(
         self,
         name: str,
-        description: Optional[str] = None,
-        memory_manager: Optional[MemoryManager] = None,
+        description: str | None = None,
+        memory_manager: MemoryManager | None = None,
     ) -> None:
         """
         Initialize a new CollaborativeWSDETeam.
@@ -74,28 +75,28 @@ class CollaborativeWSDETeam(
                 self.logger.debug("Could not register memory sync hook", exc_info=True)
 
         # Initialize attributes for task management
-        self.subtasks: Dict[str, List[SubtaskSpec]] = {}
-        self.subtask_progress: Dict[str, float] = {}
+        self.subtasks: dict[str, list[SubtaskSpec]] = {}
+        self.subtask_progress: dict[str, float] = {}
 
         # Initialize attributes for consensus building
-        self.tracked_decisions: Dict[str, Dict[str, Any]] = {}
+        self.tracked_decisions: dict[str, dict[str, Any]] = {}
 
         # Initialize metrics
-        self.contribution_metrics: Dict[str, Dict[str, Dict[str, Any]]] = {}
-        self.role_history: List[Dict[str, Any]] = []
-        self.leadership_reassessments: Dict[str, Dict[str, Any]] = {}
-        self.transition_metrics: Dict[str, Dict[str, Any]] = {}
-        self.collaboration_metrics: Dict[str, Dict[str, Any]] = {}
+        self.contribution_metrics: dict[str, dict[str, dict[str, Any]]] = {}
+        self.role_history: list[dict[str, Any]] = []
+        self.leadership_reassessments: dict[str, dict[str, Any]] = {}
+        self.transition_metrics: dict[str, dict[str, Any]] = {}
+        self.collaboration_metrics: dict[str, dict[str, Any]] = {}
 
         # Track the last memory item synchronized for testing/monitoring
-        self.last_synced_item: Optional[str] = None
+        self.last_synced_item: str | None = None
 
-    def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def collaborative_decision(self, task: dict[str, Any]) -> dict[str, Any]:
         """Vote on a decision then build consensus if needed."""
-        result = cast(Dict[str, Any], self.vote_on_critical_decision(task))
+        result = cast(dict[str, Any], self.vote_on_critical_decision(task))
         decision = result.get("result")
 
-        consensus_outcome: Optional[ConsensusOutcome] = None
+        consensus_outcome: ConsensusOutcome | None = None
         existing_consensus = result.get("consensus")
         if isinstance(existing_consensus, ConsensusOutcome):
             consensus_outcome = existing_consensus
@@ -111,7 +112,7 @@ class CollaborativeWSDETeam(
 
         return result
 
-    def solve_collaboratively(self, problem: Dict[str, Any]) -> Dict[str, Any]:
+    def solve_collaboratively(self, problem: dict[str, Any]) -> dict[str, Any]:
         """
         Solve a problem collaboratively using the team's expertise.
 
@@ -134,7 +135,7 @@ class CollaborativeWSDETeam(
         )
 
         # Process the problem as a task
-        processed_task = cast(Dict[str, Any], self.process_task(problem))
+        processed_task = cast(dict[str, Any], self.process_task(problem))
 
         # Build consensus on the approach
         consensus = self.build_consensus(processed_task)
@@ -178,7 +179,7 @@ class CollaborativeWSDETeam(
         return solution
 
     def request_peer_review(
-        self, work_product: Any, author: Any, reviewer_agents: List[Any]
+        self, work_product: Any, author: Any, reviewer_agents: list[Any]
     ) -> Any:
         """Create and track a peer review cycle with memory coordination."""
 
@@ -203,7 +204,7 @@ class CollaborativeWSDETeam(
         self.peer_reviews.append(review)
         return review
 
-    def sync_team_state(self) -> Optional[str]:
+    def sync_team_state(self) -> str | None:
         """Persist the team's current state using the memory manager."""
 
         if self.memory_manager is None or not self.memory_manager.adapters:
@@ -231,13 +232,13 @@ class CollaborativeWSDETeam(
             pass
         return str(item.id)
 
-    def _memory_sync_hook(self, item: Optional[MemoryItem]) -> None:
+    def _memory_sync_hook(self, item: MemoryItem | None) -> None:
         """Record the last synchronized item for observability/testing."""
 
         self.last_synced_item = getattr(item, "id", None)
 
     def _update_collaboration_metrics(
-        self, problem_id: str, solution: Dict[str, Any]
+        self, problem_id: str, solution: dict[str, Any]
     ) -> None:
         """
         Update collaboration metrics for a problem.
@@ -301,7 +302,7 @@ class CollaborativeWSDETeam(
         # Update end time
         metrics["end_time"] = datetime.now().isoformat()
 
-    def get_collaboration_metrics(self, problem_id: str) -> Dict[str, Any]:
+    def get_collaboration_metrics(self, problem_id: str) -> dict[str, Any]:
         """
         Get collaboration metrics for a specific problem.
 
@@ -316,7 +317,7 @@ class CollaborativeWSDETeam(
             return {}
         return dict(metrics)
 
-    def get_role_history(self) -> List[Dict[str, Any]]:
+    def get_role_history(self) -> list[dict[str, Any]]:
         """
         Get the history of role assignments in the team.
 
@@ -325,7 +326,7 @@ class CollaborativeWSDETeam(
         """
         return list(self.role_history)
 
-    def get_leadership_reassessment_result(self, task_id: str) -> Dict[str, Any]:
+    def get_leadership_reassessment_result(self, task_id: str) -> dict[str, Any]:
         """
         Get the result of a leadership reassessment for a task.
 
@@ -340,7 +341,7 @@ class CollaborativeWSDETeam(
             return {}
         return dict(result)
 
-    def get_transition_metrics(self, task_id: str) -> Dict[str, Any]:
+    def get_transition_metrics(self, task_id: str) -> dict[str, Any]:
         """
         Get transition metrics for a task.
 
@@ -355,7 +356,7 @@ class CollaborativeWSDETeam(
             return {}
         return dict(metrics)
 
-    def force_voting_tie(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def force_voting_tie(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Force a voting tie for testing purposes.
 
@@ -379,7 +380,7 @@ class CollaborativeWSDETeam(
         half_agents = len(self.agents) // 2
 
         # Assign votes
-        votes: Dict[str, str] = {}
+        votes: dict[str, str] = {}
         for i, agent in enumerate(self.agents):
             if i < half_agents:
                 votes[agent.name] = option1
@@ -387,7 +388,7 @@ class CollaborativeWSDETeam(
                 votes[agent.name] = option2
 
         # Create voting result
-        voting_result: Dict[str, Any] = {
+        voting_result: dict[str, Any] = {
             "task_id": task["id"],
             "votes": votes,
             "options": [option1, option2],
@@ -428,7 +429,7 @@ class CollaborativeWSDETeam(
 
         self.logger.debug(f"Set agent {agent_name} opinion on {option_id} to {opinion}")
 
-    def vote_with_role_reassignment(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def vote_with_role_reassignment(self, task: dict[str, Any]) -> dict[str, Any]:
         """Vote on a critical decision after dynamically reassigning roles."""
         if "id" not in task:
             task["id"] = str(uuid.uuid4())
@@ -439,7 +440,7 @@ class CollaborativeWSDETeam(
             except Exception:
                 pass
         primus = self.get_primus()
-        result = cast(Dict[str, Any], self.vote_on_critical_decision(task))
+        result = cast(dict[str, Any], self.vote_on_critical_decision(task))
         self.role_history.append(
             {
                 "task_id": task["id"],

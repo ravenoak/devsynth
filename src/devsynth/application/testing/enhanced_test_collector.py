@@ -19,10 +19,10 @@ import re
 import subprocess
 import sys
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from dataclasses import dataclass, field
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 try:
     from devsynth.ports.memory_port import MemoryPort
@@ -34,30 +34,33 @@ except ImportError:
 @dataclass
 class TestInfo:
     """Information about a test function or method."""
+
     name: str
     file_path: str
     line_number: int
-    markers: Set[str]
-    docstring: Optional[str] = None
+    markers: set[str]
+    docstring: str | None = None
     is_async: bool = False
-    parameters: List[str] = field(default_factory=list)
-    dependencies: Set[str] = field(default_factory=set)
+    parameters: list[str] = field(default_factory=list)
+    dependencies: set[str] = field(default_factory=set)
 
 
 @dataclass
 class TestCollectionResult:
     """Result of test collection operation."""
-    tests: Dict[str, List[TestInfo]]
+
+    tests: dict[str, list[TestInfo]]
     collection_time: float
     total_tests: int
-    categories: Dict[str, int]
-    markers: Dict[str, int]
+    categories: dict[str, int]
+    markers: dict[str, int]
     cache_used: bool = False
 
 
 @dataclass
 class IsolationIssue:
     """Represents a test isolation issue."""
+
     file_path: str
     line_number: int
     issue_type: str
@@ -69,10 +72,11 @@ class IsolationIssue:
 @dataclass
 class IsolationReport:
     """Report of test isolation analysis."""
+
     total_issues: int
-    issues_by_severity: Dict[str, int]
-    issues_by_type: Dict[str, int]
-    issues: List[IsolationIssue]
+    issues_by_severity: dict[str, int]
+    issues_by_type: dict[str, int]
+    issues: list[IsolationIssue]
     analysis_time: float
     files_analyzed: int
 
@@ -98,18 +102,15 @@ class EnhancedTestCollector:
             r"def test_.*\(",
             r"def .*test.*\(",
             r"class.*Test.*:",
-            r"class.*Suite.*:"
+            r"class.*Suite.*:",
         ]
 
         self.speed_markers = {"fast", "medium", "slow"}
         self.category_markers = {"unit", "integration", "behavior", "performance"}
 
     def collect_tests_by_category(
-        self,
-        category: str,
-        use_cache: bool = True,
-        force_refresh: bool = False
-    ) -> List[str]:
+        self, category: str, use_cache: bool = True, force_refresh: bool = False
+    ) -> list[str]:
         """
         Collect tests by category using enhanced parsing.
 
@@ -135,7 +136,7 @@ class EnhancedTestCollector:
             "unit": "tests/unit",
             "integration": "tests/integration",
             "behavior": "tests/behavior",
-            "performance": "tests/performance"
+            "performance": "tests/performance",
         }
 
         directory = category_dirs.get(category, f"tests/{category}")
@@ -159,7 +160,7 @@ class EnhancedTestCollector:
 
         return tests
 
-    def collect_tests(self, use_cache: bool = True) -> Dict[str, List[str]]:
+    def collect_tests(self, use_cache: bool = True) -> dict[str, list[str]]:
         """
         Collect all tests organized by category.
 
@@ -178,10 +179,8 @@ class EnhancedTestCollector:
         return results
 
     def get_tests_with_markers(
-        self,
-        marker_types: List[str] = None,
-        use_cache: bool = True
-    ) -> Dict[str, Dict[str, List[str]]]:
+        self, marker_types: list[str] = None, use_cache: bool = True
+    ) -> dict[str, dict[str, list[str]]]:
         """
         Get tests with specific markers organized by category.
 
@@ -214,7 +213,7 @@ class EnhancedTestCollector:
 
         return results
 
-    def _collect_behavior_tests(self, directory: str) -> List[str]:
+    def _collect_behavior_tests(self, directory: str) -> list[str]:
         """Collect behavior tests (BDD feature files)."""
         behavior_dir = Path(directory)
         if not behavior_dir.exists():
@@ -223,7 +222,7 @@ class EnhancedTestCollector:
         feature_files = list(behavior_dir.rglob("*.feature"))
         return [str(f) for f in feature_files]
 
-    def _collect_enhanced_tests(self, directory: str) -> List[str]:
+    def _collect_enhanced_tests(self, directory: str) -> list[str]:
         """Collect enhanced tests with advanced analysis."""
         test_dir = Path(directory)
         if not test_dir.exists():
@@ -255,7 +254,9 @@ class EnhancedTestCollector:
             has_pytest_import = "import pytest" in content or "from pytest" in content
 
             # Check for test functions or classes
-            has_test_functions = any(re.search(pattern, content) for pattern in self.test_patterns)
+            has_test_functions = any(
+                re.search(pattern, content) for pattern in self.test_patterns
+            )
 
             # Check for test markers
             has_markers = any(marker in content for marker in self.speed_markers)
@@ -281,7 +282,7 @@ class EnhancedTestCollector:
         except (UnicodeDecodeError, OSError):
             return False
 
-    def _get_from_cache(self, key: str) -> Optional[List[str]]:
+    def _get_from_cache(self, key: str) -> list[str] | None:
         """Get data from cache if available and not expired."""
         cache_file = self.cache_dir / f"{key}.json"
 
@@ -295,7 +296,7 @@ class EnhancedTestCollector:
                 cache_file.unlink()
                 return None
 
-            with open(cache_file, 'r') as f:
+            with open(cache_file) as f:
                 data = json.load(f)
 
             return data.get("tests", [])
@@ -304,18 +305,14 @@ class EnhancedTestCollector:
             cache_file.unlink()
             return None
 
-    def _save_to_cache(self, key: str, tests: List[str]) -> None:
+    def _save_to_cache(self, key: str, tests: list[str]) -> None:
         """Save data to cache."""
         cache_file = self.cache_dir / f"{key}.json"
 
         try:
-            data = {
-                "tests": tests,
-                "timestamp": time.time(),
-                "count": len(tests)
-            }
+            data = {"tests": tests, "timestamp": time.time(), "count": len(tests)}
 
-            with open(cache_file, 'w') as f:
+            with open(cache_file, "w") as f:
                 json.dump(data, f, indent=2)
 
         except OSError:
@@ -323,10 +320,7 @@ class EnhancedTestCollector:
             pass
 
     def _store_collection_results(
-        self,
-        category: str,
-        tests: List[str],
-        collection_time: float
+        self, category: str, tests: list[str], collection_time: float
     ) -> None:
         """Store collection results in memory system."""
         if not self.memory_port:
@@ -339,20 +333,20 @@ class EnhancedTestCollector:
                 collection_time=collection_time,
                 total_tests=len(tests),
                 categories={category: len(tests)},
-                markers=self._analyze_markers(tests)
+                markers=self._analyze_markers(tests),
             )
 
             self.memory_port.store(
                 key=memory_key,
                 data=result.__dict__,
-                metadata={"type": "test_collection", "category": category}
+                metadata={"type": "test_collection", "category": category},
             )
 
         except Exception:
             # Memory storage failed, but don't fail the operation
             pass
 
-    def _analyze_markers(self, test_files: List[str]) -> Dict[str, int]:
+    def _analyze_markers(self, test_files: list[str]) -> dict[str, int]:
         """Analyze markers in test files."""
         marker_counts = {marker: 0 for marker in self.speed_markers}
 
@@ -371,7 +365,7 @@ class EnhancedTestCollector:
         except OSError:
             pass
 
-    def get_cache_info(self) -> Dict[str, Any]:
+    def get_cache_info(self) -> dict[str, Any]:
         """Get information about the cache."""
         cache_files = list(self.cache_dir.glob("tests_*.json"))
         total_size = sum(f.stat().st_size for f in cache_files if f.exists())
@@ -380,5 +374,5 @@ class EnhancedTestCollector:
             "cache_files": len(cache_files),
             "total_size_bytes": total_size,
             "cache_dir": str(self.cache_dir),
-            "ttl_seconds": self.cache_ttl
+            "ttl_seconds": self.cache_ttl,
         }

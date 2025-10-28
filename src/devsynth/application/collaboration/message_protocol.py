@@ -8,7 +8,8 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
+from collections.abc import Mapping
 from uuid import uuid4
 
 
@@ -30,14 +31,14 @@ class Message:
     message_id: str
     message_type: MessageType
     sender: str
-    recipients: List[str]
+    recipients: list[str]
     subject: str
     content: MessagePayload
-    metadata: Optional[MemorySyncPort]
+    metadata: MemorySyncPort | None
     timestamp: datetime
 
-    def to_ordered_dict(self) -> Dict[str, JSONValue]:
-        data: "OrderedDict[str, JSONValue]" = OrderedDict()
+    def to_ordered_dict(self) -> dict[str, JSONValue]:
+        data: OrderedDict[str, JSONValue] = OrderedDict()
         data["message_id"] = self.message_id
         data["message_type"] = self.message_type.value
         data["sender"] = self.sender
@@ -54,8 +55,8 @@ class MessageThread:
     """Group of messages in a conversation."""
 
     thread_id: str
-    participants: List[str]
-    messages: List[str] = field(default_factory=list)
+    participants: list[str]
+    messages: list[str] = field(default_factory=list)
 
     def add_message(self, message: Message) -> None:
         if message.message_id not in self.messages:
@@ -65,12 +66,12 @@ class MessageThread:
 class MessageStore:
     """Simple JSON file-based storage for messages."""
 
-    def __init__(self, storage_file: Optional[str] = None) -> None:
+    def __init__(self, storage_file: str | None = None) -> None:
         self.storage_file = storage_file or os.path.join(
             os.getcwd(), ".devsynth", "messages.json"
         )
         self._ensure_directory_exists()
-        self.messages: Dict[str, Message] = self._load_messages()
+        self.messages: dict[str, Message] = self._load_messages()
 
     # ------------------------------------------------------------------
     # Internal utilities
@@ -85,7 +86,7 @@ class MessageStore:
         if not no_file_logging:
             os.makedirs(directory, exist_ok=True)
 
-    def _load_messages(self) -> Dict[str, Message]:
+    def _load_messages(self) -> dict[str, Message]:
         no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
             "1",
             "true",
@@ -94,7 +95,7 @@ class MessageStore:
         if no_file_logging or not os.path.exists(self.storage_file):
             return {}
         try:
-            with open(self.storage_file, "r", encoding="utf-8") as f:
+            with open(self.storage_file, encoding="utf-8") as f:
                 data = json.load(f)
         except Exception:
             return {}
@@ -104,7 +105,7 @@ class MessageStore:
             try:
                 content = deserialize_message_payload(item.get("content"))
                 metadata_raw = item.get("metadata")
-                metadata_obj: Optional[MemorySyncPort]
+                metadata_obj: MemorySyncPort | None
                 try:
                     metadata_obj = ensure_memory_sync_port(metadata_raw)
                 except Exception:
@@ -143,10 +144,10 @@ class MessageStore:
         self.messages[message.message_id] = message
         self._save_messages()
 
-    def get_all_messages(self) -> List[Message]:
+    def get_all_messages(self) -> list[Message]:
         return self.get_messages()
 
-    def get_messages(self, filters: Optional[MessageFilter] = None) -> List[Message]:
+    def get_messages(self, filters: MessageFilter | None = None) -> list[Message]:
         messages = list(self.messages.values())
         if filters is None:
             return messages
@@ -205,7 +206,7 @@ from .dto import (
     serialize_message_payload,
 )
 
-MESSAGE_TYPE_DEFAULTS: Dict[MessageType, Type[CollaborationDTO]] = {
+MESSAGE_TYPE_DEFAULTS: dict[MessageType, type[CollaborationDTO]] = {
     MessageType.TASK_ASSIGNMENT: TaskDescriptor,
     MessageType.REVIEW_REQUEST: PeerReviewRecord,
     MessageType.DECISION_REQUEST: ConsensusOutcome,
@@ -220,27 +221,27 @@ class MessageProtocol:
 
     def __init__(
         self,
-        store: Optional[MessageStore] = None,
-        memory_manager: Optional[MemoryManager] = None,
+        store: MessageStore | None = None,
+        memory_manager: MemoryManager | None = None,
     ) -> None:
         self.store = store or MessageStore()
-        self.history: List[Message] = self.store.get_messages()
+        self.history: list[Message] = self.store.get_messages()
         self.memory_manager = memory_manager
 
     def send_message(
         self,
         sender: str,
-        recipients: List[str],
-        message_type: Union[MessageType, str],
+        recipients: list[str],
+        message_type: MessageType | str,
         subject: str,
         content: CollaborationPayloadInput,
-        metadata: Optional[Union[MemorySyncPort, Mapping[str, JSONValue]]] = None,
+        metadata: MemorySyncPort | Mapping[str, JSONValue] | None = None,
     ) -> Message:
         """Create and store a message."""
 
         if isinstance(message_type, str):
             message_type = MessageType(message_type)
-        default_payload_type: Type[CollaborationDTO]
+        default_payload_type: type[CollaborationDTO]
         default_payload_type = MESSAGE_TYPE_DEFAULTS.get(message_type, AgentPayload)
         payload = ensure_collaboration_payload(content, default=default_payload_type)
         metadata_obj = ensure_memory_sync_port(metadata)
@@ -297,9 +298,9 @@ class MessageProtocol:
 
     def get_messages(
         self,
-        agent: Optional[str] = None,
-        filters: Optional[MessageFilterInput] = None,
-    ) -> List[Message]:
+        agent: str | None = None,
+        filters: MessageFilterInput | None = None,
+    ) -> list[Message]:
         """Retrieve messages optionally filtered by agent or criteria."""
 
         filter_obj = ensure_message_filter(filters) if filters is not None else None

@@ -48,7 +48,7 @@ class ArchitectureModel(TypedDict):
 
     type: str
     confidence: float
-    components: List[ArchitectureComponent]
+    components: list[ArchitectureComponent]
 
 
 class RequirementRecord(TypedDict):
@@ -73,8 +73,8 @@ class RequirementSpecAlignment(TypedDict):
     total_requirements: int
     total_specifications: int
     matched_requirements: int
-    unmatched_requirements: List[RequirementRecord]
-    unmatched_specifications: List[SpecificationRecord]
+    unmatched_requirements: list[RequirementRecord]
+    unmatched_specifications: list[SpecificationRecord]
     alignment_score: float
 
 
@@ -83,7 +83,7 @@ class SpecCodeAlignment(TypedDict):
 
     total_specifications: int
     implemented_specifications: int
-    unimplemented_specifications: List[SpecificationRecord]
+    unimplemented_specifications: list[SpecificationRecord]
     implementation_score: float
 
 
@@ -93,7 +93,7 @@ class AnalysisIssue(TypedDict, total=False):
     severity: str
     type: str
     description: str
-    details: List[Union[RequirementRecord, SpecificationRecord]]
+    details: list[RequirementRecord | SpecificationRecord]
 
 
 class HealthReport(TypedDict):
@@ -101,7 +101,7 @@ class HealthReport(TypedDict):
 
     project_path: str
     file_count: int
-    languages: List[str]
+    languages: list[str]
     architecture: ArchitectureModel
     requirements_count: int
     specifications_count: int
@@ -110,17 +110,17 @@ class HealthReport(TypedDict):
     requirements_spec_alignment: RequirementSpecAlignment
     spec_code_alignment: SpecCodeAlignment
     health_score: float
-    issues: List[AnalysisIssue]
-    recommendations: List[str]
+    issues: list[AnalysisIssue]
+    recommendations: list[str]
 
 
 class ProjectStateSummary(TypedDict):
     """High-level summary returned by :class:`ProjectStateAnalyzer`."""
 
-    files: Dict[str, IndexedFileInfo]
-    languages: Dict[str, LanguageStats]
+    files: dict[str, IndexedFileInfo]
+    languages: dict[str, LanguageStats]
     architecture: ArchitectureModel
-    components: List[ArchitectureComponent]
+    components: list[ArchitectureComponent]
     health_report: HealthReport
 
 
@@ -144,21 +144,21 @@ class ProjectStateAnalyzer:
             project_path: Path to the project root directory
         """
         self.project_path = project_path
-        self.files: Dict[str, IndexedFileInfo] = {}
+        self.files: dict[str, IndexedFileInfo] = {}
         # ``file_index`` mirrors ``files`` for backwards compatibility with
         # earlier call sites that accessed the attribute directly.
-        self.file_index: Dict[str, IndexedFileInfo] = self.files
-        self.languages: Dict[str, LanguageStats] = {}
-        self.detected_languages: Set[str] = set()
+        self.file_index: dict[str, IndexedFileInfo] = self.files
+        self.languages: dict[str, LanguageStats] = {}
+        self.detected_languages: set[str] = set()
         architecture = _create_unknown_architecture()
         self.architecture: ArchitectureModel = architecture
         self.architecture_model: ArchitectureModel = architecture
-        self.requirements_files: List[str] = []
-        self.specification_files: List[str] = []
-        self.test_files: List[str] = []
-        self.code_files: List[str] = []
-        self.documentation_files: List[str] = []
-        self.config_files: List[str] = []
+        self.requirements_files: list[str] = []
+        self.specification_files: list[str] = []
+        self.test_files: list[str] = []
+        self.code_files: list[str] = []
+        self.documentation_files: list[str] = []
+        self.config_files: list[str] = []
 
     def analyze(self) -> ProjectStateSummary:
         """
@@ -190,9 +190,9 @@ class ProjectStateAnalyzer:
             }
         except Exception as e:
             logger.error(f"ProjectStateAnalyzer.analyze failed: {e}")
-            safe_files: Dict[str, IndexedFileInfo] = {}
-            safe_languages: Dict[str, LanguageStats] = {}
-            safe_components: List[ArchitectureComponent] = []
+            safe_files: dict[str, IndexedFileInfo] = {}
+            safe_languages: dict[str, LanguageStats] = {}
+            safe_components: list[ArchitectureComponent] = []
             safe_architecture: ArchitectureModel = {
                 "type": "unknown",
                 "confidence": 0.0,
@@ -371,7 +371,7 @@ class ProjectStateAnalyzer:
         }
 
         # Count files by language
-        language_counts: Dict[str, int] = {}
+        language_counts: dict[str, int] = {}
         self.detected_languages = set()
 
         for file_info in self.files.values():
@@ -383,7 +383,7 @@ class ProjectStateAnalyzer:
 
         # Store language information in the expected format
         total_files = len(self.files)
-        languages: Dict[str, LanguageStats] = {}
+        languages: dict[str, LanguageStats] = {}
         for lang, count in language_counts.items():
             languages[lang] = {
                 "count": count,
@@ -400,7 +400,7 @@ class ProjectStateAnalyzer:
         logger.info("Inferring project architecture")
 
         # Check for common architecture patterns
-        architecture_patterns: Dict[str, float] = {
+        architecture_patterns: dict[str, float] = {
             "MVC": self._check_mvc_pattern(),
             "Hexagonal": self._check_hexagonal_pattern(),
             "Microservices": self._check_microservices_pattern(),
@@ -592,7 +592,7 @@ class ProjectStateAnalyzer:
         else:
             return 0.0
 
-    def _identify_components(self, architecture: str) -> List[ArchitectureComponent]:
+    def _identify_components(self, architecture: str) -> list[ArchitectureComponent]:
         """
         Identify components based on the inferred architecture.
 
@@ -602,7 +602,7 @@ class ProjectStateAnalyzer:
         Returns:
             List of component dictionaries
         """
-        components: List[ArchitectureComponent] = []
+        components: list[ArchitectureComponent] = []
 
         if architecture == "Hexagonal":
             # Identify domain entities
@@ -708,7 +708,7 @@ class ProjectStateAnalyzer:
         alignment_results["total_specifications"] = len(specifications)
 
         # Match requirements to specifications
-        matched_reqs: List[RequirementRecord] = []
+        matched_reqs: list[RequirementRecord] = []
         for req in requirements:
             matched = False
             for spec in specifications:
@@ -746,18 +746,18 @@ class ProjectStateAnalyzer:
         )
         return alignment_results
 
-    def _extract_requirements(self) -> List[RequirementRecord]:
+    def _extract_requirements(self) -> list[RequirementRecord]:
         """
         Extract requirements from requirements files.
 
         Returns:
             List of requirement dictionaries
         """
-        requirements: List[RequirementRecord] = []
+        requirements: list[RequirementRecord] = []
 
         for req_file in self.requirements_files:
             try:
-                with open(os.path.join(self.project_path, req_file), "r") as f:
+                with open(os.path.join(self.project_path, req_file)) as f:
                     content = f.read()
 
                 # Simple extraction of requirements (can be enhanced with NLP)
@@ -793,18 +793,18 @@ class ProjectStateAnalyzer:
 
         return requirements
 
-    def _extract_specifications(self) -> List[SpecificationRecord]:
+    def _extract_specifications(self) -> list[SpecificationRecord]:
         """
         Extract specifications from specification files.
 
         Returns:
             List of specification dictionaries
         """
-        specifications: List[SpecificationRecord] = []
+        specifications: list[SpecificationRecord] = []
 
         for spec_file in self.specification_files:
             try:
-                with open(os.path.join(self.project_path, spec_file), "r") as f:
+                with open(os.path.join(self.project_path, spec_file)) as f:
                     content = f.read()
 
                 # Simple extraction of specifications (can be enhanced with NLP)
@@ -896,7 +896,7 @@ class ProjectStateAnalyzer:
         alignment_results["total_specifications"] = len(specifications)
 
         # For each specification, check if it's implemented in code
-        implemented_specs: List[SpecificationRecord] = []
+        implemented_specs: list[SpecificationRecord] = []
         for spec in specifications:
             if self._is_specification_implemented(spec):
                 implemented_specs.append(spec)
@@ -939,7 +939,7 @@ class ProjectStateAnalyzer:
         # Check if key terms appear in code files
         for code_file in self.code_files:
             try:
-                with open(os.path.join(self.project_path, code_file), "r") as f:
+                with open(os.path.join(self.project_path, code_file)) as f:
                     content = f.read().lower()
 
                 # Count how many key terms appear in the code
@@ -1011,7 +1011,7 @@ class ProjectStateAnalyzer:
         self,
         req_spec_alignment: RequirementSpecAlignment,
         spec_code_alignment: SpecCodeAlignment,
-    ) -> List[AnalysisIssue]:
+    ) -> list[AnalysisIssue]:
         """
         Identify issues in the project.
 
@@ -1022,7 +1022,7 @@ class ProjectStateAnalyzer:
         Returns:
             List of issue dictionaries
         """
-        issues: List[AnalysisIssue] = []
+        issues: list[AnalysisIssue] = []
 
         # Check for missing requirements files
         if not self.requirements_files:
@@ -1082,7 +1082,7 @@ class ProjectStateAnalyzer:
         self,
         req_spec_alignment: RequirementSpecAlignment,
         spec_code_alignment: SpecCodeAlignment,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Generate recommendations based on the analysis.
 

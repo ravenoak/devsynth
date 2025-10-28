@@ -34,13 +34,13 @@ class IngestCLIOptions:
     verbose: bool
     validate_only: bool
     yes: bool
-    priority: Optional[str]
+    priority: str | None
     bridge: UXBridge
     auto_phase_transitions: bool
     non_interactive: bool
     defaults: bool
 
-    def to_kwargs(self) -> Dict[str, object]:
+    def to_kwargs(self) -> dict[str, object]:
         """Return a shallow mapping suitable for ``_ingest_cmd``."""
 
         return {
@@ -58,7 +58,7 @@ class IngestCLIOptions:
 
 
 def ingest_cmd(
-    manifest_path: Optional[Path] = typer.Argument(
+    manifest_path: Path | None = typer.Argument(
         None, help="Path to the project manifest"
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Perform a dry run"),
@@ -67,8 +67,8 @@ def ingest_cmd(
         False, "--validate-only", help="Only validate the manifest"
     ),
     *,
-    yes: Optional[bool] = None,
-    priority: Optional[str] = typer.Option(
+    yes: bool | None = None,
+    priority: str | None = typer.Option(
         None, "--priority", help="Persist project priority"
     ),
     auto_phase_transitions: bool = typer.Option(
@@ -79,11 +79,11 @@ def ingest_cmd(
     defaults: bool = typer.Option(
         False, "--defaults", help="Use default values and skip prompts"
     ),
-    non_interactive: Optional[bool] = typer.Option(
+    non_interactive: bool | None = typer.Option(
         None, "--non-interactive", help="Run without interactive prompts"
     ),
-    bridge: Optional[UXBridge] = typer.Option(None, hidden=True),
-    research_artifact: Optional[List[Path]] = typer.Option(
+    bridge: UXBridge | None = typer.Option(None, hidden=True),
+    research_artifact: list[Path] | None = typer.Option(
         None,
         "--research-artifact",
         help=(
@@ -91,7 +91,7 @@ def ingest_cmd(
             "Specify multiple times to ingest several artefacts."
         ),
     ),
-    verify_research_hash: Optional[List[str]] = typer.Option(
+    verify_research_hash: list[str] | None = typer.Option(
         None,
         "--verify-research-hash",
         help=(
@@ -172,10 +172,10 @@ def ingest_cmd(
             try:
                 published_at = datetime.datetime.fromtimestamp(
                     artifact_path.stat().st_mtime,
-                    tz=datetime.timezone.utc,
+                    tz=datetime.UTC,
                 )
             except OSError:
-                published_at = datetime.datetime.now(datetime.timezone.utc)
+                published_at = datetime.datetime.now(datetime.UTC)
 
             artifact = graph_adapter.ingest_research_artifact_from_path(
                 artifact_path,

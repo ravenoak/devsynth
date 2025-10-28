@@ -11,7 +11,8 @@ project.
 """
 
 import threading
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Optional
+from collections.abc import Callable, Sequence
 
 # Lazy import: resolved in __init__ to allow tests to stub dearpygui safely
 # and to avoid loading the native extension during test collection.
@@ -41,8 +42,8 @@ class DearPyGUIProgressIndicator(ProgressIndicator):
         self,
         *,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         self._current += advance
         if description is not None:
@@ -127,8 +128,8 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         formatted = self._format_for_output(message)
@@ -218,7 +219,7 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
         self,
         cmd: Callable[..., Any],
         *,
-        description: Optional[str] = None,
+        description: str | None = None,
         cancellable: bool = False,
         message_type: str = "error",
         progress_hook: Callable[[ProgressIndicator], None] | None = None,

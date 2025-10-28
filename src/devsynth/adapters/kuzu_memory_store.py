@@ -43,9 +43,9 @@ class KuzuMemoryStore(MemoryStore):
 
     def __init__(
         self,
-        persist_directory: Optional[str] = None,
+        persist_directory: str | None = None,
         use_provider_system: bool = True,
-        provider_type: Optional[str] = None,
+        provider_type: str | None = None,
         collection_name: str = "devsynth_artifacts",
     ) -> None:
         """Initialize a KuzuMemoryStore with the given parameters.
@@ -58,7 +58,7 @@ class KuzuMemoryStore(MemoryStore):
             provider_type: Type of provider to use for embeddings.
             collection_name: Name of the collection to use for vectors.
         """
-        self._temp_dir: Optional[str] = None
+        self._temp_dir: str | None = None
 
         # Refresh settings to ensure environment overrides are respected
         current_settings = settings_module.get_settings()
@@ -137,7 +137,7 @@ class KuzuMemoryStore(MemoryStore):
 
         # Track active transaction contexts for coordinated commit/rollback
         # across the underlying item and vector stores.
-        self._txn_contexts: Dict[str, Dict[str, Any]] = {}
+        self._txn_contexts: dict[str, dict[str, Any]] = {}
 
     def _get_embedding(self, text: str):
         if self.use_provider_system:
@@ -168,7 +168,7 @@ class KuzuMemoryStore(MemoryStore):
         if tx_id in self._txn_contexts:
             raise MemoryStoreError(f"Transaction {tx_id} already active")
 
-        ctxs: Dict[str, Any] = {}
+        ctxs: dict[str, Any] = {}
         if hasattr(self._store, "transaction"):
             ctxs["store"] = self._store.transaction()
             ctxs["store"].__enter__()
@@ -305,10 +305,10 @@ class KuzuMemoryStore(MemoryStore):
                 )
             raise MemoryStoreError(f"Failed to store item {item.id}: {e}") from e
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         return self._store.retrieve(item_id)
 
-    def search(self, query: Dict[str, Any]):
+    def search(self, query: dict[str, Any]):
         query_text = query.get("query")
         top_k = query.get("top_k", 5)
         embedding = self._get_embedding(str(query_text))
@@ -375,9 +375,9 @@ class KuzuMemoryStore(MemoryStore):
     def create_ephemeral(
         cls,
         use_provider_system: bool = True,
-        provider_type: Optional[str] = None,
+        provider_type: str | None = None,
         collection_name: str = "devsynth_artifacts",
-    ) -> "KuzuMemoryStore":
+    ) -> KuzuMemoryStore:
         """Create an ephemeral ``KuzuMemoryStore`` for tests.
 
         The settings are reloaded so that environment-variable overrides are
@@ -484,7 +484,7 @@ class KuzuMemoryStore(MemoryStore):
         if temp_dir:
             self._temp_dir = None
 
-    def get_all_items(self) -> List[MemoryItem]:
+    def get_all_items(self) -> list[MemoryItem]:
         """Return all stored items."""
 
         return self._store.get_all_items()
@@ -495,7 +495,7 @@ class KuzuMemoryStore(MemoryStore):
 
         return self.vector.store_vector(vector)
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """Retrieve a stored vector by ID."""
 
         return self.vector.retrieve_vector(vector_id)
@@ -505,7 +505,7 @@ class KuzuMemoryStore(MemoryStore):
 
         return self.vector.delete_vector(vector_id)
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all stored vectors."""
 
         return self.vector.get_all_vectors()

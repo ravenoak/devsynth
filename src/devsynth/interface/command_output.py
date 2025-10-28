@@ -35,7 +35,7 @@ class CommandOutput:
     across all DevSynth commands and interfaces.
     """
 
-    def __init__(self, console: Optional[Console] = None):
+    def __init__(self, console: Console | None = None):
         """Initialize the command output formatter.
 
         Args:
@@ -56,7 +56,7 @@ class CommandOutput:
     def format_message(
         self,
         message: str,
-        message_type: Optional[Union[str, MessageType]] = None,
+        message_type: str | MessageType | None = None,
         highlight: bool = False,
     ) -> Any:
         """Format a message based on its type and highlight flag.
@@ -78,7 +78,7 @@ class CommandOutput:
     def display_message(
         self,
         message: str,
-        message_type: Optional[Union[str, MessageType]] = None,
+        message_type: str | MessageType | None = None,
         highlight: bool = False,
     ) -> None:
         """Display a formatted message.
@@ -105,7 +105,7 @@ class CommandOutput:
             print(str(formatted))
 
     def format_error(
-        self, error: Union[Exception, str], include_suggestions: bool = True
+        self, error: Exception | str, include_suggestions: bool = True
     ) -> Any:
         """Format an error message with optional suggestions.
 
@@ -132,7 +132,7 @@ class CommandOutput:
         return self.format_message(error_str, MessageType.ERROR)
 
     def display_error(
-        self, error: Union[Exception, str], include_suggestions: bool = True
+        self, error: Exception | str, include_suggestions: bool = True
     ) -> None:
         """Display a formatted error message with optional suggestions.
 
@@ -232,7 +232,7 @@ class CommandOutput:
         else:
             print(str(formatted))
 
-    def format_table(self, data: Dict[str, Any], title: Optional[str] = None) -> Any:
+    def format_table(self, data: dict[str, Any], title: str | None = None) -> Any:
         """Format a dictionary as a table.
 
         Args:
@@ -244,7 +244,7 @@ class CommandOutput:
         """
         return self.formatter.format_structured(data, OutputFormat.TABLE, title)
 
-    def display_table(self, data: Dict[str, Any], title: Optional[str] = None) -> None:
+    def display_table(self, data: dict[str, Any], title: str | None = None) -> None:
         """Display a formatted table.
 
         Args:
@@ -258,7 +258,7 @@ class CommandOutput:
         else:
             print(str(formatted))
 
-    def format_list(self, items: List[Any], title: Optional[str] = None) -> Any:
+    def format_list(self, items: list[Any], title: str | None = None) -> Any:
         """Format a list of items.
 
         Args:
@@ -270,7 +270,7 @@ class CommandOutput:
         """
         return self.formatter._list_to_rich(items, title)
 
-    def display_list(self, items: List[Any], title: Optional[str] = None) -> None:
+    def display_list(self, items: list[Any], title: str | None = None) -> None:
         """Display a formatted list.
 
         Args:
@@ -284,7 +284,7 @@ class CommandOutput:
         else:
             print(str(formatted))
 
-    def format_json(self, data: Any, title: Optional[str] = None) -> Any:
+    def format_json(self, data: Any, title: str | None = None) -> Any:
         """Format data as JSON.
 
         Args:
@@ -296,7 +296,7 @@ class CommandOutput:
         """
         return self.formatter.format_structured(data, OutputFormat.JSON, title)
 
-    def display_json(self, data: Any, title: Optional[str] = None) -> None:
+    def display_json(self, data: Any, title: str | None = None) -> None:
         """Display formatted JSON.
 
         Args:
@@ -310,7 +310,7 @@ class CommandOutput:
         else:
             print(str(formatted))
 
-    def format_yaml(self, data: Any, title: Optional[str] = None) -> Any:
+    def format_yaml(self, data: Any, title: str | None = None) -> Any:
         """Format data as YAML.
 
         Args:
@@ -322,7 +322,7 @@ class CommandOutput:
         """
         return self.formatter.format_structured(data, OutputFormat.YAML, title)
 
-    def display_yaml(self, data: Any, title: Optional[str] = None) -> None:
+    def display_yaml(self, data: Any, title: str | None = None) -> None:
         """Display formatted YAML.
 
         Args:
@@ -338,9 +338,9 @@ class CommandOutput:
 
     def format_command_result(
         self,
-        result: Dict[str, Any],
-        format_name: Optional[str] = None,
-        title: Optional[str] = None,
+        result: dict[str, Any],
+        format_name: str | None = None,
+        title: str | None = None,
     ) -> Any:
         """Format a command result in the specified format.
 
@@ -359,9 +359,9 @@ class CommandOutput:
 
     def display_command_result(
         self,
-        result: Dict[str, Any],
-        format_name: Optional[str] = None,
-        title: Optional[str] = None,
+        result: dict[str, Any],
+        format_name: str | None = None,
+        title: str | None = None,
     ) -> None:
         """Display a formatted command result.
 

@@ -15,7 +15,8 @@ import uuid
 from collections.abc import Mapping as MappingABC
 from dataclasses import replace
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from collections.abc import Mapping, Sequence
 
 from devsynth.application.edrr.edrr_phase_transitions import (
     MetricType,
@@ -40,11 +41,11 @@ class ConsensusBuildingMixin:
     """Mixin class providing consensus building functionality."""
 
     def build_consensus(
-        self, task: Dict[str, Any], phase: Optional[Phase] = None
+        self, task: dict[str, Any], phase: Phase | None = None
     ) -> ConsensusOutcome:
         """Build consensus among team members with transactional safety."""
 
-        stores: List[str] = []
+        stores: list[str] = []
         if hasattr(self, "memory_manager") and isinstance(
             self.memory_manager, MemoryManager
         ):
@@ -60,7 +61,7 @@ class ConsensusBuildingMixin:
         return self._build_consensus_inner(task, phase)
 
     def _build_consensus_inner(
-        self, task: Dict[str, Any], phase: Optional[Phase] = None
+        self, task: dict[str, Any], phase: Phase | None = None
     ) -> ConsensusOutcome:
         """Internal implementation of consensus building."""
         if "id" not in task:
@@ -140,15 +141,15 @@ class ConsensusBuildingMixin:
         self,
         task: Mapping[str, Any],
         *,
-        keywords: Optional[set[str]] = None,
-    ) -> List[AgentOpinionRecord]:
+        keywords: set[str] | None = None,
+    ) -> list[AgentOpinionRecord]:
         """Gather the latest opinion from each agent for the given task."""
 
         task_id = task.get("id")
         if task_id is None:
             return []
 
-        records: List[AgentOpinionRecord] = []
+        records: list[AgentOpinionRecord] = []
         for agent in getattr(self, "agents", []):
             record = self._build_agent_opinion_record(
                 agent,
@@ -164,8 +165,8 @@ class ConsensusBuildingMixin:
         agent: Any,
         task_id: str,
         *,
-        keywords: Optional[set[str]] = None,
-    ) -> Optional[AgentOpinionRecord]:
+        keywords: set[str] | None = None,
+    ) -> AgentOpinionRecord | None:
         """Construct an :class:`AgentOpinionRecord` for an agent and task."""
 
         messages = self.get_messages(
@@ -180,7 +181,7 @@ class ConsensusBuildingMixin:
         opinion = content.get("opinion")
         rationale = content.get("rationale")
         timestamp = self._normalize_timestamp(latest_message.get("timestamp"))
-        weight: Optional[float] = None
+        weight: float | None = None
         if keywords is not None:
             weight = self._calculate_expertise_weight(agent, keywords)
 
@@ -204,7 +205,7 @@ class ConsensusBuildingMixin:
             return timestamp.isoformat()  # type: ignore[no-any-return]
         return str(timestamp)
 
-    def _normalize_timestamp(self, timestamp: Any) -> Optional[str]:
+    def _normalize_timestamp(self, timestamp: Any) -> str | None:
         """Convert message timestamps into ISO-formatted strings."""
 
         if timestamp is None:
@@ -215,9 +216,9 @@ class ConsensusBuildingMixin:
 
     def _identify_conflicts(
         self,
-        task: Dict[str, Any],
-        opinions: Optional[Sequence[AgentOpinionRecord]] = None,
-    ) -> List[ConflictRecord]:
+        task: dict[str, Any],
+        opinions: Sequence[AgentOpinionRecord] | None = None,
+    ) -> list[ConflictRecord]:
         """
         Identify conflicts in agent opinions for a task.
 
@@ -232,7 +233,7 @@ class ConsensusBuildingMixin:
         if opinions is None:
             opinions = self._collect_agent_opinion_records(task)
 
-        conflicts: List[ConflictRecord] = []
+        conflicts: list[ConflictRecord] = []
         opinion_map = {
             record.agent_id: record for record in opinions if record.agent_id
         }
@@ -355,7 +356,7 @@ class ConsensusBuildingMixin:
 
     def _generate_conflict_resolution_synthesis(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         conflicts: Sequence[ConflictRecord],
         agent_opinions: Sequence[AgentOpinionRecord],
     ) -> SynthesisArtifact:
@@ -370,7 +371,7 @@ class ConsensusBuildingMixin:
             Synthesis resolving the conflicts
         """
         # Group conflicts by agent
-        agent_conflicts: Dict[str, List[ConflictRecord]] = {}
+        agent_conflicts: dict[str, list[ConflictRecord]] = {}
         for conflict in conflicts:
             for agent_id in (conflict.agent_a, conflict.agent_b):
                 if not agent_id:
@@ -378,7 +379,7 @@ class ConsensusBuildingMixin:
                 agent_conflicts.setdefault(agent_id, []).append(conflict)
 
         # Calculate expertise weights for each agent
-        expertise_weights: Dict[str, float] = {}
+        expertise_weights: dict[str, float] = {}
         for agent in self.agents:
             task_text = (
                 (task.get("description", "") or "")
@@ -391,7 +392,7 @@ class ConsensusBuildingMixin:
             )
 
         # Identify key points from each opinion, weighted by expertise
-        key_points: List[Dict[str, Any]] = []
+        key_points: list[dict[str, Any]] = []
         opinion_map = {
             record.agent_id: record for record in agent_opinions if record.agent_id
         }
@@ -452,7 +453,7 @@ class ConsensusBuildingMixin:
             readability_score=self._calculate_readability_score(synthesis_text),
         )
 
-    def _extract_key_points(self, text: str) -> List[str]:
+    def _extract_key_points(self, text: str) -> list[str]:
         """
         Extract key points from text.
 
@@ -521,7 +522,7 @@ class ConsensusBuildingMixin:
         return " ".join(words[:3])
 
     def _identify_majority_opinion(
-        self, agent_opinions: Dict[str, Dict[str, Any]]
+        self, agent_opinions: dict[str, dict[str, Any]]
     ) -> str:
         """
         Identify the majority opinion among agents.
@@ -562,7 +563,7 @@ class ConsensusBuildingMixin:
         }
 
         # Sum weighted support for each opinion
-        weighted_counts: Dict[str, float] = {}
+        weighted_counts: dict[str, float] = {}
         opinion_lookup = {
             record.agent_id: record for record in agent_opinions if record.agent_id
         }
@@ -626,7 +627,7 @@ class ConsensusBuildingMixin:
         return weight
 
     def _track_decision(
-        self, task: Dict[str, Any], consensus_result: ConsensusOutcome
+        self, task: dict[str, Any], consensus_result: ConsensusOutcome
     ) -> None:
         """
         Track a decision made through consensus building.
@@ -641,7 +642,7 @@ class ConsensusBuildingMixin:
             or f"decision_{task['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         )
 
-        formatted_opinions: Dict[str, Dict[str, Any]] = {}
+        formatted_opinions: dict[str, dict[str, Any]] = {}
         for record in consensus_result.agent_opinions:
             if not record.agent_id:
                 continue
@@ -652,7 +653,7 @@ class ConsensusBuildingMixin:
                 "weight": record.weight,
             }
 
-        decision: Dict[str, Any] = {
+        decision: dict[str, Any] = {
             "id": decision_id,
             "task_id": task.get("id"),
             "task_title": task.get("title", "Untitled"),
@@ -732,7 +733,7 @@ class ConsensusBuildingMixin:
         # Log decision tracking
         self.logger.info(f"Tracked decision {decision_id} for task {task['id']}")
 
-    def _generate_agent_opinions(self, task: Dict[str, Any]) -> None:
+    def _generate_agent_opinions(self, task: dict[str, Any]) -> None:
         """
         Generate opinions from agents for a task.
 
@@ -768,7 +769,7 @@ class ConsensusBuildingMixin:
                 metadata={"task_id": task["id"]},
             )
 
-    def _calculate_readability_score(self, text: str) -> Dict[str, float]:
+    def _calculate_readability_score(self, text: str) -> dict[str, float]:
         """
         Calculate readability metrics for text.
 
@@ -845,7 +846,7 @@ class ConsensusBuildingMixin:
         }
 
     def _generate_stakeholder_explanation(
-        self, task: Dict[str, Any], consensus_result: ConsensusOutcome
+        self, task: dict[str, Any], consensus_result: ConsensusOutcome
     ) -> str:
         """
         Generate an explanation of the consensus result for stakeholders.
@@ -900,7 +901,7 @@ class ConsensusBuildingMixin:
 
         return explanation
 
-    def get_tracked_decision(self, decision_id: str) -> Optional[Dict[str, Any]]:
+    def get_tracked_decision(self, decision_id: str) -> dict[str, Any] | None:
         """
         Get a tracked decision by ID.
 
@@ -933,7 +934,7 @@ class ConsensusBuildingMixin:
         return True
 
     def add_decision_implementation_details(
-        self, decision_id: str, details: Dict[str, Any]
+        self, decision_id: str, details: dict[str, Any]
     ) -> bool:
         """
         Add implementation details to a tracked decision.
@@ -952,7 +953,7 @@ class ConsensusBuildingMixin:
 
         return True
 
-    def query_decisions(self, **kwargs) -> List[Dict[str, Any]]:
+    def query_decisions(self, **kwargs) -> list[dict[str, Any]]:
         """
         Query tracked decisions with filters.
 
@@ -1007,7 +1008,7 @@ class ConsensusBuildingMixin:
 
         return (has_synthesis or has_majority_opinion) and has_implementation
 
-    def summarize_voting_result(self, voting_result: Dict[str, Any]) -> str:
+    def summarize_voting_result(self, voting_result: dict[str, Any]) -> str:
         """Create a short human readable summary of a voting result."""
 
         if not voting_result:
@@ -1050,7 +1051,7 @@ class ConsensusBuildingMixin:
         return summary
 
     def _store_voting_summary(
-        self, summary: str, voting_result: Dict[str, Any]
+        self, summary: str, voting_result: dict[str, Any]
     ) -> None:
         """Persist a voting summary to memory if available."""
         if (
@@ -1084,7 +1085,7 @@ class ConsensusBuildingMixin:
             pass
 
     def summarize_consensus_result(
-        self, consensus_result: Union[ConsensusOutcome, Mapping[str, Any], None]
+        self, consensus_result: ConsensusOutcome | Mapping[str, Any] | None
     ) -> str:
         """Generate a concise summary from a consensus result."""
 

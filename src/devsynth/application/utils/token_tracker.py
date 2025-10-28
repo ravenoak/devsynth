@@ -99,7 +99,7 @@ class TokenTracker:
         words = text.split()
         return len(words)
 
-    def count_message_tokens(self, message: Dict[str, str]) -> int:
+    def count_message_tokens(self, message: dict[str, str]) -> int:
         """Count the number of tokens in a message.
 
         Args:
@@ -116,7 +116,7 @@ class TokenTracker:
         # Each message has a ~4 token overhead
         return role_tokens + content_tokens + 4
 
-    def count_conversation_tokens(self, messages: List[Dict[str, str]]) -> int:
+    def count_conversation_tokens(self, messages: list[dict[str, str]]) -> int:
         """Count the number of tokens in a conversation.
 
         Args:
@@ -135,8 +135,8 @@ class TokenTracker:
         return total_tokens + 3
 
     def prune_conversation(
-        self, messages: List[Dict[str, str]], max_tokens: int
-    ) -> List[Dict[str, str]]:
+        self, messages: list[dict[str, str]], max_tokens: int
+    ) -> list[dict[str, str]]:
         """Prune a conversation to fit within a token limit.
 
         The pruning strategy keeps the system message (if present) and removes older messages

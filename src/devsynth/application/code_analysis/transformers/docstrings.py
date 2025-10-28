@@ -13,7 +13,7 @@ from .types import ModuleNode, StatementList
 class DocstringSpec:
     """Description of a docstring insertion target."""
 
-    target: Optional[str]
+    target: str | None
     docstring: str
 
 

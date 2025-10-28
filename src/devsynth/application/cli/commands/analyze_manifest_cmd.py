@@ -11,11 +11,11 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def analyze_manifest_cmd(
-    path: Optional[str] = None,
+    path: str | None = None,
     update: bool = False,
     prune: bool = False,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Dummy implementation for analyze-manifest."""
     (bridge or globals()["bridge"]).print(

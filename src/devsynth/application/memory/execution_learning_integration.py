@@ -10,11 +10,16 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from .execution_trajectory_collector import ExecutionTrajectoryCollector, ExecutionTrace
-from .execution_learning_algorithm import ExecutionLearningAlgorithm, PatternLibrary
-from .semantic_understanding_engine import SemanticUnderstandingEngine
-from ...domain.models.memory import MemeticUnit, MemeticMetadata, MemeticSource, CognitiveType
+from ...domain.models.memory import (
+    CognitiveType,
+    MemeticMetadata,
+    MemeticSource,
+    MemeticUnit,
+)
 from ...logging_setup import DevSynthLogger
+from .execution_learning_algorithm import ExecutionLearningAlgorithm, PatternLibrary
+from .execution_trajectory_collector import ExecutionTrace, ExecutionTrajectoryCollector
+from .semantic_understanding_engine import SemanticUnderstandingEngine
 
 logger = DevSynthLogger(__name__)
 
@@ -35,17 +40,23 @@ class ExecutionLearningIntegration:
         self.pattern_library = PatternLibrary()
 
         # Learning state
-        self.learning_history: List[Dict[str, Any]] = []
-        self.understanding_cache: Dict[str, Dict[str, Any]] = {}
+        self.learning_history: list[dict[str, Any]] = []
+        self.understanding_cache: dict[str, dict[str, Any]] = {}
 
-        logger.info(f"Execution learning integration initialized (max_trajectories: {max_trajectories})")
+        logger.info(
+            f"Execution learning integration initialized (max_trajectories: {max_trajectories})"
+        )
 
-    def learn_from_code_execution(self, code_snippets: List[str], context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def learn_from_code_execution(
+        self, code_snippets: list[str], context: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Learn from code execution and enhance understanding."""
         context = context or {}
 
         # Phase 1: Collect execution trajectories
-        trajectories = self.trajectory_collector.collect_python_trajectories(code_snippets)
+        trajectories = self.trajectory_collector.collect_python_trajectories(
+            code_snippets
+        )
 
         if not trajectories:
             return {"error": "No execution trajectories collected"}
@@ -54,11 +65,19 @@ class ExecutionLearningIntegration:
         learning_results = self.learning_algorithm.train_on_trajectories(trajectories)
 
         # Phase 3: Build semantic understanding
-        semantic_understandings = self.learning_algorithm._build_semantic_understanding(trajectories, learning_results["patterns"])
+        semantic_understandings = self.learning_algorithm._build_semantic_understanding(
+            trajectories, learning_results["patterns"]
+        )
 
         # Phase 4: Create Memetic Units for storage
-        episodic_units = self.trajectory_collector.create_memetic_units_from_trajectories(trajectories)
-        learned_units = self.learning_algorithm.create_memetic_units_from_learning(learning_results)
+        episodic_units = (
+            self.trajectory_collector.create_memetic_units_from_trajectories(
+                trajectories
+            )
+        )
+        learned_units = self.learning_algorithm.create_memetic_units_from_learning(
+            learning_results
+        )
 
         all_units = episodic_units + learned_units
 
@@ -66,7 +85,9 @@ class ExecutionLearningIntegration:
         self._store_learning_results(all_units, context)
 
         # Phase 6: Update enhanced knowledge graph
-        self._enhance_knowledge_graph_with_learning(trajectories, learning_results, context)
+        self._enhance_knowledge_graph_with_learning(
+            trajectories, learning_results, context
+        )
 
         # Phase 7: Record learning session
         learning_session = {
@@ -76,7 +97,7 @@ class ExecutionLearningIntegration:
             "patterns_learned": len(learning_results["patterns"]),
             "understandings_built": len(semantic_understandings),
             "memetic_units_created": len(all_units),
-            "validation_score": learning_results.get("validation_score", 0.0)
+            "validation_score": learning_results.get("validation_score", 0.0),
         }
 
         self.learning_history.append(learning_session)
@@ -86,13 +107,17 @@ class ExecutionLearningIntegration:
             "learning_session": learning_session,
             "patterns_learned": list(learning_results["patterns"].keys()),
             "validation_score": learning_results.get("validation_score", 0.0),
-            "memetic_units_stored": len(all_units)
+            "memetic_units_stored": len(all_units),
         }
 
-        logger.info(f"Learning complete: {result['patterns_learned']} patterns, {result['validation_score']:.2f} validation")
+        logger.info(
+            f"Learning complete: {result['patterns_learned']} patterns, {result['validation_score']:.2f} validation"
+        )
         return result
 
-    def enhance_code_understanding(self, code: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def enhance_code_understanding(
+        self, code: str, context: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Enhance understanding of code using learned patterns."""
         context = context or {}
 
@@ -119,13 +144,13 @@ class ExecutionLearningIntegration:
                     "pattern_id": p.pattern_id,
                     "pattern_type": p.pattern_type,
                     "confidence": p.confidence,
-                    "frequency": p.frequency
+                    "frequency": p.frequency,
                 }
                 for p in matching_patterns[:5]  # Top 5 patterns
             ],
             "understanding_confidence": self._calculate_overall_understanding_confidence(
                 matching_patterns, behavior_prediction, behavioral_intent
-            )
+            ),
         }
 
         # Cache the understanding
@@ -133,7 +158,9 @@ class ExecutionLearningIntegration:
 
         return enhanced_understanding
 
-    def test_semantic_robustness(self, original_code: str, mutated_code: str) -> Dict[str, Any]:
+    def test_semantic_robustness(
+        self, original_code: str, mutated_code: str
+    ) -> dict[str, Any]:
         """Test semantic robustness using execution learning."""
         # Analyze both versions
         original_understanding = self.enhance_code_understanding(original_code)
@@ -152,11 +179,15 @@ class ExecutionLearningIntegration:
             "mutated_understanding": mutated_understanding,
             "semantic_similarity": semantic_preserved,
             "understanding_preserved": understanding_preserved,
-            "performance_drop": self._calculate_performance_drop(original_understanding, mutated_understanding),
-            "validation_method": "semantic_preservation_test"
+            "performance_drop": self._calculate_performance_drop(
+                original_understanding, mutated_understanding
+            ),
+            "validation_method": "semantic_preservation_test",
         }
 
-    def _store_learning_results(self, units: List[MemeticUnit], context: Dict[str, Any]) -> None:
+    def _store_learning_results(
+        self, units: list[MemeticUnit], context: dict[str, Any]
+    ) -> None:
         """Store learning results in memory system."""
         # Store in appropriate memory layers
         for unit in units:
@@ -172,16 +203,25 @@ class ExecutionLearningIntegration:
                         "memetic_metadata": unit.to_dict(),
                         "learning_context": context,
                         "cognitive_type": unit.metadata.cognitive_type.value,
-                        "source": unit.metadata.source.value
-                    }
+                        "source": unit.metadata.source.value,
+                    },
                 )
 
-                logger.debug(f"Stored Memetic Unit {unit.metadata.unit_id} in {layer_name}")
+                logger.debug(
+                    f"Stored Memetic Unit {unit.metadata.unit_id} in {layer_name}"
+                )
 
             except Exception as e:
-                logger.error(f"Failed to store Memetic Unit {unit.metadata.unit_id}: {e}")
+                logger.error(
+                    f"Failed to store Memetic Unit {unit.metadata.unit_id}: {e}"
+                )
 
-    def _enhance_knowledge_graph_with_learning(self, trajectories: List[ExecutionTrace], learning_results: Dict[str, Any], context: Dict[str, Any]) -> None:
+    def _enhance_knowledge_graph_with_learning(
+        self,
+        trajectories: list[ExecutionTrace],
+        learning_results: dict[str, Any],
+        context: dict[str, Any],
+    ) -> None:
         """Enhance knowledge graph with execution learning insights."""
         from .enhanced_knowledge_graph import Entity, IntentLink
 
@@ -196,12 +236,12 @@ class ExecutionLearningIntegration:
                     "pattern_type": pattern.pattern_type,
                     "confidence": pattern.confidence,
                     "frequency": pattern.frequency,
-                    "expected_outcomes": pattern.expected_outcomes
+                    "expected_outcomes": pattern.expected_outcomes,
                 },
                 business_context={
                     "learning_method": "execution_trajectory_analysis",
-                    "validation_score": learning_results.get("validation_score", 0.0)
-                }
+                    "validation_score": learning_results.get("validation_score", 0.0),
+                },
             )
 
             self.enhanced_graph.add_entity(pattern_entity)
@@ -217,20 +257,22 @@ class ExecutionLearningIntegration:
                 properties={
                     "understanding_id": understanding_id,
                     "confidence_score": understanding.confidence_score,
-                    "semantic_components": understanding.semantic_components
-                }
+                    "semantic_components": understanding.semantic_components,
+                },
             )
 
             self.enhanced_graph.add_entity(understanding_entity)
 
             # Link to relevant patterns
             for pattern in understanding.behavioral_patterns:
-                self.enhanced_graph.add_relationship({
-                    "source_id": code_entity_id,
-                    "target_id": f"pattern_{pattern.pattern_id}",
-                    "type": "IMPLEMENTED_BY",
-                    "strength": pattern.confidence
-                })
+                self.enhanced_graph.add_relationship(
+                    {
+                        "source_id": code_entity_id,
+                        "target_id": f"pattern_{pattern.pattern_id}",
+                        "type": "IMPLEMENTED_BY",
+                        "strength": pattern.confidence,
+                    }
+                )
 
     def _route_to_memory_layer(self, cognitive_type: CognitiveType) -> str:
         """Route Memetic Unit to appropriate memory layer."""
@@ -238,12 +280,14 @@ class ExecutionLearningIntegration:
             CognitiveType.WORKING: "working_memory",
             CognitiveType.EPISODIC: "episodic_buffer",
             CognitiveType.SEMANTIC: "semantic_store",
-            CognitiveType.PROCEDURAL: "procedural_archive"
+            CognitiveType.PROCEDURAL: "procedural_archive",
         }
 
         return layer_mapping.get(cognitive_type, "working_memory")
 
-    def _calculate_overall_understanding_confidence(self, patterns: List[Any], prediction: Dict[str, Any], intent: Any) -> float:
+    def _calculate_overall_understanding_confidence(
+        self, patterns: list[Any], prediction: dict[str, Any], intent: Any
+    ) -> float:
         """Calculate overall confidence in code understanding."""
         confidences = []
 
@@ -257,12 +301,14 @@ class ExecutionLearningIntegration:
             confidences.append(prediction["confidence"])
 
         # Intent analysis confidence
-        if intent and hasattr(intent, 'intent_confidence'):
+        if intent and hasattr(intent, "intent_confidence"):
             confidences.append(intent.intent_confidence)
 
         return sum(confidences) / len(confidences) if confidences else 0.0
 
-    def _compare_semantic_understanding(self, understanding1: Dict[str, Any], understanding2: Dict[str, Any]) -> float:
+    def _compare_semantic_understanding(
+        self, understanding1: dict[str, Any], understanding2: dict[str, Any]
+    ) -> float:
         """Compare semantic understanding between two code versions."""
         # Compare behavioral intent
         intent1 = understanding1.get("behavioral_intent", {})
@@ -274,8 +320,12 @@ class ExecutionLearningIntegration:
         purpose_similarity = 1.0 if purpose1 == purpose2 else 0.5
 
         # Compare semantic fingerprints
-        fingerprint1 = understanding1.get("semantic_components", {}).get("semantic_fingerprint", "")
-        fingerprint2 = understanding2.get("semantic_components", {}).get("semantic_fingerprint", "")
+        fingerprint1 = understanding1.get("semantic_components", {}).get(
+            "semantic_fingerprint", ""
+        )
+        fingerprint2 = understanding2.get("semantic_components", {}).get(
+            "semantic_fingerprint", ""
+        )
 
         fingerprint_similarity = 1.0 if fingerprint1 == fingerprint2 else 0.0
 
@@ -288,30 +338,45 @@ class ExecutionLearningIntegration:
             pattern_types2 = {p["pattern_type"] for p in patterns2}
             pattern_overlap = len(pattern_types1.intersection(pattern_types2))
             pattern_union = len(pattern_types1.union(pattern_types2))
-            pattern_similarity = pattern_overlap / pattern_union if pattern_union > 0 else 0.0
+            pattern_similarity = (
+                pattern_overlap / pattern_union if pattern_union > 0 else 0.0
+            )
         else:
             pattern_similarity = 0.5
 
         # Weighted combination
-        return (purpose_similarity * 0.4 + fingerprint_similarity * 0.3 + pattern_similarity * 0.3)
+        return (
+            purpose_similarity * 0.4
+            + fingerprint_similarity * 0.3
+            + pattern_similarity * 0.3
+        )
 
-    def _calculate_performance_drop(self, understanding1: Dict[str, Any], understanding2: Dict[str, Any]) -> float:
+    def _calculate_performance_drop(
+        self, understanding1: dict[str, Any], understanding2: dict[str, Any]
+    ) -> float:
         """Calculate performance drop between understanding versions."""
         confidence1 = understanding1.get("understanding_confidence", 0.0)
         confidence2 = understanding2.get("understanding_confidence", 0.0)
 
         return max(0.0, confidence1 - confidence2)
 
-    def get_learning_statistics(self) -> Dict[str, Any]:
+    def get_learning_statistics(self) -> dict[str, Any]:
         """Get statistics about the learning system."""
         if not self.learning_history:
             return {"error": "No learning sessions completed"}
 
         # Calculate aggregate statistics
         total_sessions = len(self.learning_history)
-        total_patterns = sum(session["patterns_learned"] for session in self.learning_history)
-        total_understandings = sum(session["understandings_built"] for session in self.learning_history)
-        avg_validation_score = sum(session["validation_score"] for session in self.learning_history) / total_sessions
+        total_patterns = sum(
+            session["patterns_learned"] for session in self.learning_history
+        )
+        total_understandings = sum(
+            session["understandings_built"] for session in self.learning_history
+        )
+        avg_validation_score = (
+            sum(session["validation_score"] for session in self.learning_history)
+            / total_sessions
+        )
 
         # Pattern library statistics
         pattern_stats = self.pattern_library.export_patterns()
@@ -323,28 +388,33 @@ class ExecutionLearningIntegration:
             "average_validation_score": avg_validation_score,
             "pattern_library_size": pattern_stats["total_patterns"],
             "cached_understandings": len(self.understanding_cache),
-            "recent_session": self.learning_history[-1] if self.learning_history else None
+            "recent_session": (
+                self.learning_history[-1] if self.learning_history else None
+            ),
         }
 
     def _get_current_timestamp(self):
         """Get current timestamp (can be overridden for testing)."""
         from datetime import datetime
+
         return datetime.now()
 
-    def validate_against_research_benchmarks(self, test_results: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_against_research_benchmarks(
+        self, test_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Validate learning results against research benchmarks."""
         benchmarks = {
             "semantic_understanding": 0.8,  # 80% semantic understanding target
-            "mutation_resistance": 0.9,     # 90% resistance to semantic mutations
-            "pattern_accuracy": 0.85,       # 85% pattern prediction accuracy
-            "execution_prediction": 0.8     # 80% execution outcome prediction
+            "mutation_resistance": 0.9,  # 90% resistance to semantic mutations
+            "pattern_accuracy": 0.85,  # 85% pattern prediction accuracy
+            "execution_prediction": 0.8,  # 80% execution outcome prediction
         }
 
         validation_report = {
             "benchmark_comparison": {},
             "research_alignment": True,
             "improvement_areas": [],
-            "validation_method": "research_benchmark_comparison"
+            "validation_method": "research_benchmark_comparison",
         }
 
         # Compare against benchmarks
@@ -357,7 +427,7 @@ class ExecutionLearningIntegration:
                     "achieved": achieved_value,
                     "benchmark": benchmark_value,
                     "meets_benchmark": meets_benchmark,
-                    "improvement_needed": max(0.0, benchmark_value - achieved_value)
+                    "improvement_needed": max(0.0, benchmark_value - achieved_value),
                 }
 
                 if not meets_benchmark:
@@ -367,22 +437,28 @@ class ExecutionLearningIntegration:
                     )
 
         # Overall assessment
-        benchmark_meet_count = sum(1 for b in validation_report["benchmark_comparison"].values() if b["meets_benchmark"])
-        validation_report["benchmark_compliance_rate"] = benchmark_meet_count / len(benchmarks)
+        benchmark_meet_count = sum(
+            1
+            for b in validation_report["benchmark_comparison"].values()
+            if b["meets_benchmark"]
+        )
+        validation_report["benchmark_compliance_rate"] = benchmark_meet_count / len(
+            benchmarks
+        )
 
         return validation_report
 
-    def export_learning_state(self) -> Dict[str, Any]:
+    def export_learning_state(self) -> dict[str, Any]:
         """Export current learning state for persistence."""
         return {
             "learning_history": self.learning_history,
             "pattern_library": self.pattern_library.export_patterns(),
             "understanding_cache": self.understanding_cache,
             "statistics": self.get_learning_statistics(),
-            "export_timestamp": self._get_current_timestamp().isoformat()
+            "export_timestamp": self._get_current_timestamp().isoformat(),
         }
 
-    def import_learning_state(self, state_data: Dict[str, Any]) -> None:
+    def import_learning_state(self, state_data: dict[str, Any]) -> None:
         """Import learning state from external source."""
         # Restore learning history
         self.learning_history = state_data.get("learning_history", [])
@@ -394,4 +470,6 @@ class ExecutionLearningIntegration:
         # Restore understanding cache
         self.understanding_cache = state_data.get("understanding_cache", {})
 
-        logger.info(f"Imported learning state: {len(self.learning_history)} sessions, {len(self.pattern_library.patterns)} patterns")
+        logger.info(
+            f"Imported learning state: {len(self.learning_history)} sessions, {len(self.pattern_library.patterns)} patterns"
+        )

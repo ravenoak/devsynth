@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, AsyncIterator, Mapping, Sequence
+from typing import TYPE_CHECKING
+from collections.abc import AsyncIterator, Mapping, Sequence
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -54,7 +55,7 @@ DEFAULT_EMBEDDING_VALUES: Sequence[float] = (0.1, 0.2, 0.3, 0.4, 0.5)
 
 
 def _default_response_templates() -> (
-    Sequence["MockResponseTemplate"]
+    Sequence[MockResponseTemplate]
 ):  # pragma: no cover - deterministic default data
     return (
         MockResponseTemplate(key="default", text=DEFAULT_RESPONSE_TEXT),
@@ -76,7 +77,7 @@ def _default_response_templates() -> (
 
 
 def _default_embedding_templates() -> (
-    Sequence["MockEmbeddingTemplate"]
+    Sequence[MockEmbeddingTemplate]
 ):  # pragma: no cover - deterministic default data
     return (MockEmbeddingTemplate(key="default", vector=DEFAULT_EMBEDDING_VALUES),)
 
@@ -137,7 +138,7 @@ class MockLLMConfig:
     def from_mapping(
         cls, mapping: Mapping[str, object]
     ) -> (
-        "MockLLMConfig"
+        MockLLMConfig
     ):  # pragma: no cover - configuration parsing exercised indirectly
         """Build a configuration from a mapping while preserving defaults."""
 

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 from devsynth.application.agents.base import BaseAgent
 from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (

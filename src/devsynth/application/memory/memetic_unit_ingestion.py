@@ -33,10 +33,7 @@ class MemeticUnitIngestionPipeline:
         logger.info("Memetic Unit ingestion pipeline initialized")
 
     def process_raw_input(
-        self,
-        raw_data: Any,
-        source: MemeticSource,
-        context: Dict[str, Any] = None
+        self, raw_data: Any, source: MemeticSource, context: dict[str, Any] = None
     ) -> MemeticUnit:
         """Convert raw input into a properly annotated Memetic Unit."""
         # Generate unique ID and timestamps
@@ -65,7 +62,7 @@ class MemeticUnitIngestionPipeline:
             status=MemeticStatus.RAW,
             confidence_score=self._calculate_initial_confidence(raw_data, source),
             salience_score=self._calculate_initial_salience(context),
-            access_control=self._determine_access_control(source, context)
+            access_control=self._determine_access_control(source, context),
         )
 
         # Create unit with payload
@@ -75,14 +72,13 @@ class MemeticUnitIngestionPipeline:
         if context:
             self._add_contextual_links(unit, context)
 
-        logger.debug(f"Created Memetic Unit {unit_id} with cognitive type {cognitive_type.value}")
+        logger.debug(
+            f"Created Memetic Unit {unit_id} with cognitive type {cognitive_type.value}"
+        )
         return unit
 
     def _classify_cognitive_type(
-        self,
-        data: Any,
-        source: MemeticSource,
-        context: Dict
+        self, data: Any, source: MemeticSource, context: dict
     ) -> CognitiveType:
         """Classify data into appropriate cognitive type."""
         # Agent interactions and current tasks -> WORKING
@@ -93,7 +89,7 @@ class MemeticUnitIngestionPipeline:
         if source in [
             MemeticSource.CODE_EXECUTION,
             MemeticSource.TEST_RESULT,
-            MemeticSource.ERROR_LOG
+            MemeticSource.ERROR_LOG,
         ]:
             return CognitiveType.EPISODIC
 
@@ -116,14 +112,14 @@ class MemeticUnitIngestionPipeline:
         # Normalize different data types
         if isinstance(data, (dict, list)):
             normalized = json.dumps(data, sort_keys=True, default=str)
-        elif hasattr(data, '__dict__'):
+        elif hasattr(data, "__dict__"):
             normalized = json.dumps(data.__dict__, sort_keys=True, default=str)
         else:
             normalized = str(data)
 
         return hashlib.sha256(normalized.encode()).hexdigest()[:16]
 
-    def _generate_semantic_vector(self, data: Any) -> List[float]:
+    def _generate_semantic_vector(self, data: Any) -> list[float]:
         """Generate semantic embedding for content."""
         # This would integrate with embedding providers (OpenAI, LM Studio, etc.)
         # For now, return placeholder vector based on content hash
@@ -138,38 +134,77 @@ class MemeticUnitIngestionPipeline:
         for i in range(384):  # Common embedding dimension
             # Simple deterministic pseudo-random generation
             seed = hash_int + i * 31
-            value = (seed * 1103515245 + 12345) & 0x7fffffff
+            value = (seed * 1103515245 + 12345) & 0x7FFFFFFF
             normalized = (value % 2000 - 1000) / 1000.0  # Scale to [-1, 1]
             vector.append(normalized)
 
         return vector
 
-    def _default_keyword_extractor(self, data: Any) -> List[str]:
+    def _default_keyword_extractor(self, data: Any) -> list[str]:
         """Extract meaningful keywords from content."""
         text = str(data).lower()
 
         # Remove code-like patterns and extract words
-        text = re.sub(r'[^\w\s]', ' ', text)
+        text = re.sub(r"[^\w\s]", " ", text)
         words = text.split()
 
         # Filter for meaningful words (length > 2, not common stop words)
         stop_words = {
-            'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of',
-            'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-            'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-            'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these',
-            'those', 'a', 'an', 'as', 'if', 'when', 'where', 'why', 'how'
+            "the",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "being",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "must",
+            "can",
+            "this",
+            "that",
+            "these",
+            "those",
+            "a",
+            "an",
+            "as",
+            "if",
+            "when",
+            "where",
+            "why",
+            "how",
         }
 
         meaningful_words = [
-            word for word in words
-            if len(word) > 2 and word not in stop_words
+            word for word in words if len(word) > 2 and word not in stop_words
         ]
 
         # Return top keywords (simplified)
         return meaningful_words[:10] if meaningful_words else ["general"]
 
-    def _extract_keywords(self, data: Any) -> List[str]:
+    def _extract_keywords(self, data: Any) -> list[str]:
         """Extract keywords using configured extractor."""
         try:
             return self.keyword_extractor(data)
@@ -177,20 +212,77 @@ class MemeticUnitIngestionPipeline:
             logger.warning(f"Keyword extraction failed: {e}")
             return self._default_keyword_extractor(data)
 
-    def _classify_topic(self, data: Any, keywords: List[str]) -> str:
+    def _classify_topic(self, data: Any, keywords: list[str]) -> str:
         """Classify content into high-level topic categories."""
         text = str(data).lower()
 
         # Topic classification rules based on content patterns
         topic_patterns = {
-            'error_handling': ['error', 'exception', 'fail', 'bug', 'traceback', 'stack'],
-            'testing': ['test', 'assert', 'verify', 'validate', 'unit', 'integration', 'bdd'],
-            'code_structure': ['function', 'class', 'method', 'code', 'implementation', 'algorithm'],
-            'requirements': ['require', 'spec', 'design', 'plan', 'feature', 'user', 'story'],
-            'user_experience': ['user', 'interface', 'ui', 'experience', 'interaction', 'workflow'],
-            'data_processing': ['data', 'database', 'query', 'model', 'schema', 'migration'],
-            'configuration': ['config', 'setting', 'parameter', 'environment', 'deployment'],
-            'documentation': ['doc', 'readme', 'guide', 'tutorial', 'example', 'reference']
+            "error_handling": [
+                "error",
+                "exception",
+                "fail",
+                "bug",
+                "traceback",
+                "stack",
+            ],
+            "testing": [
+                "test",
+                "assert",
+                "verify",
+                "validate",
+                "unit",
+                "integration",
+                "bdd",
+            ],
+            "code_structure": [
+                "function",
+                "class",
+                "method",
+                "code",
+                "implementation",
+                "algorithm",
+            ],
+            "requirements": [
+                "require",
+                "spec",
+                "design",
+                "plan",
+                "feature",
+                "user",
+                "story",
+            ],
+            "user_experience": [
+                "user",
+                "interface",
+                "ui",
+                "experience",
+                "interaction",
+                "workflow",
+            ],
+            "data_processing": [
+                "data",
+                "database",
+                "query",
+                "model",
+                "schema",
+                "migration",
+            ],
+            "configuration": [
+                "config",
+                "setting",
+                "parameter",
+                "environment",
+                "deployment",
+            ],
+            "documentation": [
+                "doc",
+                "readme",
+                "guide",
+                "tutorial",
+                "example",
+                "reference",
+            ],
         }
 
         for topic, patterns in topic_patterns.items():
@@ -201,16 +293,16 @@ class MemeticUnitIngestionPipeline:
         if keywords:
             # Use most frequent or most specific keyword as topic
             primary_keyword = keywords[0]
-            if any(word in primary_keyword for word in ['code', 'function', 'class']):
-                return 'code_structure'
-            elif any(word in primary_keyword for word in ['test', 'assert', 'verify']):
-                return 'testing'
-            elif any(word in primary_keyword for word in ['require', 'spec', 'design']):
-                return 'requirements'
+            if any(word in primary_keyword for word in ["code", "function", "class"]):
+                return "code_structure"
+            elif any(word in primary_keyword for word in ["test", "assert", "verify"]):
+                return "testing"
+            elif any(word in primary_keyword for word in ["require", "spec", "design"]):
+                return "requirements"
             else:
                 return primary_keyword
 
-        return 'general'
+        return "general"
 
     def _calculate_initial_confidence(self, data: Any, source: MemeticSource) -> float:
         """Calculate initial confidence score for new content."""
@@ -228,7 +320,7 @@ class MemeticUnitIngestionPipeline:
             MemeticSource.ERROR_LOG: 0.9,
             MemeticSource.METRIC_DATA: 0.9,
             MemeticSource.CONFIGURATION: 0.8,
-            MemeticSource.DOCUMENTATION: 0.7
+            MemeticSource.DOCUMENTATION: 0.7,
         }
 
         source_bonus = source_confidence.get(source, 0.7)
@@ -257,7 +349,7 @@ class MemeticUnitIngestionPipeline:
             structure_indicators += 0.3
         elif isinstance(data, list) and len(data) > 5:
             structure_indicators += 0.2
-        elif '\n' in text_content or '.' in text_content:
+        elif "\n" in text_content or "." in text_content:
             structure_indicators += 0.1
 
         quality_score += structure_indicators
@@ -272,7 +364,7 @@ class MemeticUnitIngestionPipeline:
 
         return min(1.0, quality_score)
 
-    def _calculate_initial_salience(self, context: Dict[str, Any]) -> float:
+    def _calculate_initial_salience(self, context: dict[str, Any]) -> float:
         """Calculate initial salience score based on context."""
         if not context:
             return 0.5  # Neutral salience
@@ -294,14 +386,16 @@ class MemeticUnitIngestionPipeline:
 
         return min(1.0, relevance_score)
 
-    def _determine_access_control(self, source: MemeticSource, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _determine_access_control(
+        self, source: MemeticSource, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Determine access control policy for the unit."""
         # Default permissive policy
         policy = {
             "read_access": "public",
             "write_access": "system",
             "retention_policy": "standard",
-            "encryption_required": False
+            "encryption_required": False,
         }
 
         # Adjust based on source sensitivity
@@ -316,13 +410,15 @@ class MemeticUnitIngestionPipeline:
 
         return policy
 
-    def _add_contextual_links(self, unit: MemeticUnit, context: Dict[str, Any]) -> None:
+    def _add_contextual_links(self, unit: MemeticUnit, context: dict[str, Any]) -> None:
         """Add contextual relationships to the unit."""
         # Link to parent context if available
         if "parent_unit_id" in context:
             try:
                 parent_id = context["parent_unit_id"]
-                unit.add_link(parent_id, "DERIVES_FROM", strength=0.8, context="parent_child")
+                unit.add_link(
+                    parent_id, "DERIVES_FROM", strength=0.8, context="parent_child"
+                )
             except (ValueError, TypeError):
                 logger.warning(f"Invalid parent_unit_id in context: {parent_id}")
 
@@ -330,16 +426,24 @@ class MemeticUnitIngestionPipeline:
         if "related_unit_ids" in context:
             for related_id in context["related_unit_ids"]:
                 try:
-                    unit.add_link(related_id, "RELATED_TO", strength=0.6, context="semantic")
+                    unit.add_link(
+                        related_id, "RELATED_TO", strength=0.6, context="semantic"
+                    )
                 except (ValueError, TypeError):
                     logger.warning(f"Invalid related_unit_id in context: {related_id}")
 
     def _get_current_timestamp(self):
         """Get current timestamp (can be overridden for testing)."""
         from datetime import datetime
+
         return datetime.now()
 
-    def batch_process(self, raw_data_list: List[Any], source: MemeticSource, context: Dict[str, Any] = None) -> List[MemeticUnit]:
+    def batch_process(
+        self,
+        raw_data_list: list[Any],
+        source: MemeticSource,
+        context: dict[str, Any] = None,
+    ) -> list[MemeticUnit]:
         """Process multiple items in batch for efficiency."""
         units = []
         for raw_data in raw_data_list:

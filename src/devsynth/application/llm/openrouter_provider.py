@@ -6,7 +6,8 @@ access to 400+ AI models through a unified interface.
 """
 
 import asyncio
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import AsyncGenerator
 
 try:  # pragma: no cover - optional dependency
     import httpx
@@ -44,7 +45,7 @@ class OpenRouterModelError(DevSynthError):
 class OpenRouterProvider(StreamingLLMProvider):
     """OpenRouter LLM provider implementation."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         """Initialize the OpenRouter provider.
 
         Args:
@@ -167,7 +168,7 @@ class OpenRouterProvider(StreamingLLMProvider):
 
         return _wrapped()
 
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] = None) -> str:
         """Generate text from a prompt using OpenRouter.
 
         Args:
@@ -225,8 +226,8 @@ class OpenRouterProvider(StreamingLLMProvider):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> str:
         """Generate text from a prompt with conversation context using OpenRouter.
 
@@ -287,7 +288,7 @@ class OpenRouterProvider(StreamingLLMProvider):
             raise OpenRouterConnectionError(error_msg)
 
     async def generate_stream(
-        self, prompt: str, parameters: Dict[str, Any] = None
+        self, prompt: str, parameters: dict[str, Any] = None
     ) -> AsyncGenerator[str, None]:
         """Generate text from a prompt using OpenRouter with streaming.
 
@@ -376,8 +377,8 @@ class OpenRouterProvider(StreamingLLMProvider):
     async def generate_with_context_stream(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] = None,
     ) -> AsyncGenerator[str, None]:
         """Generate text from a prompt with conversation context using OpenRouter with streaming.
 
@@ -452,7 +453,7 @@ class OpenRouterProvider(StreamingLLMProvider):
 
         return stream_generator()
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Get an embedding vector for the given text using OpenRouter.
 
         Args:

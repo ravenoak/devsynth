@@ -17,7 +17,7 @@ logger = DevSynthLogger(__name__)
 
 
 def apply_uxbridge_settings(
-    bridge_class: Type[UXBridge], config: ProjectUnifiedConfig, **kwargs: Any
+    bridge_class: type[UXBridge], config: ProjectUnifiedConfig, **kwargs: Any
 ) -> UXBridge:
     """Apply uxbridge_settings from configuration to a UXBridge implementation.
 
@@ -46,7 +46,7 @@ def apply_uxbridge_settings(
     return bridge_instance
 
 
-def get_default_bridge(config: Optional[ProjectUnifiedConfig] = None) -> UXBridge:
+def get_default_bridge(config: ProjectUnifiedConfig | None = None) -> UXBridge:
     """Get the default UXBridge implementation based on configuration.
 
     Args:
@@ -89,7 +89,7 @@ def get_default_bridge(config: Optional[ProjectUnifiedConfig] = None) -> UXBridg
                 raise ImportError("Could not load webui module")
 
             logger.debug("Using WebUI as default UXBridge implementation")
-            return apply_uxbridge_settings(cast(Type[UXBridge], WebUI), config)
+            return apply_uxbridge_settings(cast(type[UXBridge], WebUI), config)
         except ImportError:
             logger.warning(
                 "WebUI requested but Streamlit not available, falling back to CLI"

@@ -7,7 +7,8 @@ invoked similarly to ``streamlit run`` to start the application.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
+from collections.abc import Callable, Sequence
 
 try:
     from nicegui import app, ui
@@ -22,7 +23,7 @@ from devsynth.interface.progress_utils import run_with_progress
 from devsynth.interface.shared_bridge import SharedBridgeMixin
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
-_session_store: Dict[str, Any] = {}
+_session_store: dict[str, Any] = {}
 
 
 def _require_nicegui() -> None:
@@ -60,8 +61,8 @@ class NiceGUIProgressIndicator(ProgressIndicator):
         self,
         *,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         self._current += advance
         if _HAS_NICEGUI and self.label is not None and self.bar is not None:  # type: ignore[truthy-bool]
@@ -85,8 +86,8 @@ class NiceGUIBridge(SharedBridgeMixin, UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         return str(default or "")
@@ -160,7 +161,7 @@ def _placeholder_run(name: str, bridge: UXBridge) -> None:
     bridge.display_result(f"{name} finished", message_type="success")
 
 
-NAV_ITEMS: Dict[str, Callable[[UXBridge], None]] = {
+NAV_ITEMS: dict[str, Callable[[UXBridge], None]] = {
     "Onboarding": lambda b: (_cli("init_cmd") or _placeholder_run)("Onboarding", b),
     "Requirements": lambda b: (_cli("spec_cmd") or _placeholder_run)("Requirements", b),
     "Analysis": lambda b: _placeholder_run("Analysis", b),

@@ -38,9 +38,9 @@ class ArchitectureInsights(TypedDict):
 
     type: str
     confidence: float
-    layers: Dict[str, List[str]]
-    layer_dependencies: Dict[str, Set[str]]
-    architecture_violations: List[ArchitectureViolation]
+    layers: dict[str, list[str]]
+    layer_dependencies: dict[str, set[str]]
+    architecture_violations: list[ArchitectureViolation]
 
 
 class DocstringCoverage(TypedDict):
@@ -76,7 +76,7 @@ class ImprovementOpportunity(TypedDict):
     priority: str
 
 
-MetricsSummary = Dict[str, Any]
+MetricsSummary = dict[str, Any]
 
 
 class SelfAnalysisInsights(TypedDict):
@@ -86,27 +86,27 @@ class SelfAnalysisInsights(TypedDict):
     architecture: ArchitectureInsights
     code_quality: CodeQualityInsights
     test_coverage: TestCoverageInsights
-    improvement_opportunities: List[ImprovementOpportunity]
+    improvement_opportunities: list[ImprovementOpportunity]
 
 
 class SerializableFileAnalysis(TypedDict):
     """Serializable representation of a :class:`FileAnalysis`."""
 
-    imports: List[ImportInfo]
-    classes: List[ClassInfo]
-    functions: List[FunctionInfo]
-    variables: List[VariableInfo]
+    imports: list[ImportInfo]
+    classes: list[ClassInfo]
+    functions: list[FunctionInfo]
+    variables: list[VariableInfo]
     docstring: str
-    metrics: Dict[str, Any]
+    metrics: dict[str, Any]
 
 
 class CodeAnalysisSnapshot(TypedDict):
     """Serializable representation of :class:`CodeAnalysis`."""
 
-    files: Dict[str, SerializableFileAnalysis]
-    symbols: Dict[str, List[SymbolReference]]
-    dependencies: Dict[str, List[str]]
-    metrics: Dict[str, Any]
+    files: dict[str, SerializableFileAnalysis]
+    symbols: dict[str, list[SymbolReference]]
+    dependencies: dict[str, list[str]]
+    metrics: dict[str, Any]
 
 
 class SelfAnalysisResult(TypedDict):
@@ -124,7 +124,7 @@ class SelfAnalyzer:
     and generate insights that can be used for self-improvement.
     """
 
-    def __init__(self, project_root: Optional[str] = None):
+    def __init__(self, project_root: str | None = None):
         """
         Initialize the SelfAnalyzer.
 
@@ -154,7 +154,7 @@ class SelfAnalyzer:
         self.project_root = project_root
         logger.info(f"SelfAnalyzer initialized with project root: {self.project_root}")
 
-    def analyze(self, target_dir: Optional[str] = None) -> SelfAnalysisResult:
+    def analyze(self, target_dir: str | None = None) -> SelfAnalysisResult:
         """
         Analyze a codebase and generate insights.
 
@@ -337,7 +337,7 @@ class SelfAnalyzer:
 
     def _detect_architecture_type(
         self, code_analysis: CodeAnalysis
-    ) -> Tuple[str, float]:
+    ) -> tuple[str, float]:
         """
         Detect the type of architecture used in the codebase.
 
@@ -382,7 +382,7 @@ class SelfAnalyzer:
 
         return architecture_type, confidence
 
-    def _check_hexagonal_architecture(self, file_paths: List[str]) -> float:
+    def _check_hexagonal_architecture(self, file_paths: list[str]) -> float:
         """
         Check if the codebase follows a hexagonal architecture.
 
@@ -404,7 +404,7 @@ class SelfAnalyzer:
 
         return self._calculate_architecture_score(file_paths, hexagonal_patterns)
 
-    def _check_mvc_architecture(self, file_paths: List[str]) -> float:
+    def _check_mvc_architecture(self, file_paths: list[str]) -> float:
         """
         Check if the codebase follows an MVC architecture.
 
@@ -419,7 +419,7 @@ class SelfAnalyzer:
 
         return self._calculate_architecture_score(file_paths, mvc_patterns)
 
-    def _check_layered_architecture(self, file_paths: List[str]) -> float:
+    def _check_layered_architecture(self, file_paths: list[str]) -> float:
         """
         Check if the codebase follows a layered architecture.
 
@@ -442,7 +442,7 @@ class SelfAnalyzer:
 
         return self._calculate_architecture_score(file_paths, layered_patterns)
 
-    def _check_microservices_architecture(self, file_paths: List[str]) -> float:
+    def _check_microservices_architecture(self, file_paths: list[str]) -> float:
         """
         Check if the codebase follows a microservices architecture.
 
@@ -464,7 +464,7 @@ class SelfAnalyzer:
         return self._calculate_architecture_score(file_paths, microservices_patterns)
 
     def _calculate_architecture_score(
-        self, file_paths: List[str], patterns: List[str]
+        self, file_paths: list[str], patterns: list[str]
     ) -> float:
         """
         Calculate a confidence score for an architecture type based on matching patterns.
@@ -491,7 +491,7 @@ class SelfAnalyzer:
 
         return min(1.0, matches / total_patterns)
 
-    def _identify_layers(self, code_analysis: CodeAnalysis) -> Dict[str, List[str]]:
+    def _identify_layers(self, code_analysis: CodeAnalysis) -> dict[str, list[str]]:
         """
         Identify layers in the codebase based on directory structure.
 
@@ -569,8 +569,8 @@ class SelfAnalyzer:
         return layers
 
     def _analyze_layer_dependencies(
-        self, code_analysis: CodeAnalysis, layers: Dict[str, List[str]]
-    ) -> Dict[str, Set[str]]:
+        self, code_analysis: CodeAnalysis, layers: dict[str, list[str]]
+    ) -> dict[str, set[str]]:
         """
         Analyze dependencies between layers.
 
@@ -656,8 +656,8 @@ class SelfAnalyzer:
         return layer_dependencies
 
     def _check_architecture_violations(
-        self, layer_dependencies: Dict[str, Set[str]], architecture_type: str
-    ) -> List[ArchitectureViolation]:
+        self, layer_dependencies: dict[str, set[str]], architecture_type: str
+    ) -> list[ArchitectureViolation]:
         """
         Check for violations of the detected architecture.
 
@@ -670,7 +670,7 @@ class SelfAnalyzer:
         """
         logger.info(f"Checking for {architecture_type} architecture violations")
 
-        violations: List[ArchitectureViolation] = []
+        violations: list[ArchitectureViolation] = []
 
         # Define allowed dependencies based on architecture type
         if architecture_type == "Hexagonal":
@@ -679,7 +679,7 @@ class SelfAnalyzer:
             # - Application can depend on domain
             # - Adapters can depend on application and domain
             # - Ports can depend on domain
-            allowed_dependencies: Dict[str, Set[str]] = {
+            allowed_dependencies: dict[str, set[str]] = {
                 "domain": set(),
                 "application": {"domain"},
                 "adapters": {"domain", "application", "ports"},
@@ -809,12 +809,12 @@ class SelfAnalyzer:
 
         # Get all symbols from the codebase
         all_symbols = cast(
-            Dict[str, List[SymbolReference]], code_analysis.get_symbols()
+            dict[str, list[SymbolReference]], code_analysis.get_symbols()
         )
 
         # Find test directories and files
-        tested_symbols: Set[str] = set()
-        test_dirs: List[str] = []
+        tested_symbols: set[str] = set()
+        test_dirs: list[str] = []
 
         # Common test directory names
         test_dir_names = ["tests", "test", "testing", "unittest", "pytest"]
@@ -875,7 +875,7 @@ class SelfAnalyzer:
         architecture_insights: ArchitectureInsights,
         code_quality_insights: CodeQualityInsights,
         test_coverage_insights: TestCoverageInsights,
-    ) -> List[ImprovementOpportunity]:
+    ) -> list[ImprovementOpportunity]:
         """
         Identify opportunities for improving the codebase.
 
@@ -890,7 +890,7 @@ class SelfAnalyzer:
         """
         logger.info("Identifying improvement opportunities")
 
-        opportunities: List[ImprovementOpportunity] = []
+        opportunities: list[ImprovementOpportunity] = []
 
         # Check for architecture violations
         for violation in architecture_insights["architecture_violations"]:

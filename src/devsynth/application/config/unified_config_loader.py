@@ -22,7 +22,7 @@ class UnifiedConfigLoader:
     """Load and save project configuration respecting environment overrides."""
 
     @staticmethod
-    def load(path: Optional[str | Path] = None) -> UnifiedConfig:
+    def load(path: str | Path | None = None) -> UnifiedConfig:
         project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
         base = Path(path or project_dir or Path.cwd())
         return CoreUnifiedConfigLoader.load(base)

@@ -7,7 +7,8 @@ ensuring consistency between WebUIBridge and WizardState.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
+from collections.abc import Sequence
 
 from devsynth.config import get_project_config, save_config
 from devsynth.interface.state_access import get_session_value, set_session_value
@@ -30,7 +31,7 @@ class WizardStateManager:
         session_state,
         wizard_name: str,
         steps: int,
-        initial_state: Optional[Dict[str, Any]] = None,
+        initial_state: dict[str, Any] | None = None,
     ):
         """
         Initialize the wizard state manager.
@@ -246,7 +247,7 @@ class WizardStateManager:
         wizard_state = self.get_wizard_state()
         return wizard_state.set(key, value)
 
-    def clear_temporary_state(self, keys: Optional[Sequence[str]] = None) -> None:
+    def clear_temporary_state(self, keys: Sequence[str] | None = None) -> None:
         """Clear temporary session state values used by the wizard.
 
         Streamlit widgets store their values in ``st.session_state`` using

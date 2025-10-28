@@ -284,7 +284,7 @@ class ProgressTracker:
         if self.auto_complete:
             self.indicator.complete()
 
-    def __enter__(self) -> "ProgressTracker":
+    def __enter__(self) -> ProgressTracker:
         """Enter the context manager."""
         return self
 
@@ -335,7 +335,7 @@ class StepProgress:
             self._indicator.update(advance=remaining)
         self._indicator.complete()
 
-    def __enter__(self) -> "StepProgress":
+    def __enter__(self) -> StepProgress:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:  # pragma: no cover - defensive

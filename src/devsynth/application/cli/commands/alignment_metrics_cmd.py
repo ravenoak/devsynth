@@ -36,7 +36,7 @@ bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 
-def calculate_alignment_coverage(files: List[str]) -> Dict:
+def calculate_alignment_coverage(files: list[str]) -> dict:
     """Calculate alignment coverage metrics."""
     metrics = {
         "total_files": len(files),
@@ -156,7 +156,7 @@ def calculate_alignment_coverage(files: List[str]) -> Dict:
     return metrics
 
 
-def calculate_alignment_issues(files: List[str]) -> Dict:
+def calculate_alignment_issues(files: list[str]) -> dict:
     """Calculate alignment issues metrics."""
     from devsynth.application.cli.commands.align_cmd import (
         check_requirement_references,
@@ -190,11 +190,11 @@ def calculate_alignment_issues(files: List[str]) -> Dict:
     }
 
 
-def load_historical_metrics(metrics_file: str) -> List[Dict]:
+def load_historical_metrics(metrics_file: str) -> list[dict]:
     """Load historical metrics from a file."""
     try:
         if os.path.exists(metrics_file):
-            with open(metrics_file, "r", encoding="utf-8") as f:
+            with open(metrics_file, encoding="utf-8") as f:
                 return json.load(f)
         return []
     except Exception as e:
@@ -202,7 +202,7 @@ def load_historical_metrics(metrics_file: str) -> List[Dict]:
         return []
 
 
-def save_metrics(metrics: Dict, metrics_file: str, historical_metrics: List[Dict]):
+def save_metrics(metrics: dict, metrics_file: str, historical_metrics: list[dict]):
     """Save metrics to a file."""
     try:
         # Add timestamp to metrics
@@ -221,8 +221,8 @@ def save_metrics(metrics: Dict, metrics_file: str, historical_metrics: List[Dict
 
 
 def display_metrics(
-    metrics: Dict,
-    historical_metrics: List[Dict],
+    metrics: dict,
+    historical_metrics: list[dict],
     *,
     bridge: UXBridge = bridge,
 ) -> None:
@@ -305,8 +305,8 @@ def display_metrics(
 
 
 def generate_metrics_report(
-    metrics: Dict,
-    historical_metrics: List[Dict],
+    metrics: dict,
+    historical_metrics: list[dict],
     output_file: str,
     *,
     bridge: UXBridge = bridge,
@@ -385,9 +385,9 @@ def generate_metrics_report(
 def alignment_metrics_cmd(
     path: str = ".",
     metrics_file: str = ".devsynth/alignment_metrics.json",
-    output: Optional[str] = None,
+    output: str | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> bool:
     """Collect and report on alignment metrics.
 

@@ -7,17 +7,14 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import (
     Any,
-    Callable,
     Dict,
-    Iterable,
     List,
-    Mapping,
     Optional,
-    Sequence,
     Tuple,
     Union,
     cast,
 )
+from collections.abc import Callable, Iterable, Mapping, Sequence
 
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
@@ -43,12 +40,12 @@ class _PeerReviewRecordStorage:
 
     review_id: str
     record: PeerReviewRecord
-    decisions: Tuple[ReviewDecision, ...]
+    decisions: tuple[ReviewDecision, ...]
     created_at: datetime
     updated_at: datetime
     quality_score: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize the storage payload deterministically."""
 
         record_payload = serialize_collaboration_dto(self.record)
@@ -93,16 +90,16 @@ class PeerReview:
     def __init__(
         self,
         *,
-        cycle: Optional[ReviewCycleSpec] = None,
+        cycle: ReviewCycleSpec | None = None,
         work_product: Any | None = None,
         author: Any | None = None,
-        reviewers: Optional[Iterable[Any]] = None,
-        send_message: Optional[Callable[..., Any]] = None,
-        acceptance_criteria: Optional[Iterable[str]] = None,
-        quality_metrics: Optional[Mapping[str, Any]] = None,
-        team: Optional[Any] = None,
-        memory_manager: Optional[MemoryManager] = None,
-        previous_review: Optional["PeerReview"] = None,
+        reviewers: Iterable[Any] | None = None,
+        send_message: Callable[..., Any] | None = None,
+        acceptance_criteria: Iterable[str] | None = None,
+        quality_metrics: Mapping[str, Any] | None = None,
+        team: Any | None = None,
+        memory_manager: MemoryManager | None = None,
+        previous_review: PeerReview | None = None,
     ) -> None:
         if cycle is None:
             if reviewers is None:
@@ -126,14 +123,14 @@ class PeerReview:
                 memory_manager=memory_manager,
             )
         self.cycle: ReviewCycleSpec = cycle
-        self._memory_manager: Optional[MemoryManager] = (
+        self._memory_manager: MemoryManager | None = (
             memory_manager or cycle.memory_manager
         )
-        self._team: Optional[Any] = cycle.team
-        self.reviews: Dict[str, ReviewDecision] = {}
-        self.previous_review: Optional["PeerReview"] = previous_review
+        self._team: Any | None = cycle.team
+        self.reviews: dict[str, ReviewDecision] = {}
+        self.previous_review: PeerReview | None = previous_review
         self._state: ReviewCycleState = ReviewCycleState()
-        self._latest_record: Optional[PeerReviewRecord] = None
+        self._latest_record: PeerReviewRecord | None = None
 
     @property
     def review_id(self) -> str:
@@ -157,32 +154,32 @@ class PeerReview:
         return cast(Sequence[Any], self.cycle.reviewers)
 
     @property
-    def send_message(self) -> Optional[Callable[..., Any]]:
+    def send_message(self) -> Callable[..., Any] | None:
         return cast(Optional[Callable[..., Any]], self.cycle.send_message)
 
     @property
-    def acceptance_criteria(self) -> Optional[Sequence[str]]:
+    def acceptance_criteria(self) -> Sequence[str] | None:
         return cast(Optional[Sequence[str]], self.cycle.acceptance_criteria)
 
     @property
-    def quality_metrics(self) -> Optional[Mapping[str, Any]]:
+    def quality_metrics(self) -> Mapping[str, Any] | None:
         return cast(Optional[Mapping[str, Any]], self.cycle.quality_metrics)
 
     @property
-    def team(self) -> Optional[Any]:
+    def team(self) -> Any | None:
         return self._team
 
     @team.setter
-    def team(self, value: Optional[Any]) -> None:
+    def team(self, value: Any | None) -> None:
         self._team = value
         self.cycle = replace(self.cycle, team=value)
 
     @property
-    def memory_manager(self) -> Optional[MemoryManager]:
+    def memory_manager(self) -> MemoryManager | None:
         return self._memory_manager
 
     @memory_manager.setter
-    def memory_manager(self, value: Optional[MemoryManager]) -> None:
+    def memory_manager(self, value: MemoryManager | None) -> None:
         self._memory_manager = value
 
     @property
@@ -236,33 +233,33 @@ class PeerReview:
         return cast(list[Any], self._state.revision_history)
 
     @property
-    def metrics_results(self) -> Dict[str, Any]:
-        return cast(Dict[str, Any], self._state.metrics_results)
+    def metrics_results(self) -> dict[str, Any]:
+        return cast(dict[str, Any], self._state.metrics_results)
 
     @metrics_results.setter
-    def metrics_results(self, value: Dict[str, Any]) -> None:
+    def metrics_results(self, value: dict[str, Any]) -> None:
         self._state.metrics_results = value
         self._touch()
 
     @property
-    def consensus_result(self) -> Dict[str, Any]:
-        return cast(Dict[str, Any], self._state.consensus_result)
+    def consensus_result(self) -> dict[str, Any]:
+        return cast(dict[str, Any], self._state.consensus_result)
 
     @consensus_result.setter
-    def consensus_result(self, value: Dict[str, Any]) -> None:
+    def consensus_result(self, value: dict[str, Any]) -> None:
         self._state.consensus_result = value
         self._touch()
 
     @property
-    def consensus_outcome(self) -> Optional[ConsensusOutcome]:
+    def consensus_outcome(self) -> ConsensusOutcome | None:
         return self._state.consensus_outcome
 
     @consensus_outcome.setter
-    def consensus_outcome(self, value: Optional[ConsensusOutcome]) -> None:
+    def consensus_outcome(self, value: ConsensusOutcome | None) -> None:
         self._state.consensus_outcome = value
         self._touch()
 
-    def store_in_memory(self, immediate_sync: bool = False) -> Optional[str]:
+    def store_in_memory(self, immediate_sync: bool = False) -> str | None:
         """
         Store the review in memory with optional cross-store synchronization.
 
@@ -333,7 +330,7 @@ class PeerReview:
         else:
             return "tinydb"  # Default fallback
 
-    def _start_transaction(self) -> Tuple[bool, Any]:
+    def _start_transaction(self) -> tuple[bool, Any]:
         """
         Start a transaction for atomic operations.
 
@@ -411,7 +408,7 @@ class PeerReview:
             return str(name)
         return str(reviewer)
 
-    def _prepare_review_payload(self, raw_result: Any) -> Dict[str, Any]:
+    def _prepare_review_payload(self, raw_result: Any) -> dict[str, Any]:
         """Normalize reviewer output into a mapping."""
 
         if isinstance(raw_result, Mapping):
@@ -459,7 +456,7 @@ class PeerReview:
             payload.get("decision_id") or f"{self.review_id}:{reviewer_id}"
         )
         approved_value = payload.get("approved")
-        approved: Optional[bool]
+        approved: bool | None
         if isinstance(approved_value, bool) or approved_value is None:
             approved = approved_value
         else:
@@ -470,7 +467,7 @@ class PeerReview:
             notes = str(notes)
 
         score_value = payload.get("score")
-        score: Optional[float] = None
+        score: float | None = None
         if isinstance(score_value, (int, float)):
             score = float(score_value)
         else:
@@ -501,7 +498,7 @@ class PeerReview:
             metadata=metadata,
         )
 
-    def _coerce_consensus_outcome(self, result: Any) -> Optional[ConsensusOutcome]:
+    def _coerce_consensus_outcome(self, result: Any) -> ConsensusOutcome | None:
         """Convert arbitrary consensus payloads into a DTO."""
 
         if not result:
@@ -589,7 +586,7 @@ class PeerReview:
             metadata=aggregate_metadata,
         )
 
-    def _serialize_for_memory(self) -> Optional[_PeerReviewRecordStorage]:
+    def _serialize_for_memory(self) -> _PeerReviewRecordStorage | None:
         """Build the storage envelope for persistence."""
 
         decisions = tuple(self.reviews.values())
@@ -660,7 +657,7 @@ class PeerReview:
             if transaction_started:
                 self._rollback_transaction(transaction_id)
 
-    def collect_reviews(self) -> Dict[str, ReviewDecision]:
+    def collect_reviews(self) -> dict[str, ReviewDecision]:
         """Gather feedback from all reviewers."""
 
         self._touch()
@@ -936,7 +933,7 @@ class PeerReview:
         if self.metrics_results:
             self._touch()
 
-    def aggregate_feedback(self) -> Dict[str, Any]:
+    def aggregate_feedback(self) -> dict[str, Any]:
         """Aggregate feedback from reviewers into a single structure."""
 
         self._touch()
@@ -947,7 +944,7 @@ class PeerReview:
 
         feedback_notes = [decision.notes or "" for decision in decisions]
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "feedback": feedback_notes,
             "quality_score": self.quality_score,
             "review_id": self.review_id,
@@ -959,7 +956,7 @@ class PeerReview:
         }
 
         if self.acceptance_criteria:
-            criteria_votes: Dict[str, List[bool]] = {}
+            criteria_votes: dict[str, list[bool]] = {}
             for decision in decisions:
                 criteria = decision.metadata.get("criteria_results")
                 if isinstance(criteria, Mapping):
@@ -967,7 +964,7 @@ class PeerReview:
                         votes = criteria_votes.setdefault(str(criterion), [])
                         votes.append(bool(passed))
 
-            final_criteria: Dict[str, bool] = {}
+            final_criteria: dict[str, bool] = {}
             for criterion, votes in criteria_votes.items():
                 final_criteria[criterion] = (
                     sum(1 for vote in votes if vote) > len(votes) / 2
@@ -981,7 +978,7 @@ class PeerReview:
         if self.metrics_results:
             result["metrics_results"] = self.metrics_results
 
-        dialectical_analysis: Dict[str, Any] = {}
+        dialectical_analysis: dict[str, Any] = {}
         for decision in decisions:
             metadata = decision.metadata
             for key in ("thesis", "antithesis", "synthesis"):
@@ -1022,7 +1019,7 @@ class PeerReview:
             if transaction_started:
                 self._rollback_transaction(transaction_id)
 
-    def submit_revision(self, revision: Any) -> "PeerReview":
+    def submit_revision(self, revision: Any) -> PeerReview:
         """
         Submit a revised work product for further review.
 
@@ -1084,7 +1081,7 @@ class PeerReview:
 
             return new_review
 
-    def finalize(self, approved: bool = True) -> Dict[str, Any]:
+    def finalize(self, approved: bool = True) -> dict[str, Any]:
         """Finalize the peer review and return aggregated feedback."""
 
         self._touch()
@@ -1209,17 +1206,17 @@ class PeerReviewWorkflow:
 
     work_product: Any
     author: Any
-    reviewers: List[Any]
-    send_message: Optional[Callable[..., Any]] = None
-    acceptance_criteria: Optional[List[str]] = None
-    quality_metrics: Optional[Dict[str, Any]] = None
+    reviewers: list[Any]
+    send_message: Callable[..., Any] | None = None
+    acceptance_criteria: list[str] | None = None
+    quality_metrics: dict[str, Any] | None = None
     max_revision_cycles: int = 3
-    team: Optional[Any] = None
-    memory_manager: Optional[MemoryManager] = None
+    team: Any | None = None
+    memory_manager: MemoryManager | None = None
 
     def _get_revision_from_author(
-        self, revision_request: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, revision_request: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Get a revised version of the work from the author based on feedback.
 
@@ -1242,7 +1239,7 @@ class PeerReviewWorkflow:
                 revised_work = self.author.revise_work(revision_request)
                 if revised_work:
                     logger.info("Author provided revision using revise_work method")
-                    return cast(Dict[str, Any], revised_work)
+                    return cast(dict[str, Any], revised_work)
             except Exception as e:
                 logger.error(
                     f"Error getting revision from author's revise_work method: {str(e)}"
@@ -1258,7 +1255,7 @@ class PeerReviewWorkflow:
                 revised_work = self.team.request_revision(self.author, revision_request)
                 if revised_work:
                     logger.info("Team provided revision using request_revision method")
-                    return cast(Dict[str, Any], revised_work)
+                    return cast(dict[str, Any], revised_work)
             except Exception as e:
                 logger.error(
                     f"Error getting revision from team's request_revision method: {str(e)}"
@@ -1313,7 +1310,7 @@ class PeerReviewWorkflow:
             "is_simulated": True,
         }
 
-    def run(self) -> Dict[str, Any]:
+    def run(self) -> dict[str, Any]:
         """
         Run a complete peer review workflow with support for revision cycles.
 
@@ -1457,14 +1454,14 @@ class PeerReviewWorkflow:
 def run_peer_review(
     work_product: Any,
     author: Any,
-    reviewers: List[Any],
-    send_message: Optional[Callable[..., Any]] = None,
-    acceptance_criteria: Optional[List[str]] = None,
-    quality_metrics: Optional[Dict[str, Any]] = None,
+    reviewers: list[Any],
+    send_message: Callable[..., Any] | None = None,
+    acceptance_criteria: list[str] | None = None,
+    quality_metrics: dict[str, Any] | None = None,
     max_revision_cycles: int = 3,
-    team: Optional[Any] = None,
-    memory_manager: Optional[MemoryManager] = None,
-) -> Dict[str, Any]:
+    team: Any | None = None,
+    memory_manager: MemoryManager | None = None,
+) -> dict[str, Any]:
     """
     Convenience function to execute a full peer review with quality metrics.
 

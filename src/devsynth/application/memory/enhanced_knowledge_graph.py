@@ -20,15 +20,16 @@ logger = DevSynthLogger(__name__)
 @dataclass
 class Entity:
     """Enhanced entity in the knowledge graph with business context."""
+
     id: str
     type: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     source_file: str = ""
-    business_context: Dict[str, Any] = field(default_factory=dict)
-    intent_links: List[str] = field(default_factory=list)
-    semantic_vectors: List[float] = field(default_factory=list)
+    business_context: dict[str, Any] = field(default_factory=dict)
+    intent_links: list[str] = field(default_factory=list)
+    semantic_vectors: list[float] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert entity to dictionary for serialization."""
         return {
             "id": self.id,
@@ -37,22 +38,23 @@ class Entity:
             "source_file": self.source_file,
             "business_context": self.business_context,
             "intent_links": self.intent_links,
-            "semantic_vectors": self.semantic_vectors
+            "semantic_vectors": self.semantic_vectors,
         }
 
 
 @dataclass
 class Relationship:
     """Enhanced relationship with semantic strength and validation."""
+
     source_id: str
     target_id: str
     type: str
     strength: float
     evidence: str = ""
     validation_method: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert relationship to dictionary for serialization."""
         return {
             "source_id": self.source_id,
@@ -61,13 +63,14 @@ class Relationship:
             "strength": self.strength,
             "evidence": self.evidence,
             "validation_method": self.validation_method,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class IntentLink:
     """Represents a link between code and business intent."""
+
     entity_id: str
     requirement_id: str
     intent_type: str  # "IMPLEMENTS", "SATISFIES", "VALIDATES", etc.
@@ -76,7 +79,7 @@ class IntentLink:
     semantic_similarity: float = 0.0
     validation_method: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert intent link to dictionary."""
         return {
             "entity_id": self.entity_id,
@@ -85,7 +88,7 @@ class IntentLink:
             "confidence": self.confidence,
             "evidence": self.evidence,
             "semantic_similarity": self.semantic_similarity,
-            "validation_method": self.validation_method
+            "validation_method": self.validation_method,
         }
 
 
@@ -94,13 +97,13 @@ class EnhancedKnowledgeGraph:
 
     def __init__(self):
         """Initialize the enhanced knowledge graph."""
-        self.entities: Dict[str, Entity] = {}
-        self.relationships: Dict[str, Relationship] = {}
-        self.intent_links: Dict[str, IntentLink] = {}
+        self.entities: dict[str, Entity] = {}
+        self.relationships: dict[str, Relationship] = {}
+        self.intent_links: dict[str, IntentLink] = {}
 
         # Indexes for efficient querying
-        self._type_index: Dict[str, Set[str]] = {}
-        self._property_index: Dict[str, Dict[str, Set[str]]] = {}
+        self._type_index: dict[str, set[str]] = {}
+        self._property_index: dict[str, dict[str, set[str]]] = {}
 
         # Intent discovery components
         self.intent_discovery_engine = IntentDiscoveryEngine()
@@ -119,10 +122,14 @@ class EnhancedKnowledgeGraph:
 
     def add_relationship(self, relationship: Relationship) -> None:
         """Add a relationship between entities."""
-        rel_id = f"{relationship.source_id}--{relationship.type}-->{relationship.target_id}"
+        rel_id = (
+            f"{relationship.source_id}--{relationship.type}-->{relationship.target_id}"
+        )
         self.relationships[rel_id] = relationship
 
-        logger.debug(f"Added relationship {rel_id} with strength {relationship.strength}")
+        logger.debug(
+            f"Added relationship {rel_id} with strength {relationship.strength}"
+        )
 
     def add_intent_link(self, intent_link: IntentLink) -> None:
         """Add an intent link between code and business requirements."""
@@ -133,39 +140,48 @@ class EnhancedKnowledgeGraph:
         if intent_link.entity_id in self.entities:
             self.entities[intent_link.entity_id].intent_links.append(link_id)
 
-        logger.debug(f"Added intent link {link_id} with confidence {intent_link.confidence}")
+        logger.debug(
+            f"Added intent link {link_id} with confidence {intent_link.confidence}"
+        )
 
-    def get_entity(self, entity_id: str) -> Optional[Entity]:
+    def get_entity(self, entity_id: str) -> Entity | None:
         """Get entity by ID."""
         return self.entities.get(entity_id)
 
-    def get_entities_by_type(self, entity_type: str) -> List[Entity]:
+    def get_entities_by_type(self, entity_type: str) -> list[Entity]:
         """Get all entities of a specific type."""
         entity_ids = self._type_index.get(entity_type, set())
         return [self.entities[eid] for eid in entity_ids if eid in self.entities]
 
-    def get_connected_entities(self, entity_id: str, relationship_type: str = None) -> List[Entity]:
+    def get_connected_entities(
+        self, entity_id: str, relationship_type: str = None
+    ) -> list[Entity]:
         """Get entities connected to the given entity."""
         connected = []
 
         # Find relationships involving this entity
         for rel_id, relationship in self.relationships.items():
-            if (relationship.source_id == entity_id or
-                relationship.target_id == entity_id):
+            if (
+                relationship.source_id == entity_id
+                or relationship.target_id == entity_id
+            ):
 
                 if relationship_type and relationship.type != relationship_type:
                     continue
 
                 # Get the connected entity
-                connected_id = (relationship.target_id if relationship.source_id == entity_id
-                              else relationship.source_id)
+                connected_id = (
+                    relationship.target_id
+                    if relationship.source_id == entity_id
+                    else relationship.source_id
+                )
 
                 if connected_id in self.entities:
                     connected.append(self.entities[connected_id])
 
         return connected
 
-    def query_business_context(self, query: str) -> List[Entity]:
+    def query_business_context(self, query: str) -> list[Entity]:
         """Query entities related to business context."""
         # This is a simplified implementation
         # In practice, would use semantic search and multi-hop traversal
@@ -190,7 +206,9 @@ class EnhancedKnowledgeGraph:
 
         return relevant_entities
 
-    def find_semantic_matches(self, target_entity: Entity, max_results: int = 10) -> List[Entity]:
+    def find_semantic_matches(
+        self, target_entity: Entity, max_results: int = 10
+    ) -> list[Entity]:
         """Find entities semantically similar to the target."""
         # Simplified semantic matching based on keywords and properties
         matches = []
@@ -239,7 +257,7 @@ class EnhancedKnowledgeGraph:
 
             self._property_index[prop_name][prop_str].add(entity.id)
 
-    def discover_intent_relationships(self) -> List[IntentLink]:
+    def discover_intent_relationships(self) -> list[IntentLink]:
         """Discover intent relationships between code and business entities."""
         intent_links = []
 
@@ -264,11 +282,13 @@ class EnhancedKnowledgeGraph:
         logger.info(f"Discovered {len(intent_links)} intent relationships")
         return intent_links
 
-    def calculate_blast_radius(self, start_entity_id: str, max_depth: int = 5) -> Dict[str, Any]:
+    def calculate_blast_radius(
+        self, start_entity_id: str, max_depth: int = 5
+    ) -> dict[str, Any]:
         """Calculate the blast radius of changes to an entity."""
-        visited = set([start_entity_id])
+        visited = {start_entity_id}
         current_level = [start_entity_id]
-        all_affected = set([start_entity_id])
+        all_affected = {start_entity_id}
 
         # Multi-hop traversal to find all affected entities
         for depth in range(max_depth):
@@ -298,10 +318,12 @@ class EnhancedKnowledgeGraph:
             "blast_radius": len(all_affected) - 1,  # Exclude starting entity
             "max_depth": len(visited) if visited else 0,
             "impact_metrics": impact_metrics,
-            "traversal_path": list(visited)
+            "traversal_path": list(visited),
         }
 
-    def _calculate_impact_metrics(self, affected_entities: Set[str], start_entity_id: str) -> Dict[str, Any]:
+    def _calculate_impact_metrics(
+        self, affected_entities: set[str], start_entity_id: str
+    ) -> dict[str, Any]:
         """Calculate impact metrics for the blast radius analysis."""
         if not affected_entities:
             return {}
@@ -329,7 +351,9 @@ class EnhancedKnowledgeGraph:
             "affected_types": type_counts,
             "business_impact_score": business_impact,
             "total_entities_affected": len(affected_entities),
-            "risk_level": self._assess_risk_level(business_impact, len(affected_entities))
+            "risk_level": self._assess_risk_level(
+                business_impact, len(affected_entities)
+            ),
         }
 
     def _assess_risk_level(self, business_impact: int, entity_count: int) -> str:
@@ -341,14 +365,14 @@ class EnhancedKnowledgeGraph:
         else:
             return "low"
 
-    def validate_intent_links(self) -> Dict[str, Any]:
+    def validate_intent_links(self) -> dict[str, Any]:
         """Validate intent links for consistency and accuracy."""
         validation_results = {
             "total_links": len(self.intent_links),
             "valid_links": 0,
             "invalid_links": 0,
             "low_confidence_links": 0,
-            "validation_errors": []
+            "validation_errors": [],
         }
 
         for link_id, intent_link in self.intent_links.items():
@@ -374,27 +398,36 @@ class EnhancedKnowledgeGraph:
                 validation_results["invalid_links"] += 1
                 validation_results["validation_errors"].extend(errors)
 
-        logger.info(f"Validated {len(self.intent_links)} intent links: {validation_results['valid_links']} valid, {validation_results['invalid_links']} invalid")
+        logger.info(
+            f"Validated {len(self.intent_links)} intent links: {validation_results['valid_links']} valid, {validation_results['invalid_links']} invalid"
+        )
         return validation_results
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert entire graph to dictionary for serialization."""
         return {
-            "entities": {eid: entity.to_dict() for eid, entity in self.entities.items()},
-            "relationships": {rid: rel.to_dict() for rid, rel in self.relationships.items()},
-            "intent_links": {lid: link.to_dict() for lid, link in self.intent_links.items()},
+            "entities": {
+                eid: entity.to_dict() for eid, entity in self.entities.items()
+            },
+            "relationships": {
+                rid: rel.to_dict() for rid, rel in self.relationships.items()
+            },
+            "intent_links": {
+                lid: link.to_dict() for lid, link in self.intent_links.items()
+            },
             "metadata": {
                 "entity_count": len(self.entities),
                 "relationship_count": len(self.relationships),
                 "intent_link_count": len(self.intent_links),
                 "entity_types": list(self._type_index.keys()),
-                "created_at": self._get_timestamp()
-            }
+                "created_at": self._get_timestamp(),
+            },
         }
 
     def _get_timestamp(self) -> str:
         """Get current timestamp as ISO string."""
         from datetime import datetime
+
         return datetime.now().isoformat()
 
 
@@ -404,9 +437,13 @@ class IntentDiscoveryEngine:
     def __init__(self, similarity_threshold: float = 0.7):
         """Initialize the intent discovery engine."""
         self.similarity_threshold = similarity_threshold
-        logger.info(f"Intent discovery engine initialized with threshold {similarity_threshold}")
+        logger.info(
+            f"Intent discovery engine initialized with threshold {similarity_threshold}"
+        )
 
-    def discover_intent(self, code_entity: Entity, requirement: Entity) -> Optional[IntentLink]:
+    def discover_intent(
+        self, code_entity: Entity, requirement: Entity
+    ) -> IntentLink | None:
         """Discover intent relationship between code and requirement."""
         # Calculate semantic similarity between code and requirement
         similarity = self._calculate_semantic_similarity(code_entity, requirement)
@@ -421,13 +458,17 @@ class IntentDiscoveryEngine:
         comment_confidence = self._analyze_comment_content(code_entity, requirement)
 
         # Analyze implementation patterns
-        implementation_confidence = self._analyze_implementation_patterns(code_entity, requirement)
+        implementation_confidence = self._analyze_implementation_patterns(
+            code_entity, requirement
+        )
 
         # Combine confidence scores
-        overall_confidence = (similarity * 0.4 +
-                            naming_confidence * 0.3 +
-                            comment_confidence * 0.2 +
-                            implementation_confidence * 0.1)
+        overall_confidence = (
+            similarity * 0.4
+            + naming_confidence * 0.3
+            + comment_confidence * 0.2
+            + implementation_confidence * 0.1
+        )
 
         if overall_confidence < self.similarity_threshold:
             return None
@@ -443,10 +484,16 @@ class IntentDiscoveryEngine:
         if implementation_confidence > 0.7:
             evidence_parts.append("Implementation pattern match")
 
-        evidence = "; ".join(evidence_parts) if evidence_parts else f"Semantic similarity: {similarity:.2f}"
+        evidence = (
+            "; ".join(evidence_parts)
+            if evidence_parts
+            else f"Semantic similarity: {similarity:.2f}"
+        )
 
         # Determine intent type
-        intent_type = self._determine_intent_type(code_entity, requirement, overall_confidence)
+        intent_type = self._determine_intent_type(
+            code_entity, requirement, overall_confidence
+        )
 
         return IntentLink(
             entity_id=code_entity.id,
@@ -455,20 +502,37 @@ class IntentDiscoveryEngine:
             confidence=overall_confidence,
             evidence=evidence,
             semantic_similarity=similarity,
-            validation_method="semantic_similarity_and_pattern_analysis"
+            validation_method="semantic_similarity_and_pattern_analysis",
         )
 
-    def _calculate_semantic_similarity(self, code_entity: Entity, requirement: Entity) -> float:
+    def _calculate_semantic_similarity(
+        self, code_entity: Entity, requirement: Entity
+    ) -> float:
         """Calculate semantic similarity between code entity and requirement."""
         # Simplified semantic similarity based on text overlap
         code_text = " ".join(str(v) for v in code_entity.properties.values()).lower()
-        requirement_text = " ".join(str(v) for v in requirement.properties.values()).lower()
+        requirement_text = " ".join(
+            str(v) for v in requirement.properties.values()
+        ).lower()
 
         # Extract meaningful words
-        def extract_keywords(text: str) -> Set[str]:
+        def extract_keywords(text: str) -> set[str]:
             words = text.split()
             # Filter for meaningful words (length > 2, not common stop words)
-            stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
+            stop_words = {
+                "the",
+                "and",
+                "or",
+                "but",
+                "in",
+                "on",
+                "at",
+                "to",
+                "for",
+                "of",
+                "with",
+                "by",
+            }
             return {word for word in words if len(word) > 2 and word not in stop_words}
 
         code_keywords = extract_keywords(code_text)
@@ -483,15 +547,26 @@ class IntentDiscoveryEngine:
 
         return intersection / union if union > 0 else 0.0
 
-    def _analyze_naming_patterns(self, code_entity: Entity, requirement: Entity) -> float:
+    def _analyze_naming_patterns(
+        self, code_entity: Entity, requirement: Entity
+    ) -> float:
         """Analyze naming patterns for intent alignment."""
         code_name = code_entity.properties.get("name", "").lower()
         requirement_desc = requirement.properties.get("description", "").lower()
 
         # Check for business domain keywords in code names
         business_indicators = [
-            "user", "auth", "payment", "admin", "report", "config",
-            "profile", "dashboard", "notification", "search", "filter"
+            "user",
+            "auth",
+            "payment",
+            "admin",
+            "report",
+            "config",
+            "profile",
+            "dashboard",
+            "notification",
+            "search",
+            "filter",
         ]
 
         name_matches = 0
@@ -502,7 +577,9 @@ class IntentDiscoveryEngine:
         # Normalize by number of indicators checked
         return name_matches / len(business_indicators)
 
-    def _analyze_comment_content(self, code_entity: Entity, requirement: Entity) -> float:
+    def _analyze_comment_content(
+        self, code_entity: Entity, requirement: Entity
+    ) -> float:
         """Analyze comment content for business intent."""
         # Look for business context in entity properties
         code_props = code_entity.properties
@@ -510,8 +587,16 @@ class IntentDiscoveryEngine:
 
         # Check for business-related keywords in comments or descriptions
         business_keywords = [
-            "user", "business", "requirement", "feature", "functionality",
-            "purpose", "intent", "goal", "objective", "value"
+            "user",
+            "business",
+            "requirement",
+            "feature",
+            "functionality",
+            "purpose",
+            "intent",
+            "goal",
+            "objective",
+            "value",
         ]
 
         code_business_context = 0
@@ -532,11 +617,15 @@ class IntentDiscoveryEngine:
 
         # Normalize scores
         code_score = min(1.0, code_business_context / 5)  # Max 5 business keywords
-        requirement_score = min(1.0, requirement_business_context / 3)  # Max 3 business keywords
+        requirement_score = min(
+            1.0, requirement_business_context / 3
+        )  # Max 3 business keywords
 
         return (code_score + requirement_score) / 2
 
-    def _analyze_implementation_patterns(self, code_entity: Entity, requirement: Entity) -> float:
+    def _analyze_implementation_patterns(
+        self, code_entity: Entity, requirement: Entity
+    ) -> float:
         """Analyze implementation patterns for intent alignment."""
         # Check if implementation matches requirement type
         code_type = code_entity.type
@@ -557,7 +646,9 @@ class IntentDiscoveryEngine:
 
         return 0.3  # Default low confidence
 
-    def _determine_intent_type(self, code_entity: Entity, requirement: Entity, confidence: float) -> str:
+    def _determine_intent_type(
+        self, code_entity: Entity, requirement: Entity, confidence: float
+    ) -> str:
         """Determine the type of intent relationship."""
         requirement_desc = requirement.properties.get("description", "").lower()
 

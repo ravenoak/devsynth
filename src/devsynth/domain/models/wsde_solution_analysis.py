@@ -18,8 +18,8 @@ logger = DevSynthLogger(__name__)
 
 
 def _analyze_solution(
-    self: WSDETeam, solution: Dict[str, Any], task: Dict[str, Any], solution_number: int
-) -> Dict[str, Any]:
+    self: WSDETeam, solution: dict[str, Any], task: dict[str, Any], solution_number: int
+) -> dict[str, Any]:
     """
     Analyze a solution for a task.
 
@@ -139,8 +139,8 @@ def _analyze_solution(
 
 
 def _generate_comparative_analysis(
-    self: WSDETeam, solution_analyses: List[Dict[str, Any]], task: Dict[str, Any]
-) -> Dict[str, Any]:
+    self: WSDETeam, solution_analyses: list[dict[str, Any]], task: dict[str, Any]
+) -> dict[str, Any]:
     """
     Generate a comparative analysis of multiple solutions.
 
@@ -311,9 +311,9 @@ def _generate_comparative_analysis(
 
 def _generate_multi_solution_synthesis(
     self: WSDETeam,
-    solutions: List[Dict[str, Any]],
-    comparative_analysis: Dict[str, Any],
-) -> Dict[str, Any]:
+    solutions: list[dict[str, Any]],
+    comparative_analysis: dict[str, Any],
+) -> dict[str, Any]:
     """
     Generate a synthesis from multiple solutions.
 
@@ -418,10 +418,10 @@ def _generate_multi_solution_synthesis(
 
 def _generate_comparative_evaluation(
     self: WSDETeam,
-    synthesis: Dict[str, Any],
-    solutions: List[Dict[str, Any]],
-    comparative_analysis: Dict[str, Any],
-) -> Dict[str, Any]:
+    synthesis: dict[str, Any],
+    solutions: list[dict[str, Any]],
+    comparative_analysis: dict[str, Any],
+) -> dict[str, Any]:
     """
     Generate an evaluation of a multi-solution synthesis.
 
