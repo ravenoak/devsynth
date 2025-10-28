@@ -2,54 +2,54 @@
 2025-10-21 16:07:00,819 - devsynth.testing.run_tests - INFO - Coverage data file detected at .coverage (139264 bytes)
 2025-10-21 16:07:18,858 - devsynth.testing.run_tests - INFO - Coverage HTML report generated
 2025-10-21 16:07:24,364 - devsynth.testing.run_tests - INFO - Coverage JSON report generated
-===================================================== test session starts 
-======================================================platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0benchmark: 
-5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 
-warmup=False warmup_iterations=100000)rootdir: /workspace/devsynthconfigfile: pytest.iniplugins: xdist-3.8.0, 
-hypothesis-6.141.1, langsmith-0.4.36, benchmark-5.1.0, mock-3.15.1, cov-7.0.0, Faker-37.11.0, anyio-4.11.0, bdd-8.1.0, 
-html-4.1.1, asyncio-1.2.0, metadata-3.1.1, rerunfailures-16.1asyncio: mode=Mode.STRICT, debug=False, 
-asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=functioncollected 31 
-itemstests/integration/agents/test_generation/test_run_generated_tests.py ..                                                  [ 
-6%]tests/integration/agents/test_generation/test_scaffold_generation.py ..                                                  [ 
-12%]tests/integration/api/test_api_startup.py ..                                                                             [ 
-19%]tests/integration/deployment/test_compose_workflow.py ...                                                                [ 
-29%]tests/integration/deployment/test_deployment_scripts.py .....                                                            [ 
-45%]tests/integration/general/test_complex_workflow.py .                                                                     [ 
-48%]tests/integration/general/test_end_to_end_workflow.py .                                                                  [ 
-51%]tests/integration/general/test_lmstudio_integration_regression.py sssssss                                                [ 
-74%]tests/integration/generated/test_generated_module.py s                                                                   [ 
-77%]tests/integration/generated/test_run_generated_tests.py ..                                                               [ 
-83%]tests/integration/llm/test_lmstudio_timing_baseline.py s                                                                 [ 
-87%]tests/integration/mvu/test_command_execution.py ..                                                                       [ 
-93%]tests/integration/utils/test_logging_integration.py ..                                                                   
-[100%]======================================================= warnings summary 
-=======================================================.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290  
-/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module 
-already imported so cannot be rewritten; anyio    self._mark_plugins_for_rewrite(hook, 
-disable_autoload).venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833  
-/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module 
-already imported so cannot be rewritten; tests.fixtures.optional_deps    
-self.import_plugin(import_spec).venv/lib/python3.12/site-packages/astor/op_util.py:92  
-/workspace/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will 
-be removed in Python 3.14; use ast.Constant instead    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in 
-op_data)-- Docs: 
-https://docs.pytest.org/en/stable/how-to/capture-warnings.html======================================================== tests 
-coverage ========================================================_______________________________________ coverage: platform 
-linux, python 3.12.10-final-0 _______________________________________Coverage HTML written to dir htmlcovCoverage JSON written 
-to file test_reports/coverage.json================================================= Test Categorization Summary 
+===================================================== test session starts
+======================================================platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0benchmark:
+5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10
+warmup=False warmup_iterations=100000)rootdir: /workspace/devsynthconfigfile: pytest.iniplugins: xdist-3.8.0,
+hypothesis-6.141.1, langsmith-0.4.36, benchmark-5.1.0, mock-3.15.1, cov-7.0.0, Faker-37.11.0, anyio-4.11.0, bdd-8.1.0,
+html-4.1.1, asyncio-1.2.0, metadata-3.1.1, rerunfailures-16.1asyncio: mode=Mode.STRICT, debug=False,
+asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=functioncollected 31
+itemstests/integration/agents/test_generation/test_run_generated_tests.py ..                                                  [
+6%]tests/integration/agents/test_generation/test_scaffold_generation.py ..                                                  [
+12%]tests/integration/api/test_api_startup.py ..                                                                             [
+19%]tests/integration/deployment/test_compose_workflow.py ...                                                                [
+29%]tests/integration/deployment/test_deployment_scripts.py .....                                                            [
+45%]tests/integration/general/test_complex_workflow.py .                                                                     [
+48%]tests/integration/general/test_end_to_end_workflow.py .                                                                  [
+51%]tests/integration/general/test_lmstudio_integration_regression.py sssssss                                                [
+74%]tests/integration/generated/test_generated_module.py s                                                                   [
+77%]tests/integration/generated/test_run_generated_tests.py ..                                                               [
+83%]tests/integration/llm/test_lmstudio_timing_baseline.py s                                                                 [
+87%]tests/integration/mvu/test_command_execution.py ..                                                                       [
+93%]tests/integration/utils/test_logging_integration.py ..
+[100%]======================================================= warnings summary
+=======================================================.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290
+/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module
+already imported so cannot be rewritten; anyio    self._mark_plugins_for_rewrite(hook,
+disable_autoload).venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module
+already imported so cannot be rewritten; tests.fixtures.optional_deps
+self.import_plugin(import_spec).venv/lib/python3.12/site-packages/astor/op_util.py:92
+/workspace/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will
+be removed in Python 3.14; use ast.Constant instead    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in
+op_data)-- Docs:
+https://docs.pytest.org/en/stable/how-to/capture-warnings.html======================================================== tests
+coverage ========================================================_______________________________________ coverage: platform
+linux, python 3.12.10-final-0 _______________________________________Coverage HTML written to dir htmlcovCoverage JSON written
+to file test_reports/coverage.json================================================= Test Categorization Summary
 ==================================================Test Type Distribution:  Unit Tests: 0  Integration Tests: 31  Behavior Tests:
-0Test Speed Distribution:  Fast Tests (&lt; 1s): 29  Medium Tests (1-5s): 2  Slow Tests (&gt; 5s): 
-0===================================================== Top 10 Slowest Tests 
-=====================================================1. 
-tests/integration/agents/test_generation/test_run_generated_tests.py::test_run_generated_tests_pass: 1.94s2. 
-tests/integration/agents/test_generation/test_run_generated_tests.py::test_run_generated_tests_failure: 1.77s3. 
-tests/integration/api/test_api_startup.py::test_api_health_and_metrics_startup_without_binding_ports: 0.66s4. 
-tests/integration/deployment/test_deployment_scripts.py::test_prometheus_exporter_refuses_root: 0.42s5. 
-tests/integration/deployment/test_deployment_scripts.py::test_health_check_validates_url: 0.41s6. 
-tests/integration/api/test_api_startup.py::test_agent_openapi_documents_workflow_models: 0.08s7. 
-tests/integration/deployment/test_deployment_scripts.py::test_stack_scripts_env_permissions: 0.05s8. 
-tests/integration/mvu/test_command_execution.py::test_mvu_exec_runs_command: 0.05s9. 
-tests/integration/deployment/test_deployment_scripts.py::test_stack_scripts_env_permissions: 0.05s10. 
+0Test Speed Distribution:  Fast Tests (&lt; 1s): 29  Medium Tests (1-5s): 2  Slow Tests (&gt; 5s):
+0===================================================== Top 10 Slowest Tests
+=====================================================1.
+tests/integration/agents/test_generation/test_run_generated_tests.py::test_run_generated_tests_pass: 1.94s2.
+tests/integration/agents/test_generation/test_run_generated_tests.py::test_run_generated_tests_failure: 1.77s3.
+tests/integration/api/test_api_startup.py::test_api_health_and_metrics_startup_without_binding_ports: 0.66s4.
+tests/integration/deployment/test_deployment_scripts.py::test_prometheus_exporter_refuses_root: 0.42s5.
+tests/integration/deployment/test_deployment_scripts.py::test_health_check_validates_url: 0.41s6.
+tests/integration/api/test_api_startup.py::test_agent_openapi_documents_workflow_models: 0.08s7.
+tests/integration/deployment/test_deployment_scripts.py::test_stack_scripts_env_permissions: 0.05s8.
+tests/integration/mvu/test_command_execution.py::test_mvu_exec_runs_command: 0.05s9.
+tests/integration/deployment/test_deployment_scripts.py::test_stack_scripts_env_permissions: 0.05s10.
 tests/integration/mvu/test_command_execution.py::test_mvu_exec_propagates_error: 0.05s==========================================
 22 passed, 9 skipped, 3 warnings in 38.45s ==========================================
 Tests completed successfully
