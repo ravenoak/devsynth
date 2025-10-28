@@ -25,7 +25,7 @@ tests/integration/llm/test_critical_llm_workflows.py:22
     class TestGenerator:
 
 tests/unit/adapters/test_chromadb_memory_store.py:19
-  /workspace/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning: 
+  /workspace/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning:
   Module 'devsynth.adapters.chromadb_memory_store' was found, but when imported by pytest it raised:
       ImportError("ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras.")
   In pytest 9.1 this warning will become an error by default.
