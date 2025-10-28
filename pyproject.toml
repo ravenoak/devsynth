@@ -739,7 +739,7 @@ markers = [
 ]
 
 # Configure asyncio mode for pytest-asyncio
-asyncio_mode = "strict"
+# asyncio_mode = "auto"  # Temporarily disabled due to pytest-asyncio configuration conflict
 
 # BDD features base directory - using pytest-bdd 8.1.0 compatible format
 bdd_features_base_dir = "tests/behavior/features"
