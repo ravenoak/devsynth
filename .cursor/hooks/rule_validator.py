@@ -10,28 +10,31 @@ import json
 import logging
 import os
 import re
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Tuple
+
 import yaml
 
 
 @dataclass
 class RuleValidationResult:
     """Results of rule validation."""
+
     rule_name: str
     is_valid: bool
     score: float  # 0.0 to 1.0
-    issues: List[str]
-    suggestions: List[str]
-    metrics: Dict[str, Any]
+    issues: list[str]
+    suggestions: list[str]
+    metrics: dict[str, Any]
     validation_timestamp: str
 
 
 @dataclass
 class RuleImprovement:
     """Represents an improvement suggestion for a rule."""
+
     rule_name: str
     improvement_type: str
     description: str
@@ -39,7 +42,7 @@ class RuleImprovement:
     improved_content: str
     impact_score: float
     confidence: float
-    examples: List[str]
+    examples: list[str]
     rationale: str
 
 
@@ -50,11 +53,19 @@ class YAMLFrontmatterValidator:
         self.required_fields = ["description"]
         self.recommended_fields = ["alwaysApply", "globs", "generated_by", "confidence"]
         self.valid_glob_patterns = [
-            "**/*.py", "**/*.md", "**/*.js", "**/*.ts", "**/*.json",
-            "src/**/*.py", "tests/**/*.py", "docs/**/*.md"
+            "**/*.py",
+            "**/*.md",
+            "**/*.js",
+            "**/*.ts",
+            "**/*.json",
+            "src/**/*.py",
+            "tests/**/*.py",
+            "docs/**/*.md",
         ]
 
-    def validate_frontmatter(self, frontmatter: Dict[str, Any], rule_name: str) -> Tuple[bool, List[str]]:
+    def validate_frontmatter(
+        self, frontmatter: dict[str, Any], rule_name: str
+    ) -> tuple[bool, list[str]]:
         """Validate YAML frontmatter."""
         issues = []
 
@@ -75,12 +86,16 @@ class YAMLFrontmatterValidator:
                 for glob in frontmatter["globs"]:
                     if not isinstance(glob, str):
                         issues.append("Each glob must be a string")
-                    elif not any(pattern in glob for pattern in self.valid_glob_patterns):
+                    elif not any(
+                        pattern in glob for pattern in self.valid_glob_patterns
+                    ):
                         issues.append(f"Potentially invalid glob pattern: {glob}")
 
         if "confidence" in frontmatter:
             confidence = frontmatter["confidence"]
-            if not isinstance(confidence, (int, float)) or not (0.0 <= confidence <= 1.0):
+            if not isinstance(confidence, (int, float)) or not (
+                0.0 <= confidence <= 1.0
+            ):
                 issues.append("confidence must be a number between 0.0 and 1.0")
 
         return len(issues) == 0, issues
@@ -95,7 +110,9 @@ class RuleContentValidator:
         self.required_sections = ["description", "guidelines"]
         self.recommended_sections = ["examples", "references", "related_rules"]
 
-    def validate_content(self, content: str, rule_name: str) -> Tuple[bool, List[str], Dict[str, Any]]:
+    def validate_content(
+        self, content: str, rule_name: str
+    ) -> tuple[bool, list[str], dict[str, Any]]:
         """Validate rule content."""
         issues = []
         metrics = {
@@ -103,7 +120,7 @@ class RuleContentValidator:
             "sections": [],
             "has_examples": False,
             "clarity_score": 0.0,
-            "specificity_score": 0.0
+            "specificity_score": 0.0,
         }
 
         # Check content length
@@ -114,13 +131,13 @@ class RuleContentValidator:
             pass  # Content length is now just a suggestion, not a failure
 
         # Check for sections
-        lines = content.split('\n')
+        lines = content.split("\n")
         current_section = None
         sections_found = []
 
         for line in lines:
-            if re.match(r'^#+\s+', line):  # Header line
-                section_name = re.sub(r'^#+\s+', '', line).lower()
+            if re.match(r"^#+\s+", line):  # Header line
+                section_name = re.sub(r"^#+\s+", "", line).lower()
                 sections_found.append(section_name)
                 current_section = section_name
 
@@ -137,21 +154,32 @@ class RuleContentValidator:
             "clear" in content.lower(),
             "guideline" in content.lower(),
             "standard" in content.lower(),
-            "requirement" in content.lower()
+            "requirement" in content.lower(),
         ]
         metrics["clarity_score"] = sum(clarity_indicators) / len(clarity_indicators)
 
         # Calculate specificity score
         specificity_indicators = [
-            any(word in content.lower() for word in ["must", "should", "required", "enforce"]),
-            any(word in content.lower() for word in ["avoid", "never", "always", "ensure"]),
+            any(
+                word in content.lower()
+                for word in ["must", "should", "required", "enforce"]
+            ),
+            any(
+                word in content.lower()
+                for word in ["avoid", "never", "always", "ensure"]
+            ),
             "example" in content.lower() or "```" in content,
-            len(re.findall(r'[A-Z][a-z]+:', content)) > 0  # Look for structured guidance
+            len(re.findall(r"[A-Z][a-z]+:", content))
+            > 0,  # Look for structured guidance
         ]
-        metrics["specificity_score"] = sum(specificity_indicators) / len(specificity_indicators)
+        metrics["specificity_score"] = sum(specificity_indicators) / len(
+            specificity_indicators
+        )
 
         # Check for actionable guidance
-        if not any(word in content.lower() for word in ["use", "implement", "follow", "apply"]):
+        if not any(
+            word in content.lower() for word in ["use", "implement", "follow", "apply"]
+        ):
             issues.append("Add actionable guidance on how to implement the rule")
 
         return len(issues) == 0, issues, metrics
@@ -162,7 +190,7 @@ class RuleConsistencyValidator:
 
     def __init__(self, rules_dir: Path):
         self.rules_dir = rules_dir
-        self.rules_content: Dict[str, str] = {}
+        self.rules_content: dict[str, str] = {}
         self.load_all_rules()
 
     def load_all_rules(self):
@@ -171,7 +199,9 @@ class RuleConsistencyValidator:
             rule_name = rule_file.stem
             self.rules_content[rule_name] = rule_file.read_text()
 
-    def validate_consistency(self, rule_name: str, content: str) -> Tuple[bool, List[str]]:
+    def validate_consistency(
+        self, rule_name: str, content: str
+    ) -> tuple[bool, list[str]]:
         """Validate rule consistency with other rules."""
         issues = []
 
@@ -189,7 +219,7 @@ class RuleConsistencyValidator:
 
         return len(issues) == 0, issues
 
-    def _find_conflicting_guidance(self, rule_name: str, content: str) -> List[str]:
+    def _find_conflicting_guidance(self, rule_name: str, content: str) -> list[str]:
         """Find conflicting guidance with other rules."""
         conflicts = []
 
@@ -198,12 +228,17 @@ class RuleConsistencyValidator:
             for other_rule, other_content in self.rules_content.items():
                 if other_rule != rule_name and "import" in other_content.lower():
                     # Look for conflicting import guidance
-                    if "stdlib first" in content.lower() and "third-party first" in other_content.lower():
-                        conflicts.append(f"Conflicting import organization guidance with {other_rule}")
+                    if (
+                        "stdlib first" in content.lower()
+                        and "third-party first" in other_content.lower()
+                    ):
+                        conflicts.append(
+                            f"Conflicting import organization guidance with {other_rule}"
+                        )
 
         return conflicts
 
-    def _find_missing_references(self, rule_name: str, content: str) -> List[str]:
+    def _find_missing_references(self, rule_name: str, content: str) -> list[str]:
         """Find missing references to related rules."""
         missing_refs = []
 
@@ -213,7 +248,7 @@ class RuleConsistencyValidator:
             "documentation": ["documentation"],
             "security": ["security-compliance"],
             "import": ["import_organization"],
-            "error": ["error_handling"]
+            "error": ["error_handling"],
         }
 
         content_lower = content.lower()
@@ -221,11 +256,13 @@ class RuleConsistencyValidator:
             if concept in content_lower:
                 has_reference = any(ref in content for ref in related_rules)
                 if not has_reference:
-                    missing_refs.append(f"Consider referencing related rules: {', '.join(related_rules)}")
+                    missing_refs.append(
+                        f"Consider referencing related rules: {', '.join(related_rules)}"
+                    )
 
         return missing_refs
 
-    def _check_style_consistency(self, rule_name: str, content: str) -> List[str]:
+    def _check_style_consistency(self, rule_name: str, content: str) -> list[str]:
         """Check style consistency with other rules."""
         issues = []
 
@@ -236,10 +273,10 @@ class RuleConsistencyValidator:
             # Check for consistent use of sections
             other_sections = set()
             for rule in other_rules:
-                sections = re.findall(r'^#+\s+(.+)$', rule, re.MULTILINE)
+                sections = re.findall(r"^#+\s+(.+)$", rule, re.MULTILINE)
                 other_sections.update(sections)
 
-            current_sections = set(re.findall(r'^#+\s+(.+)$', content, re.MULTILINE))
+            current_sections = set(re.findall(r"^#+\s+(.+)$", content, re.MULTILINE))
 
             if other_sections and not current_sections:
                 issues.append("Consider adding section headers for consistency")
@@ -268,7 +305,7 @@ class RuleImprovementGenerator:
                 issues=[f"Rule file not found: {rule_file}"],
                 suggestions=[],
                 metrics={},
-                validation_timestamp=datetime.now().isoformat()
+                validation_timestamp=datetime.now().isoformat(),
             )
 
         content = rule_file.read_text()
@@ -281,22 +318,30 @@ class RuleImprovementGenerator:
         suggestions = []
 
         # Frontmatter validation
-        frontmatter_valid, frontmatter_issues = self.frontmatter_validator.validate_frontmatter(frontmatter, rule_name)
+        frontmatter_valid, frontmatter_issues = (
+            self.frontmatter_validator.validate_frontmatter(frontmatter, rule_name)
+        )
         issues.extend(frontmatter_issues)
 
         # Content validation
-        content_valid, content_issues, metrics = self.content_validator.validate_content(body, rule_name)
+        content_valid, content_issues, metrics = (
+            self.content_validator.validate_content(body, rule_name)
+        )
         issues.extend(content_issues)
 
         # Consistency validation
-        consistency_valid, consistency_issues = self.consistency_validator.validate_consistency(rule_name, content)
+        consistency_valid, consistency_issues = (
+            self.consistency_validator.validate_consistency(rule_name, content)
+        )
         issues.extend(consistency_issues)
 
         # Generate suggestions
         suggestions = self._generate_suggestions(rule_name, frontmatter, body, metrics)
 
         # Calculate overall score
-        score = self._calculate_validation_score(frontmatter_valid, content_valid, consistency_valid, metrics)
+        score = self._calculate_validation_score(
+            frontmatter_valid, content_valid, consistency_valid, metrics
+        )
 
         return RuleValidationResult(
             rule_name=rule_name,
@@ -305,66 +350,85 @@ class RuleImprovementGenerator:
             issues=issues,
             suggestions=suggestions,
             metrics=metrics,
-            validation_timestamp=datetime.now().isoformat()
+            validation_timestamp=datetime.now().isoformat(),
         )
 
-    def _parse_frontmatter(self, content: str) -> Tuple[Dict[str, Any], str]:
+    def _parse_frontmatter(self, content: str) -> tuple[dict[str, Any], str]:
         """Parse YAML frontmatter from rule content."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         frontmatter = {}
         body_lines = []
 
-        if not lines or not lines[0].strip() == '---':
+        if not lines or not lines[0].strip() == "---":
             return frontmatter, content
 
         in_frontmatter = True
         for line in lines[1:]:
-            if line.strip() == '---':
+            if line.strip() == "---":
                 in_frontmatter = False
                 continue
 
             if in_frontmatter:
-                if ':' in line:
-                    key, value = line.split(':', 1)
+                if ":" in line:
+                    key, value = line.split(":", 1)
                     key = key.strip()
                     value = value.strip()
 
                     # Parse simple YAML types
-                    if value.lower() in ['true', 'false']:
-                        frontmatter[key] = value.lower() == 'true'
-                    elif value.startswith('[') and value.endswith(']'):
-                        frontmatter[key] = [v.strip().strip('"\'') for v in value[1:-1].split(',')]
-                    elif value.replace('.', '').replace('-', '').isdigit():
-                        frontmatter[key] = float(value) if '.' in value else int(value)
+                    if value.lower() in ["true", "false"]:
+                        frontmatter[key] = value.lower() == "true"
+                    elif value.startswith("[") and value.endswith("]"):
+                        frontmatter[key] = [
+                            v.strip().strip("\"'") for v in value[1:-1].split(",")
+                        ]
+                    elif value.replace(".", "").replace("-", "").isdigit():
+                        frontmatter[key] = float(value) if "." in value else int(value)
                     else:
                         frontmatter[key] = value
             else:
                 body_lines.append(line)
 
-        return frontmatter, '\n'.join(body_lines)
+        return frontmatter, "\n".join(body_lines)
 
-    def _generate_suggestions(self, rule_name: str, frontmatter: Dict[str, Any], body: str, metrics: Dict[str, Any]) -> List[str]:
+    def _generate_suggestions(
+        self,
+        rule_name: str,
+        frontmatter: dict[str, Any],
+        body: str,
+        metrics: dict[str, Any],
+    ) -> list[str]:
         """Generate improvement suggestions."""
         suggestions = []
 
         # Frontmatter suggestions (only for missing required fields)
         if "globs" not in frontmatter:
-            suggestions.append("Add appropriate glob patterns to control when this rule applies")
+            suggestions.append(
+                "Add appropriate glob patterns to control when this rule applies"
+            )
 
         # Content suggestions
         if not metrics.get("has_examples", False):
-            suggestions.append("Consider adding practical examples to demonstrate the rule")
+            suggestions.append(
+                "Consider adding practical examples to demonstrate the rule"
+            )
 
         if metrics.get("clarity_score", 0) < 0.5:
             suggestions.append("Consider improving clarity with more specific language")
 
         if metrics.get("specificity_score", 0) < 0.5:
-            suggestions.append("Consider making guidance more specific with clear dos and don'ts")
+            suggestions.append(
+                "Consider making guidance more specific with clear dos and don'ts"
+            )
 
         return suggestions
 
-    def _calculate_validation_score(self, frontmatter_valid: bool, content_valid: bool,
-                                  consistency_valid: bool, metrics: Dict[str, Any]) -> float:
+    def _calculate_validation_score(
+        self,
+        frontmatter_valid: bool,
+        content_valid: bool,
+        consistency_valid: bool,
+        metrics: dict[str, Any],
+    ) -> float:
         """Calculate overall validation score."""
         score = 0.0
 
@@ -394,7 +458,7 @@ class RuleAutoImprover:
         self.rules_dir = rules_dir
         self.validator = RuleImprovementGenerator(rules_dir)
 
-    def improve_rule(self, rule_name: str) -> Optional[RuleImprovement]:
+    def improve_rule(self, rule_name: str) -> RuleImprovement | None:
         """Generate an improved version of a rule."""
         validation = self.validator.validate_rule(rule_name)
 
@@ -411,7 +475,9 @@ class RuleAutoImprover:
         improved_frontmatter = self._improve_frontmatter(frontmatter, validation)
         improved_body = self._improve_content(body, validation)
 
-        improved_content = self._format_improved_rule(improved_frontmatter, improved_body)
+        improved_content = self._format_improved_rule(
+            improved_frontmatter, improved_body
+        )
 
         return RuleImprovement(
             rule_name=rule_name,
@@ -422,10 +488,12 @@ class RuleAutoImprover:
             impact_score=1.0 - validation.score,
             confidence=0.8,
             examples=validation.issues[:3],
-            rationale="Automated improvement based on validation analysis"
+            rationale="Automated improvement based on validation analysis",
         )
 
-    def _improve_frontmatter(self, frontmatter: Dict[str, Any], validation: RuleValidationResult) -> Dict[str, Any]:
+    def _improve_frontmatter(
+        self, frontmatter: dict[str, Any], validation: RuleValidationResult
+    ) -> dict[str, Any]:
         """Improve YAML frontmatter based on validation results."""
         improved = frontmatter.copy()
 
@@ -460,7 +528,7 @@ class RuleAutoImprover:
 
         return content
 
-    def _format_improved_rule(self, frontmatter: Dict[str, Any], body: str) -> str:
+    def _format_improved_rule(self, frontmatter: dict[str, Any], body: str) -> str:
         """Format the improved rule with proper structure."""
         lines = ["---"]
 
@@ -475,7 +543,7 @@ class RuleAutoImprover:
         lines.extend(["---", "", body])
         return "\n".join(lines)
 
-    def batch_improve_rules(self, min_score: float = 0.7) -> List[RuleImprovement]:
+    def batch_improve_rules(self, min_score: float = 0.7) -> list[RuleImprovement]:
         """Improve all rules below the minimum score threshold."""
         improvements = []
 
@@ -501,7 +569,7 @@ class RuleHealthMonitor:
         self.validator = RuleImprovementGenerator(rules_dir)
         self.improver = RuleAutoImprover(rules_dir)
 
-    def generate_health_report(self) -> Dict[str, Any]:
+    def generate_health_report(self) -> dict[str, Any]:
         """Generate a comprehensive health report for the rule system."""
         report = {
             "timestamp": datetime.now().isoformat(),
@@ -511,7 +579,7 @@ class RuleHealthMonitor:
             "rules_by_score": {"excellent": 0, "good": 0, "fair": 0, "poor": 0},
             "common_issues": [],
             "improvement_opportunities": [],
-            "system_health": "unknown"
+            "system_health": "unknown",
         }
 
         rule_scores = []
@@ -553,7 +621,9 @@ class RuleHealthMonitor:
         for issue in all_issues:
             issue_counts[issue] = issue_counts.get(issue, 0) + 1
 
-        report["common_issues"] = sorted(issue_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+        report["common_issues"] = sorted(
+            issue_counts.items(), key=lambda x: x[1], reverse=True
+        )[:10]
 
         # System health assessment
         excellent_pct = report["rules_by_score"]["excellent"] / report["total_rules"]
@@ -572,14 +642,14 @@ class RuleHealthMonitor:
 
         return report
 
-    def save_health_report(self, report: Dict[str, Any]):
+    def save_health_report(self, report: dict[str, Any]):
         """Save health report to file."""
         report_file = self.analytics_dir / "rule_system_health.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
 
-def validate_all_rules(rules_dir: str) -> Dict[str, RuleValidationResult]:
+def validate_all_rules(rules_dir: str) -> dict[str, RuleValidationResult]:
     """Validate all rules in the directory."""
     validator = RuleImprovementGenerator(Path(rules_dir))
     results = {}
@@ -591,13 +661,15 @@ def validate_all_rules(rules_dir: str) -> Dict[str, RuleValidationResult]:
     return results
 
 
-def generate_rule_improvements(rules_dir: str, min_score: float = 0.7) -> List[RuleImprovement]:
+def generate_rule_improvements(
+    rules_dir: str, min_score: float = 0.7
+) -> list[RuleImprovement]:
     """Generate improvements for rules below the minimum score."""
     improver = RuleAutoImprover(Path(rules_dir))
     return improver.batch_improve_rules(min_score)
 
 
-def generate_health_report(rules_dir: str, analytics_dir: str) -> Dict[str, Any]:
+def generate_health_report(rules_dir: str, analytics_dir: str) -> dict[str, Any]:
     """Generate comprehensive health report for the rule system."""
     monitor = RuleHealthMonitor(Path(rules_dir), Path(analytics_dir))
     report = monitor.generate_health_report()
@@ -609,13 +681,28 @@ if __name__ == "__main__":
     import argparse
     from datetime import datetime
 
-    parser = argparse.ArgumentParser(description="Rule validation and improvement system")
+    parser = argparse.ArgumentParser(
+        description="Rule validation and improvement system"
+    )
     parser.add_argument("--validate", action="store_true", help="Validate all rules")
-    parser.add_argument("--improve", action="store_true", help="Generate improvements for low-scoring rules")
-    parser.add_argument("--health-report", action="store_true", help="Generate system health report")
+    parser.add_argument(
+        "--improve",
+        action="store_true",
+        help="Generate improvements for low-scoring rules",
+    )
+    parser.add_argument(
+        "--health-report", action="store_true", help="Generate system health report"
+    )
     parser.add_argument("--rules-dir", default=".cursor/rules", help="Rules directory")
-    parser.add_argument("--analytics-dir", default=".cursor/analytics", help="Analytics directory")
-    parser.add_argument("--min-score", type=float, default=0.7, help="Minimum score threshold for improvements")
+    parser.add_argument(
+        "--analytics-dir", default=".cursor/analytics", help="Analytics directory"
+    )
+    parser.add_argument(
+        "--min-score",
+        type=float,
+        default=0.7,
+        help="Minimum score threshold for improvements",
+    )
 
     args = parser.parse_args()
 
@@ -631,7 +718,9 @@ if __name__ == "__main__":
             if result.issues:
                 print(f"   Issues: {result.issues[:3]}")
 
-        print(f"\n📊 {sum(1 for r in results.values() if r.is_valid)}/{len(results)} rules are valid")
+        print(
+            f"\n📊 {sum(1 for r in results.values() if r.is_valid)}/{len(results)} rules are valid"
+        )
 
     elif args.improve:
         print("🔧 Generating rule improvements...")
@@ -652,13 +741,13 @@ if __name__ == "__main__":
         print(f"✅ Valid Rules: {report['valid_rules']}/{report['total_rules']}")
 
         print("\n📊 Score Distribution:")
-        for category, count in report['rules_by_score'].items():
-            pct = (count / report['total_rules']) * 100
+        for category, count in report["rules_by_score"].items():
+            pct = (count / report["total_rules"]) * 100
             print(f"   {category.title()}: {count} ({pct:.1f})")
 
-        if report['common_issues']:
+        if report["common_issues"]:
             print("\n⚠️  Common Issues:")
-            for issue, count in report['common_issues'][:5]:
+            for issue, count in report["common_issues"][:5]:
                 print(f"   {issue} ({count} rules)")
 
         print(f"\n💡 Improvement Opportunities: {report['improvement_opportunities']}")

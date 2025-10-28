@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-def validate_project_structure() -> Dict[str, Any]:
+def validate_project_structure() -> dict[str, Any]:
     """Validate that referenced directories and files exist."""
     results = {"status": "success", "issues": [], "checks": []}
 
@@ -62,7 +62,7 @@ def validate_project_structure() -> Dict[str, Any]:
     return results
 
 
-def validate_poetry_configuration() -> Dict[str, Any]:
+def validate_poetry_configuration() -> dict[str, Any]:
     """Validate Poetry configuration matches rules expectations."""
     results = {"status": "success", "issues": [], "checks": []}
 
@@ -123,7 +123,7 @@ def validate_poetry_configuration() -> Dict[str, Any]:
     return results
 
 
-def validate_testing_configuration() -> Dict[str, Any]:
+def validate_testing_configuration() -> dict[str, Any]:
     """Validate testing configuration matches rules expectations."""
     results = {"status": "success", "issues": [], "checks": []}
 
@@ -163,7 +163,7 @@ def validate_testing_configuration() -> Dict[str, Any]:
     return results
 
 
-def validate_task_runner() -> Dict[str, Any]:
+def validate_task_runner() -> dict[str, Any]:
     """Validate task runner configuration."""
     results = {"status": "success", "issues": [], "checks": []}
 
@@ -194,7 +194,7 @@ def validate_task_runner() -> Dict[str, Any]:
     return results
 
 
-def validate_security_audit() -> Dict[str, Any]:
+def validate_security_audit() -> dict[str, Any]:
     """Validate security and audit configuration."""
     results = {"status": "success", "issues": [], "checks": []}
 
@@ -225,7 +225,7 @@ def validate_security_audit() -> Dict[str, Any]:
     return results
 
 
-def validate_cli_configuration() -> Dict[str, Any]:
+def validate_cli_configuration() -> dict[str, Any]:
     """Validate CLI configuration matches rules expectations."""
     results = {"status": "success", "issues": [], "checks": []}
 

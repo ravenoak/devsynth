@@ -9,25 +9,26 @@ and automatically suggest rule enhancements based on observed behavior.
 import json
 import logging
 import os
-from collections import defaultdict, Counter
+import re
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional, Any
-from dataclasses import dataclass, asdict
-import re
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 @dataclass
 class DevelopmentPattern:
     """Represents a detected development pattern."""
+
     pattern_id: str
     pattern_type: str
     description: str
     frequency: int
     trend: str  # "increasing", "decreasing", "stable"
     confidence: float
-    examples: List[str]
-    affected_files: List[str]
+    examples: list[str]
+    affected_files: list[str]
     improvement_potential: float
     suggested_action: str
     first_seen: datetime
@@ -37,17 +38,18 @@ class DevelopmentPattern:
 @dataclass
 class LearningInsight:
     """Represents a learning insight from pattern analysis."""
+
     insight_id: str
     insight_type: str
     title: str
     description: str
     confidence: float
     impact: str  # "high", "medium", "low"
-    affected_areas: List[str]
-    recommended_actions: List[str]
-    examples: List[str]
+    affected_areas: list[str]
+    recommended_actions: list[str]
+    examples: list[str]
     created_at: datetime
-    patterns: List[str]
+    patterns: list[str]
 
 
 class SessionAnalyzer:
@@ -56,8 +58,8 @@ class SessionAnalyzer:
     def __init__(self, learning_dir: Path):
         self.learning_dir = learning_dir
         self.learning_dir.mkdir(parents=True, exist_ok=True)
-        self.session_data: List[Dict[str, Any]] = []
-        self.patterns: Dict[str, DevelopmentPattern] = {}
+        self.session_data: list[dict[str, Any]] = []
+        self.patterns: dict[str, DevelopmentPattern] = {}
 
         self._load_session_history()
 
@@ -73,17 +75,17 @@ class SessionAnalyzer:
         history_file = self.learning_dir / "session_history.json"
         data = {
             "sessions": self.session_data,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
-        with open(history_file, 'w') as f:
+        with open(history_file, "w") as f:
             json.dump(data, f, indent=2)
 
-    def record_session_event(self, event_type: str, context: Dict[str, Any]):
+    def record_session_event(self, event_type: str, context: dict[str, Any]):
         """Record a session event for pattern analysis."""
         session_event = {
             "timestamp": datetime.now().isoformat(),
             "event_type": event_type,
-            "context": context
+            "context": context,
         }
         self.session_data.append(session_event)
         self._save_session_history()
@@ -117,7 +119,7 @@ class SessionAnalyzer:
         if file_events:
             self._analyze_file_patterns(file_events)
 
-    def _analyze_error_patterns(self, error_events: List[Dict[str, Any]]):
+    def _analyze_error_patterns(self, error_events: list[dict[str, Any]]):
         """Analyze error patterns to identify improvement opportunities."""
         error_types = Counter()
 
@@ -136,17 +138,24 @@ class SessionAnalyzer:
                     frequency=count,
                     trend="stable",
                     confidence=0.8,
-                    examples=[event.get("context", {}).get("error_message", "") for event in error_events if self._categorize_error(event.get("context", {}).get("error_message", "")) == error_type][:3],
+                    examples=[
+                        event.get("context", {}).get("error_message", "")
+                        for event in error_events
+                        if self._categorize_error(
+                            event.get("context", {}).get("error_message", "")
+                        )
+                        == error_type
+                    ][:3],
                     affected_files=[],  # Would need to extract from context
                     improvement_potential=0.9,
                     suggested_action=f"Create rule to prevent {error_type} errors",
                     first_seen=datetime.now() - timedelta(days=1),
-                    last_seen=datetime.now()
+                    last_seen=datetime.now(),
                 )
 
                 self.patterns[pattern.pattern_id] = pattern
 
-    def _analyze_command_patterns(self, command_events: List[Dict[str, Any]]):
+    def _analyze_command_patterns(self, command_events: list[dict[str, Any]]):
         """Analyze command usage patterns."""
         command_usage = Counter()
 
@@ -169,12 +178,12 @@ class SessionAnalyzer:
                     improvement_potential=0.6,
                     suggested_action=f"Create rule to automate {command} workflow",
                     first_seen=datetime.now() - timedelta(days=1),
-                    last_seen=datetime.now()
+                    last_seen=datetime.now(),
                 )
 
                 self.patterns[pattern.pattern_id] = pattern
 
-    def _analyze_file_patterns(self, file_events: List[Dict[str, Any]]):
+    def _analyze_file_patterns(self, file_events: list[dict[str, Any]]):
         """Analyze file modification patterns."""
         file_modifications = defaultdict(list)
 
@@ -198,7 +207,7 @@ class SessionAnalyzer:
                     improvement_potential=0.7,
                     suggested_action=f"Consider refactoring {file_path} or creating abstraction",
                     first_seen=datetime.now() - timedelta(days=1),
-                    last_seen=datetime.now()
+                    last_seen=datetime.now(),
                 )
 
                 self.patterns[pattern.pattern_id] = pattern
@@ -207,7 +216,9 @@ class SessionAnalyzer:
         """Categorize error messages into types."""
         error_lower = error_message.lower()
 
-        if "import" in error_lower and ("not found" in error_lower or "module" in error_lower):
+        if "import" in error_lower and (
+            "not found" in error_lower or "module" in error_lower
+        ):
             return "import_error"
         elif "type" in error_lower and "annotation" in error_lower:
             return "type_error"
@@ -223,9 +234,17 @@ class SessionAnalyzer:
     def _is_standard_command(self, command: str) -> bool:
         """Check if command is a standard system command."""
         standard_commands = {
-            "expand-phase", "differentiate-phase", "refine-phase", "retrospect-phase",
-            "generate-specification", "validate-bdd-scenarios", "generate-test-suite",
-            "code-review", "help", "status", "config"
+            "expand-phase",
+            "differentiate-phase",
+            "refine-phase",
+            "retrospect-phase",
+            "generate-specification",
+            "validate-bdd-scenarios",
+            "generate-test-suite",
+            "code-review",
+            "help",
+            "status",
+            "config",
         }
         return command in standard_commands
 
@@ -238,7 +257,7 @@ class RuleImprovementDetector:
         self.analytics_dir = analytics_dir
         self.analytics_dir.mkdir(parents=True, exist_ok=True)
 
-    def analyze_rule_effectiveness(self, rule_name: str) -> Dict[str, Any]:
+    def analyze_rule_effectiveness(self, rule_name: str) -> dict[str, Any]:
         """Analyze how effective a rule is."""
         analytics_file = self.analytics_dir / f"{rule_name}_analytics.json"
 
@@ -267,10 +286,12 @@ class RuleImprovementDetector:
             "usage_count": usage_count,
             "error_rate": error_rate,
             "trend": trend,
-            "improvement_suggestions": self._generate_improvement_suggestions(rule_name, data)
+            "improvement_suggestions": self._generate_improvement_suggestions(
+                rule_name, data
+            ),
         }
 
-    def _calculate_trend(self, usage_history: List[int]) -> str:
+    def _calculate_trend(self, usage_history: list[int]) -> str:
         """Calculate usage trend."""
         if len(usage_history) < 7:
             return "insufficient_data"
@@ -285,7 +306,9 @@ class RuleImprovementDetector:
         else:
             return "stable"
 
-    def _generate_improvement_suggestions(self, rule_name: str, data: Dict[str, Any]) -> List[str]:
+    def _generate_improvement_suggestions(
+        self, rule_name: str, data: dict[str, Any]
+    ) -> list[str]:
         """Generate specific improvement suggestions for a rule."""
         suggestions = []
 
@@ -297,10 +320,14 @@ class RuleImprovementDetector:
             suggestions.append(f"Improve clarity and specificity in {rule_name}")
 
         if error_rate > 0.1:
-            suggestions.append(f"Fix ambiguous language in {rule_name} that's causing errors")
+            suggestions.append(
+                f"Fix ambiguous language in {rule_name} that's causing errors"
+            )
 
         if usage_count == 0:
-            suggestions.append(f"Rule {rule_name} is not being applied - check glob patterns")
+            suggestions.append(
+                f"Rule {rule_name} is not being applied - check glob patterns"
+            )
 
         # Check rule content for improvement opportunities
         rule_file = self.rules_dir / f"{rule_name}.mdc"
@@ -310,27 +337,29 @@ class RuleImprovementDetector:
 
         return suggestions
 
-    def _analyze_rule_content(self, rule_name: str, content: str) -> List[str]:
+    def _analyze_rule_content(self, rule_name: str, content: str) -> list[str]:
         """Analyze rule content for improvement opportunities."""
         suggestions = []
 
         # Check for common issues
         if len(content) > 2000:
-            suggestions.append(f"Rule {rule_name} is too long - consider breaking into smaller rules")
+            suggestions.append(
+                f"Rule {rule_name} is too long - consider breaking into smaller rules"
+            )
 
         if "TODO" in content or "FIXME" in content:
             suggestions.append(f"Remove placeholder comments from {rule_name}")
 
-        if not re.search(r'## Examples?', content):
+        if not re.search(r"## Examples?", content):
             suggestions.append(f"Add practical examples to {rule_name}")
 
         # Check YAML frontmatter
-        if not content.startswith('---'):
+        if not content.startswith("---"):
             suggestions.append(f"Add proper YAML frontmatter to {rule_name}")
 
         return suggestions
 
-    def identify_deprecated_rules(self) -> List[str]:
+    def identify_deprecated_rules(self) -> list[str]:
         """Identify rules that might be deprecated or need updates."""
         deprecated = []
 
@@ -342,9 +371,12 @@ class RuleImprovementDetector:
             # 1. Very low usage and decreasing trend
             # 2. High error rate
             # 3. Very low effectiveness
-            if (analysis["usage_count"] < 5 and analysis["trend"] == "decreasing" or
-                analysis["error_rate"] > 0.3 or
-                analysis["effectiveness"] < 0.3):
+            if (
+                analysis["usage_count"] < 5
+                and analysis["trend"] == "decreasing"
+                or analysis["error_rate"] > 0.3
+                or analysis["effectiveness"] < 0.3
+            ):
                 deprecated.append(rule_name)
 
         return deprecated
@@ -355,7 +387,7 @@ class ContextAwarenessEngine:
 
     def __init__(self, learning_dir: Path):
         self.learning_dir = learning_dir
-        self.context_patterns: Dict[str, Any] = {}
+        self.context_patterns: dict[str, Any] = {}
         self.load_context_patterns()
 
     def load_context_patterns(self):
@@ -368,10 +400,12 @@ class ContextAwarenessEngine:
     def save_context_patterns(self):
         """Save learned context patterns."""
         patterns_file = self.learning_dir / "context_patterns.json"
-        with open(patterns_file, 'w') as f:
+        with open(patterns_file, "w") as f:
             json.dump(self.context_patterns, f, indent=2)
 
-    def analyze_context_effectiveness(self, context: Dict[str, Any], outcome: str) -> Dict[str, Any]:
+    def analyze_context_effectiveness(
+        self, context: dict[str, Any], outcome: str
+    ) -> dict[str, Any]:
         """Analyze how well context helped achieve the desired outcome."""
         context_key = self._generate_context_key(context)
 
@@ -380,7 +414,7 @@ class ContextAwarenessEngine:
                 "count": 0,
                 "successful_outcomes": 0,
                 "average_confidence": 0.0,
-                "improvement_suggestions": []
+                "improvement_suggestions": [],
             }
 
         pattern = self.context_patterns[context_key]
@@ -394,17 +428,19 @@ class ContextAwarenessEngine:
 
         # Generate improvement suggestions based on success rate
         if success_rate < 0.7:
-            pattern["improvement_suggestions"] = self._generate_context_improvements(context, success_rate)
+            pattern["improvement_suggestions"] = self._generate_context_improvements(
+                context, success_rate
+            )
 
         self.save_context_patterns()
 
         return {
             "context_key": context_key,
             "success_rate": success_rate,
-            "improvements": pattern["improvement_suggestions"]
+            "improvements": pattern["improvement_suggestions"],
         }
 
-    def _generate_context_key(self, context: Dict[str, Any]) -> str:
+    def _generate_context_key(self, context: dict[str, Any]) -> str:
         """Generate a key for context pattern."""
         # Create a normalized key from context
         key_parts = []
@@ -417,19 +453,27 @@ class ContextAwarenessEngine:
 
         return "|".join(key_parts)
 
-    def _generate_context_improvements(self, context: Dict[str, Any], success_rate: float) -> List[str]:
+    def _generate_context_improvements(
+        self, context: dict[str, Any], success_rate: float
+    ) -> list[str]:
         """Generate suggestions for improving context effectiveness."""
         suggestions = []
 
         if success_rate < 0.5:
-            suggestions.append("Consider adding more specific context about project requirements")
+            suggestions.append(
+                "Consider adding more specific context about project requirements"
+            )
             suggestions.append("Include examples of desired behavior in context")
 
         if context.get("file_type") == "python" and success_rate < 0.6:
-            suggestions.append("Add architectural context when working with Python files")
+            suggestions.append(
+                "Add architectural context when working with Python files"
+            )
 
         if context.get("task_type") == "implementation" and success_rate < 0.6:
-            suggestions.append("Include specification references for implementation tasks")
+            suggestions.append(
+                "Include specification references for implementation tasks"
+            )
 
         return suggestions
 
@@ -444,11 +488,13 @@ class LearningEngine:
 
         # Initialize components
         self.session_analyzer = SessionAnalyzer(self.learning_dir)
-        self.rule_improver = RuleImprovementDetector(self.cursor_dir / "rules", self.analytics_dir)
+        self.rule_improver = RuleImprovementDetector(
+            self.cursor_dir / "rules", self.analytics_dir
+        )
         self.context_engine = ContextAwarenessEngine(self.learning_dir)
 
         # Learning state
-        self.insights: List[LearningInsight] = []
+        self.insights: list[LearningInsight] = []
         self.load_insights()
 
     def load_insights(self):
@@ -457,27 +503,36 @@ class LearningEngine:
         if insights_file.exists():
             with open(insights_file) as f:
                 data = json.load(f)
-                self.insights = [LearningInsight(**insight) for insight in data.get("insights", [])]
+                self.insights = [
+                    LearningInsight(**insight) for insight in data.get("insights", [])
+                ]
 
     def save_insights(self):
         """Save insights to persistent storage."""
         insights_file = self.learning_dir / "insights.json"
         data = {
             "insights": [asdict(insight) for insight in self.insights],
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
-        with open(insights_file, 'w') as f:
+        with open(insights_file, "w") as f:
             json.dump(data, f, indent=2)
 
-    def record_learning_event(self, event_type: str, context: Dict[str, Any], outcome: str = "unknown"):
+    def record_learning_event(
+        self, event_type: str, context: dict[str, Any], outcome: str = "unknown"
+    ):
         """Record a learning event."""
         self.session_analyzer.record_session_event(event_type, context)
 
         # Analyze context effectiveness
-        context_analysis = self.context_engine.analyze_context_effectiveness(context, outcome)
+        context_analysis = self.context_engine.analyze_context_effectiveness(
+            context, outcome
+        )
 
         # Generate insights if significant patterns are detected
-        if context_analysis["success_rate"] < 0.7 or len(self.session_analyzer.patterns) > 0:
+        if (
+            context_analysis["success_rate"] < 0.7
+            or len(self.session_analyzer.patterns) > 0
+        ):
             self._generate_insights()
 
     def _generate_insights(self):
@@ -498,7 +553,7 @@ class LearningEngine:
                     recommended_actions=[pattern.suggested_action],
                     examples=pattern.examples,
                     created_at=datetime.now(),
-                    patterns=[pattern.pattern_id]
+                    patterns=[pattern.pattern_id],
                 )
                 new_insights.append(insight)
 
@@ -513,10 +568,12 @@ class LearningEngine:
                 confidence=0.9,
                 impact="medium",
                 affected_areas=["rule_management", "system_efficiency"],
-                recommended_actions=[f"Review rule: {rule}" for rule in deprecated_rules],
+                recommended_actions=[
+                    f"Review rule: {rule}" for rule in deprecated_rules
+                ],
                 examples=deprecated_rules,
                 created_at=datetime.now(),
-                patterns=[]
+                patterns=[],
             )
             new_insights.append(insight)
 
@@ -524,12 +581,15 @@ class LearningEngine:
         self.insights.extend(new_insights)
         self.save_insights()
 
-    def get_actionable_insights(self) -> List[LearningInsight]:
+    def get_actionable_insights(self) -> list[LearningInsight]:
         """Get insights that require immediate action."""
-        return [insight for insight in self.insights
-                if insight.impact in ["high", "medium"] and insight.confidence > 0.7]
+        return [
+            insight
+            for insight in self.insights
+            if insight.impact in ["high", "medium"] and insight.confidence > 0.7
+        ]
 
-    def get_rule_improvement_suggestions(self) -> Dict[str, List[str]]:
+    def get_rule_improvement_suggestions(self) -> dict[str, list[str]]:
         """Get improvement suggestions for all rules."""
         suggestions = {}
 
@@ -543,23 +603,25 @@ class LearningEngine:
         return suggestions
 
 
-def trigger_learning_event(event_type: str, context: Dict[str, Any], outcome: str = "unknown"):
+def trigger_learning_event(
+    event_type: str, context: dict[str, Any], outcome: str = "unknown"
+):
     """Trigger a learning event for pattern analysis."""
-    cursor_dir = Path('.cursor')
+    cursor_dir = Path(".cursor")
     engine = LearningEngine(cursor_dir)
     engine.record_learning_event(event_type, context, outcome)
 
 
-def analyze_rule_effectiveness(rule_name: str) -> Dict[str, Any]:
+def analyze_rule_effectiveness(rule_name: str) -> dict[str, Any]:
     """Analyze the effectiveness of a specific rule."""
-    cursor_dir = Path('.cursor')
+    cursor_dir = Path(".cursor")
     improver = RuleImprovementDetector(cursor_dir / "rules", cursor_dir / "analytics")
     return improver.analyze_rule_effectiveness(rule_name)
 
 
-def get_learning_insights() -> List[LearningInsight]:
+def get_learning_insights() -> list[LearningInsight]:
     """Get current learning insights."""
-    cursor_dir = Path('.cursor')
+    cursor_dir = Path(".cursor")
     engine = LearningEngine(cursor_dir)
     return engine.get_actionable_insights()
 
@@ -567,19 +629,29 @@ def get_learning_insights() -> List[LearningInsight]:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Pattern learning and improvement detection")
-    parser.add_argument("--analyze-rules", action="store_true",
-                       help="Analyze rule effectiveness")
-    parser.add_argument("--get-insights", action="store_true",
-                       help="Get actionable learning insights")
-    parser.add_argument("--record-event", nargs=3, metavar=("EVENT_TYPE", "CONTEXT_KEY", "CONTEXT_VALUE"),
-                       help="Record a learning event")
+    parser = argparse.ArgumentParser(
+        description="Pattern learning and improvement detection"
+    )
+    parser.add_argument(
+        "--analyze-rules", action="store_true", help="Analyze rule effectiveness"
+    )
+    parser.add_argument(
+        "--get-insights", action="store_true", help="Get actionable learning insights"
+    )
+    parser.add_argument(
+        "--record-event",
+        nargs=3,
+        metavar=("EVENT_TYPE", "CONTEXT_KEY", "CONTEXT_VALUE"),
+        help="Record a learning event",
+    )
 
     args = parser.parse_args()
 
     if args.analyze_rules:
-        cursor_dir = Path('.cursor')
-        improver = RuleImprovementDetector(cursor_dir / "rules", cursor_dir / "analytics")
+        cursor_dir = Path(".cursor")
+        improver = RuleImprovementDetector(
+            cursor_dir / "rules", cursor_dir / "analytics"
+        )
 
         print("🔍 Analyzing rule effectiveness...")
         for rule_file in (cursor_dir / "rules").glob("*.mdc"):
