@@ -6307,34 +6307,6 @@ collected 4926 items / 21 skipped
   /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will be removed in Python 3.14; use ast.Constant instead
     precedence_data = dict((getattr(ast, x, None), z) for x, y, z in op_data)
 
-src/devsynth/application/testing/test_isolation_analyzer.py:68
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/test_isolation_analyzer.py:68: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalyzer' because it has a __init__ constructor (from: src/devsynth/application/testing/test_enhancer.py)
-    class TestIsolationAnalyzer:
-
-src/devsynth/application/testing/test_enhancer.py:62
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/test_enhancer.py:62: PytestCollectionWarning: cannot collect test class 'TestEnhancer' because it has a __init__ constructor (from: src/devsynth/application/testing/test_enhancer.py)
-    class TestEnhancer:
-
-src/devsynth/application/testing/test_isolation_analyzer.py:58
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/test_isolation_analyzer.py:58: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalysis' because it has a __init__ constructor (from: src/devsynth/application/testing/test_isolation_analyzer.py)
-    @dataclass
-
-src/devsynth/application/testing/test_isolation_analyzer.py:68
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/test_isolation_analyzer.py:68: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalyzer' because it has a __init__ constructor (from: src/devsynth/application/testing/test_isolation_analyzer.py)
-    class TestIsolationAnalyzer:
-
-src/devsynth/application/testing/enhanced_test_collector.py:47
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/enhanced_test_collector.py:47: PytestCollectionWarning: cannot collect test class 'TestCollectionResult' because it has a __init__ constructor (from: src/devsynth/application/testing/test_report_generator.py)
-    @dataclass
-
-src/devsynth/application/testing/test_report_generator.py:27
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/test_report_generator.py:27: PytestCollectionWarning: cannot collect test class 'TestReport' because it has a __init__ constructor (from: src/devsynth/application/testing/test_report_generator.py)
-    @dataclass
-
-src/devsynth/application/testing/test_report_generator.py:62
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/test_report_generator.py:62: PytestCollectionWarning: cannot collect test class 'TestReportGenerator' because it has a __init__ constructor (from: src/devsynth/application/testing/test_report_generator.py)
-    class TestReportGenerator:
-
 .venv/lib/python3.12/site-packages/pytest_bdd/plugin.py:137
   /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/pytest_bdd/plugin.py:137: PytestUnknownMarkWarning: Unknown pytest.mark.test-infrastructure - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
     mark = getattr(pytest.mark, tag)
@@ -6348,7 +6320,7 @@ tests/integration/llm/test_critical_llm_workflows.py:22
     class TestGenerator:
 
 tests/unit/adapters/test_chromadb_memory_store.py:19
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning: 
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning:
   Module 'devsynth.adapters.chromadb_memory_store' was found, but when imported by pytest it raised:
       ImportError("ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras.")
   In pytest 9.1 this warning will become an error by default.
@@ -6363,6 +6335,34 @@ src/devsynth/application/testing/enhanced_test_collector.py:47
 src/devsynth/application/testing/enhanced_test_collector.py:34
   /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/enhanced_test_collector.py:34: PytestCollectionWarning: cannot collect test class 'TestInfo' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhanced_test_collector.py)
     @dataclass
+
+tests/unit/application/testing/test_isolation_analyzer.py:68
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_isolation_analyzer.py:68: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalyzer' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhancer.py)
+    class TestIsolationAnalyzer:
+
+tests/unit/application/testing/test_enhancer.py:62
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_enhancer.py:62: PytestCollectionWarning: cannot collect test class 'TestEnhancer' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhancer.py)
+    class TestEnhancer:
+
+tests/unit/application/testing/test_isolation_analyzer.py:58
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_isolation_analyzer.py:58: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalysis' because it has a __init__ constructor (from: tests/unit/application/testing/test_isolation_analyzer.py)
+    @dataclass
+
+tests/unit/application/testing/test_isolation_analyzer.py:68
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_isolation_analyzer.py:68: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalyzer' because it has a __init__ constructor (from: tests/unit/application/testing/test_isolation_analyzer.py)
+    class TestIsolationAnalyzer:
+
+src/devsynth/application/testing/enhanced_test_collector.py:47
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/enhanced_test_collector.py:47: PytestCollectionWarning: cannot collect test class 'TestCollectionResult' because it has a __init__ constructor (from: tests/unit/application/testing/test_report_generator.py)
+    @dataclass
+
+tests/unit/application/testing/test_report_generator.py:27
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_report_generator.py:27: PytestCollectionWarning: cannot collect test class 'TestReport' because it has a __init__ constructor (from: tests/unit/application/testing/test_report_generator.py)
+    @dataclass
+
+tests/unit/application/testing/test_report_generator.py:62
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_report_generator.py:62: PytestCollectionWarning: cannot collect test class 'TestReportGenerator' because it has a __init__ constructor (from: tests/unit/application/testing/test_report_generator.py)
+    class TestReportGenerator:
 
 .venv/lib/python3.12/site-packages/vbuild/__init__.py:33
   /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:33: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
@@ -6399,4 +6399,4 @@ Test Speed Distribution:
   Fast Tests (< 1s): 21
   Medium Tests (1-5s): 0
   Slow Tests (> 5s): 0
-=================== 4926 tests collected in 60.61s (0:01:00) ===================
+=================== 4926 tests collected in 63.79s (0:01:03) ===================

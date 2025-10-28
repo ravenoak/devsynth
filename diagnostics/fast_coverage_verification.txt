@@ -1,0 +1,1 @@
+Coverage infrastructure verified: pytest-cov plugin available, configuration includes src/devsynth coverage with 90% threshold, JSON and HTML artifacts generated successfully.
