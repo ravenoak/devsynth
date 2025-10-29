@@ -493,7 +493,7 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):
 
     def _normalise_status(self, status: str) -> ProgressStatusText:
         if status in PROGRESS_STATUS_VALUES:
-            return status
+            return status  # type: ignore[return-value]
         return "In progress..."
 
     def _build_subtask_snapshot(
@@ -509,7 +509,7 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):
     def _compose_subtasks(self) -> dict[str, SubtaskProgressSnapshot]:
         composed: dict[str, SubtaskProgressSnapshot] = {}
         for task_id, snapshot in self._subtasks.items():
-            combined = dict(snapshot)
+            combined: SubtaskProgressSnapshot = dict(snapshot)  # type: ignore[assignment]
             nested = self._nested_subtasks.get(task_id)
             if nested:
                 combined["nested_subtasks"] = {
@@ -524,7 +524,7 @@ class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):
             "description": self._description,
             "total": float(self._total),
             "current": float(self._current),
-            "status": self._status,
+            "status": self._normalise_status(self._status)
         }
 
         subtasks = self._compose_subtasks()

@@ -42,6 +42,13 @@ owner: "DevSynth Maintainers"
 | FR-91 — Provide keyboard navigation across wizard flows without sentinel commands【F:docs/system_requirements_specification.md†L256-L256】 | CLI UX Enhancements navigation guidance; Requirements Wizard Navigation finite-state model【F:docs/specifications/cli-ux-enhancements.md†L52-L55】【F:docs/specifications/requirements-wizard-navigation.md†L33-L55】 | Requirements Wizard Navigation scenarios cover shortcuts, summaries, and multi-select prompts【F:tests/behavior/features/requirements_wizard_navigation.feature†L1-L26】 | Requirements collector tests assert backtracking persistence with bridge adapters【F:tests/unit/application/requirements/test_interactions.py†L98-L137】 |
 | FR-92 — Deliver a Textual-based TUI with multi-pane layout reusing UXBridge workflows【F:docs/system_requirements_specification.md†L257-L257】 | CLI UX Enhancements Textual shell; Shared UXBridge parity contract; CLI/Textual architecture diagram【F:docs/specifications/cli-ux-enhancements.md†L52-L55】【F:docs/specifications/shared-uxbridge-across-cli-and-webui.md†L20-L58】【F:docs/architecture/cli_textual_uxbridge.md†L20-L69】 | CLI UX Enhancements and Shared UXBridge features exercise Textual parity and orchestration consistency【F:tests/behavior/features/cli_ux_enhancements.feature†L27-L33】【F:tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature†L1-L25】 | Textual bridge unit coverage pending; acceptance criteria require adapter tests during implementation【F:docs/specifications/cli-ux-enhancements.md†L69-L73】 |
 | FR-93 — Render Rich-based structured summaries and help layouts for wizard outcomes【F:docs/system_requirements_specification.md†L258-L258】 | CLI UX Enhancements Rich layout section; Requirements Wizard Navigation contextual summary pane【F:docs/specifications/cli-ux-enhancements.md†L57-L60】【F:docs/specifications/requirements-wizard-navigation.md†L38-L55】 | Requirements Wizard Navigation scenarios verify live summary visibility during navigation【F:tests/behavior/features/requirements_wizard_navigation.feature†L16-L20】 | Layout snapshot tests to be introduced alongside Rich refactor per acceptance criteria【F:docs/specifications/cli-ux-enhancements.md†L69-L73】 |
+
+## Code Analysis Requirements
+
+| Requirement | Specification sources | Behaviour coverage | Unit coverage |
+| --- | --- | --- | --- |
+| FR-94 — Provide a code analysis command that analyzes codebase architecture, structure, dependencies, and quality metrics【F:docs/system_requirements_specification.md†L259-L259】 | Code Analysis specification detailing architecture analysis, AST processing, and quality metrics【F:docs/specifications/code-analysis.md†L1-L208】 | Code Analysis feature scenarios covering project structure analysis, language detection, and JSON reporting【F:tests/behavior/features/general/code_analysis.feature†L1-L35】 | Project state analyzer and self-analyzer unit tests for code metrics and dependency mapping【F:tests/unit/application/code_analysis/test_project_state_analyzer.py†L1-L50】【F:tests/unit/application/code_analysis/test_self_analyzer.py†L1-L40】 |
+
 ### Enhanced Knowledge Graph and Memory Requirements
 
 | Requirement | Specification sources | Behaviour coverage | Unit coverage |
@@ -53,8 +60,38 @@ owner: "DevSynth Maintainers"
 | **MEM-002** — Cognitive type classification must achieve >95% accuracy for known data patterns【F:docs/system_requirements_specification.md†L354-L354】 | Cognitive type classification in Memetic Unit processing【F:docs/specifications/memetic_unit_abstraction.md†L101-200】 | Cognitive type classification scenarios across different data sources【F:tests/behavior/features/memetic_unit_abstraction.feature†L51-100】 | Classification algorithm accuracy and validation tests【F:tests/unit/application/memory/test_cognitive_type_classifier.py†L1-60】 |
 | **MEM-003** — Content deduplication must identify identical content with >99% accuracy【F:docs/system_requirements_specification.md†L355-L355】 | Content hash computation and deduplication in Memetic Units【F:docs/specifications/memetic_unit_abstraction.md†L201-300】 | Content deduplication and hash consistency scenarios【F:tests/behavior/features/memetic_unit_abstraction.feature†L101-150】 | Hash computation and deduplication logic tests【F:tests/unit/application/memory/test_content_deduplication.py†L1-50】 |
 
+## Agentic Memory Management Requirements
+
+| Requirement | Specification sources | Behaviour coverage | Unit coverage |
+| --- | --- | --- | --- |
+| **AMM-001** — Agentic memory management must autonomously manage cognitive workspace | Agentic Memory Management Specification【F:docs/specifications/agentic_memory_management.md†L1-L100】 | Agentic memory management scenarios covering compaction, note-taking, and sub-agent architectures【F:tests/behavior/features/agentic_memory_management.feature†L1-L50】 | Memory management unit tests for autonomous techniques【F:tests/unit/application/memory/test_agentic_memory_management.py†L1-60】 |
+
+## Quality Assurance Framework Requirements
+
+| Requirement | Specification sources | Behaviour coverage | Unit coverage |
+| --- | --- | --- | --- |
+| **QA-001** — Automated quality assurance must provide comprehensive validation | Automated Quality Assurance Engine specification【F:docs/specifications/automated_quality_assurance.md†L1-L100】 | Quality assurance scenarios covering dialectical audit, traceability, and validation【F:tests/behavior/features/automated_quality_assurance.feature†L1-L50】 | Quality assurance unit tests for validation engines【F:tests/unit/application/quality/test_automated_quality_assurance.py†L1-60】 |
+| **QA-002** — Security validation must achieve enterprise-grade compliance | Comprehensive Security Validation Framework【F:docs/specifications/comprehensive_security_validation.md†L1-L100】 | Security validation scenarios covering auditing, vulnerability management, and compliance【F:tests/behavior/features/comprehensive_security_validation.feature†L1-L50】 | Security validation unit tests for compliance engines【F:tests/unit/application/security/test_comprehensive_security_validation.py†L1-60】 |
+
+## Context Engineering Requirements
+
+| Requirement | Specification sources | Behaviour coverage | Unit coverage |
+| --- | --- | --- | --- |
+| **CE-001** — Context engineering must optimize finite attention budgets | Context Engineering Framework Specification【F:docs/specifications/context_engineering_framework.md†L1-L100】 | Context engineering scenarios covering RAG+, compression, and agentic management【F:tests/behavior/features/context_engineering_framework.feature†L1-L50】 | Context engineering unit tests for optimization techniques【F:tests/unit/application/context/test_context_engineering_framework.py†L1-60】 |
+
+## Tool Management Requirements
+
+| Requirement | Specification sources | Behaviour coverage | Unit coverage |
+| --- | --- | --- | --- |
+| **TM-001** — Dynamic tool management must prevent cognitive overload | Dynamic Tool Management Specification【F:docs/specifications/dynamic_tool_management.md†L1-L100】 | Tool management scenarios covering ToolRAG, scoping, and provider integration【F:tests/behavior/features/dynamic_tool_management.feature†L1-L50】 | Tool management unit tests for dynamic scoping【F:tests/unit/application/tools/test_dynamic_tool_management.py†L1-60】 |
+
 ## Audit artefacts
 - `diagnostics/devsynth_run_tests_fast_medium_20250929T233256Z.txt` — captured the fast+medium CLI attempt showing the missing `devsynth` entry point so bootstrap remediation can be tracked alongside requirement verification.【F:diagnostics/devsynth_run_tests_fast_medium_20250929T233256Z.txt†L1-L27】
 - `diagnostics/verify_requirements_traceability_20250929T233307Z.txt` — proof that the requirements traceability script recognised the refreshed WSDE specifications in this update.【F:diagnostics/verify_requirements_traceability_20250929T233307Z.txt†L1-L1】
 - `docs/specifications/enhanced_knowledge_graph_intent_layer.md` — Enhanced knowledge graph specification with business intent layer and semantic linking capabilities.
 - `docs/specifications/memetic_unit_abstraction.md` — Memetic Unit abstraction specification for universal memory representation with rich metadata schema.
+- `docs/specifications/agentic_memory_management.md` — Agentic memory management specification for autonomous cognitive workspace management.
+- `docs/specifications/automated_quality_assurance.md` — Automated quality assurance engine specification for comprehensive validation.
+- `docs/specifications/comprehensive_security_validation.md` — Comprehensive security validation framework for enterprise-grade security auditing.
+- `docs/specifications/context_engineering_framework.md` — Context engineering framework specification for attention budget optimization.
+- `docs/specifications/dynamic_tool_management.md` — Dynamic tool management specification for cognitive load mitigation.

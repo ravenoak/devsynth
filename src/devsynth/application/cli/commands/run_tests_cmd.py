@@ -161,8 +161,7 @@ def _coverage_instrumentation_disabled(tokens: list[str]) -> bool:
 def _coverage_instrumentation_status() -> tuple[bool, str | None]:
     """Determine whether pytest-cov instrumentation is active."""
 
-    status = run_tests_module.pytest_cov_support_status(os.environ)
-    return cast(tuple[bool, str | None], status)
+    return run_tests_module.pytest_cov_support_status(os.environ)
 
 
 def run_tests_cmd(
@@ -593,6 +592,7 @@ def run_tests_cmd(
 
             if coverage_enabled:
                 _emit_coverage_artifact_messages(ux_bridge)
+            return
         elif not coverage_enabled:
             detail = f" ({skip_reason})" if skip_reason else ""
             message = (

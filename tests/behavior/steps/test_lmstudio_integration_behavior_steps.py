@@ -20,8 +20,10 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.config import get_llm_settings
 from devsynth.config.settings import get_settings
 
+from tests.behavior.feature_paths import feature_path
+
 # Load scenarios from the feature file
-scenarios("../features/lmstudio_integration.feature")
+scenarios(feature_path(__file__, "general", "lmstudio_integration.feature"))
 
 
 @given("DevSynth is properly installed and configured")

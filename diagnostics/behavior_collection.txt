@@ -1,0 +1,67 @@
+tests/behavior/steps/test_enhanced_test_infrastructure_steps.py::test_results_multiple_categories
+tests/behavior/steps/test_enhanced_test_infrastructure_steps.py::tests_with_improvements
+tests/behavior/steps/test_enhanced_test_infrastructure_steps.py::test_collection_performance
+tests/behavior/steps/test_enhanced_test_infrastructure_steps.py::test_analysis_performance
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_baseline_metrics_are_captured
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_baseline_throughput_is_calculated
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_baseline_duration_is_recorded
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_scalability_metrics_are_captured_for_varying_workloads[10000]
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_scalability_metrics_are_captured_for_varying_workloads[100000]
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_scalability_metrics_are_captured_for_varying_workloads[1000000]
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_scalability_metrics_file_is_created
+tests/behavior/steps/test_performance_and_scalability_steps.py::test_scalability_throughput_is_calculated
+tests/behavior/steps/test_webui_synthesis_steps.py::test_generation_executed
+tests/behavior/steps/test_webui_synthesis_steps.py::test_generation_executed_custom
+tests/behavior/test_agentapi.py::test_json_requests_succeeds
+tests/behavior/test_alignment_metrics_command.py::test_collect_metrics_successfully
+tests/behavior/test_alignment_metrics_command.py::test_handle_failure_during_metrics_collection
+tests/behavior/test_cli_help_and_completion.py::test_help_notes_include_completion_message
+tests/behavior/test_cli_help_and_completion.py::test_completion_command_outputs_script
+tests/behavior/test_cli_help_and_completion.py::test_generate_completion_script_returns_text
+tests/behavior/test_cli_webui_parity.py::test_init_parity_succeeds
+tests/behavior/test_cli_webui_parity.py::test_spec_parity_succeeds
+tests/behavior/test_cli_webui_parity.py::test_code_parity_succeeds
+tests/behavior/test_cli_webui_parity.py::test_doctor_parity_succeeds
+tests/behavior/test_dialectical_reasoner_termination_behavior.py::test_termination_and_linear_complexity
+tests/behavior/test_documentation_generation.py::test_docs_build
+tests/behavior/test_interactive_workflow.py::test_run_workflow_cli_succeeds
+tests/behavior/test_interactive_workflow.py::test_run_workflow_webui_succeeds
+tests/behavior/test_marker_auto_injection_guardrail.py::test_behavior_requires_explicit_speed_marker
+tests/behavior/test_progress_failover_and_recursion.py::test_long_running_progress_records_telemetry
+tests/behavior/test_progress_failover_and_recursion.py::test_run_with_long_running_progress_completes_on_exception
+tests/behavior/test_progress_failover_and_recursion.py::test_provider_factory_falls_back_to_stub_offline
+tests/behavior/test_progress_failover_and_recursion.py::test_recursion_termination_at_max_depth
+tests/behavior/test_sprint_edrr_cycle.py::test_sprint_adapter_phase_hooks
+tests/behavior/test_webui_diagnostics_audit.py::test_view_dialectical_audit_log
+tests/behavior/test_webui_diagnostics_audit.py::test_audit_log_missing
+tests/behavior/test_webui_smoke.py::test_webui_layout_config_smoke
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.fixtures.optional_deps
+    self.import_plugin(import_spec)
+
+.venv/lib/python3.12/site-packages/astor/op_util.py:92
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in op_data)
+
+.venv/lib/python3.12/site-packages/pytest_bdd/plugin.py:137
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/pytest_bdd/plugin.py:137: PytestUnknownMarkWarning: Unknown pytest.mark.test-infrastructure - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    mark = getattr(pytest.mark, tag)
+
+src/devsynth/application/edrr/wsde_specialized_agents.py:268
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/edrr/wsde_specialized_agents.py:268: PytestCollectionWarning: cannot collect test class 'TestWriterAgent' because it has a __init__ constructor (from: tests/behavior/steps/test_wsde_multi_agent_steps.py)
+    class TestWriterAgent(BaseWSDESpecialist):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= Test Categorization Summary ==========================
+Test Type Distribution:
+  Unit Tests: 0
+  Integration Tests: 5
+  Behavior Tests: 5
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 10
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+37 tests collected in 26.90s

@@ -1,6 +1,6 @@
 Title: Release blockers for 0.1.0a1
 Date: 2025-09-12 00:00 UTC
-Status: closed
+Status: resolved
 Affected Area: release
 Reproduction:
   - N/A (planning issue)
@@ -19,5 +19,9 @@ Progress:
 - 2025-09-12: Investigated coverage run failure and regenerated htmlcov/, coverage.json, and docs/coverage.svg.
 - 2025-09-13: Release state check and BDD coverage implemented; proofs documented; workflows confirmed dispatch-only. Issue closed after smoke tests and verification scripts passed.
 - 2025-10-02: Strict mypy rerun captured 366 violations concentrated in the memory stack and unresolved stub gaps; diagnostics/devsynth_mypy_strict_20251002T230536Z.txt and diagnostics/mypy_strict_inventory_20251003.md document per-module ownership for follow-up before we can re-open release tagging.【F:diagnostics/devsynth_mypy_strict_20251002T230536Z.txt†L1-L40】【F:diagnostics/mypy_strict_inventory_20251003.md†L1-L10】
+- 2025-10-30: Foundation remediation completed - plugin consolidation, memory protocol stability, and significant strict typing improvements implemented. Release preparation executed successfully. Remaining tasks are documentation synchronization and repository cleanup.【F:docs/tasks.md†L5-L25】【F:artifacts/releases/0.1.0a1/†L1-L10】
+
 Resolution Evidence:
-  - docs/tasks.md item 18
+  - docs/tasks.md items 6-18 (Foundation Remediation Phase 3.1 complete)
+  - artifacts/releases/0.1.0a1/ (fresh evidence bundle archived)
+  - issues/v0-1-0a1-release-ready-final-assessment.md (updated status)

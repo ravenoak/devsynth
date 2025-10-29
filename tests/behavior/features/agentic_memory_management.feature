@@ -1,98 +1,111 @@
-Feature: Agentic Memory Management
-    As a DevSynth agent
-    I want autonomous memory and context curation
-    So that I can self-optimize my cognitive workspace
+@feature_tag @agentic_memory @context_management @metacognition @high_priority
+Feature: Agentic Memory Management Specification
+  As a DevSynth developer
+  I want agents to autonomously manage their cognitive workspace
+  So that they can handle long-horizon tasks effectively without human intervention
 
-    @fast @cognitive-memory
-    Scenario: Four memory types integration
-        Given an agent with cognitive memory framework
-        When managing different types of information
-        Then it should utilize parametric memory for trained knowledge
-        And leverage contextual memory for working attention budget
-        And access external memory for persistent knowledge
-        And maintain episodic memory for interaction history
+  Background:
+    Given the agentic memory management system is configured
+    And DeepAgents integration is enabled
+    And the cognitive memory framework is active
+    And metacognitive capabilities are operational
 
-    @medium @compaction
-    Scenario: Autonomous context compaction
-        Given an agent in a long-running conversation
-        When context approaches attention budget limits
-        Then it should autonomously trigger compaction
-        And summarize conversation history
-        And preserve essential information and decisions
-        And reset working context with condensed summary
-        And maintain task continuity
+  @deepagents_integration @task_decomposition @high_priority
+  Scenario: Integrate DeepAgents for enhanced task decomposition
+    Given I have a complex development task requiring multiple steps
+    When the agent uses DeepAgents' write_todos tool in the EDRR Expand phase
+    Then the task should be systematically decomposed into manageable subtasks
+    And hierarchical sub-agent spawning should enable context isolation
+    And progress tracking should be autonomously monitored
+    And task completion should be achieved with improved efficiency
 
-    @medium @structured-notes
-    Scenario: Agentic structured note-taking
-        Given an agent working on complex tasks
-        When identifying important intermediate information
-        Then it should autonomously decide to externalize key details
-        And create structured notes in agentic scratchpad
-        And establish meaningful relationships between notes
-        And retrieve relevant notes when needed
-        And track progress across task phases
+  @context_management @file_system_integration @medium_priority
+  Scenario: Manage context through file system integration
+    Given I have a task that would exceed context window limits
+    When the agent uses file system tools for context offloading
+    Then large tool outputs should be stored externally
+    And context window overflow should be prevented
+    And persistent context should be maintained across sessions
+    And memory efficiency should be optimized
 
-    @slow @sub-agent-coordination
-    Scenario: Sub-agent architecture management
-        Given a complex task requiring diverse expertise
-        When the primary agent decomposes the problem
-        Then it should create specialized sub-agents
-        And allocate clean context to each sub-agent
-        And coordinate sub-agent execution
-        And synthesize results from all sub-agents
-        And prevent context pollution at the top level
+  @long_term_memory @langgraph_integration @medium_priority
+  Scenario: Bridge to long-term memory systems
+    Given the agent has accumulated knowledge across sessions
+    When LangGraph store integration is active
+    Then cross-session continuity should be maintained
+    And critical architectural decisions should persist
+    And knowledge preservation should work reliably
+    And state coherence should be ensured
 
-    @medium @self-evolution
-    Scenario: Context template self-evolution
-        Given an agent with self-evolution capabilities
-        When analyzing performance across multiple tasks
-        Then it should identify successful context patterns
-        And refine context templates based on feedback
-        And autonomously improve context configurations
-        And demonstrate enhanced performance over time
+  @cognitive_memory_types @four_memory_types @medium_priority
+  Scenario: Manage four distinct memory types
+    Given the cognitive memory framework is operational
+    When different types of information are processed
+    Then parametric memory should handle encoded knowledge
+    And contextual memory should manage active working memory
+    And external memory should persist knowledge in stores
+    And episodic/procedural memory should track interaction history
+    And memory types should remain consistent and accessible
 
-    @fast @metacognition
-    Scenario: Metacognitive attention management
-        Given an agent with metacognitive capabilities
-        When processing information streams
-        Then it should dynamically allocate attention budget
-        And assess information relevance autonomously
-        And optimize context format for comprehension
-        And adapt strategies based on task requirements
+  @agentic_compaction @memory_optimization @medium_priority
+  Scenario: Perform autonomous memory compaction
+    Given the agent has accumulated conversation history
+    When periodic summarization is triggered
+    Then conversation history should be condensed effectively
+    And essential information should be preserved
+    And working memory should be reset with summaries
+    And context quality should be maintained
 
-    @slow @long-horizon-state
-    Scenario: Long-horizon state persistence
-        Given extended multi-session interactions
-        When maintaining coherence across sessions
-        Then it should persist critical state information
-        And track progress across session boundaries
-        And learn from interaction patterns
-        And adapt behavior based on accumulated experience
+  @structured_note_taking @external_memory @low_priority
+  Scenario: Create and manage structured notes autonomously
+    Given the agent encounters information requiring external storage
+    When strategic recording decisions are made
+    Then an agentic scratchpad should be created
+    And relevant information should be externalized
+    And seamless retrieval should be available during tasks
+    And memory organization should improve
 
-    @medium @error-recovery
-    Scenario: Autonomous error recovery
-        Given failures in task execution
-        When analyzing error patterns
-        Then it should identify context-related failure modes
-        And modify context management strategies
-        And implement corrective approaches
-        And prevent recurrence of similar failures
+  @sub_agent_architecture @task_isolation @low_priority
+  Scenario: Utilize sub-agent architectures for complex tasks
+    Given a complex problem requires specialization
+    When hierarchical sub-agent spawning occurs
+    Then the problem should be decomposed into specialized subtasks
+    And manager agents should coordinate worker agents
+    And clean context boundaries should be maintained
+    And task execution should be more efficient
 
-    @fast @safety-mechanisms
-    Scenario: Safety and alignment verification
-        Given autonomous memory management
-        When making critical decisions
-        Then it should maintain human oversight capabilities
-        And detect potential bias amplification
-        And verify alignment with system goals
-        And provide intervention points for critical actions
+  @ace_framework @self_evolution @low_priority
+  Scenario: Enable self-evolving context systems
+    Given the ACE framework is operational
+    When agents modify prompts based on execution outcomes
+    Then feedback-driven refinement should occur
+    And iterative improvement should be demonstrated
+    And performance self-assessment should work
+    And context quality should improve over time
 
-    @medium @wsde-integration
-    Scenario: WSDE model agentic enhancement
-        Given WSDE collaborative framework
-        When integrating agentic memory capabilities
-        Then Primus should have full context engineering authority
-        And Workers should optimize task-specific contexts
-        And Supervisors should monitor context quality
-        And Designers should leverage reasoning examples
-        And Evaluators should assess context effectiveness
+  @a_mem_organization @autonomous_structure @low_priority
+  Scenario: Create autonomous memory organization
+    Given the A-Mem system is active
+    When agents create links between memories
+    Then self-structuring should occur without predefined schemas
+    And organic knowledge graphs should emerge
+    And contextual descriptions should be self-generated
+    And memory organization should be task-relevant
+
+  @attention_budget @resource_management @low_priority
+  Scenario: Manage attention budget autonomously
+    Given the agent has limited attention resources
+    When dynamic allocation is required
+    Then information priority should be adjusted by task requirements
+    And signal-to-noise optimization should occur
+    And resource awareness should be maintained
+    And computational costs should be optimized
+
+  @context_curation @self_management @low_priority
+  Scenario: Perform autonomous context self-curation
+    Given the agent has diverse information sources
+    When relevance assessment occurs
+    Then information value should be evaluated for current tasks
+    And format optimization should improve comprehension
+    And progressive refinement should enhance quality
+    And context effectiveness should increase

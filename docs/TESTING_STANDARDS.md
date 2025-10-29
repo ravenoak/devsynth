@@ -271,6 +271,62 @@ def then_retrieve_item_by_id(context):
 - All tests should pass before merging code
 - Coverage reports should be generated automatically
 - Test results should be visualized in the CI pipeline
+## Coverage Validation
+
+### Coverage Measurement Methodology
+
+DevSynth uses pytest-cov for coverage measurement with the following considerations:
+
+#### Resource-Aware Coverage
+Many tests in DevSynth are marked with `@pytest.mark.requires_resource("resource_name")` and will be automatically skipped when the required resources are not available. This leads to artificially low coverage percentages when running tests in environments without all optional dependencies.
+
+#### Reliable Coverage Validation
+To obtain accurate coverage measurements:
+
+1. **Install all optional dependencies**:
+   ```bash
+   poetry install --with dev --extras tests retrieval chromadb memory
+   ```
+
+2. **Enable all resources** (or run in CI environment where they are available)
+
+3. **Run tests with coverage**:
+   ```bash
+   poetry run devsynth run-tests --speed=all
+   ```
+
+4. **Alternative direct pytest approach**:
+   ```bash
+   # Enable all resources via environment variables
+   export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_LMDB_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_VECTOR_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_MEMORY_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true
+   export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
+
+   poetry run pytest --cov=src/devsynth --cov-report=html --cov-report=json --cov-report=term
+   ```
+
+#### Coverage Thresholds
+- **Unit tests only**: ≥70% coverage
+- **All tests (with resources enabled)**: ≥90% coverage
+- **CI builds**: Must meet ≥90% coverage with all resources available
+
+### Coverage Impact Assessment
+
+**Root Cause of Low Coverage**: The 23.91% coverage observed in basic test runs is due to:
+- Tests being skipped when optional dependencies are not installed
+- Resource gating preventing test execution
+- Memory and vector database tests requiring external services
+
+**Solution**: Coverage should be measured in environments with all optional dependencies installed and resources enabled.
+
 ## Implementation Status
 
 This feature is **implemented** with CI enforcing the standards.

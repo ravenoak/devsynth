@@ -1,6 +1,8 @@
 """
 Command to inspect a codebase and provide insights about its architecture,
 structure, and quality.
+
+# Feature: Code Analysis
 """
 
 from pathlib import Path

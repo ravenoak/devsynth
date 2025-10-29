@@ -1,0 +1,41 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-8.4.2, pluggy-1.6.0 -- /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.12', 'Platform': 'macOS-15.7-arm64-arm-64bit', 'Packages': {'pytest': '8.4.2', 'pluggy': '1.6.0'}, 'Plugins': {'mock': '3.15.1', 'asyncio': '1.2.0', 'anyio': '4.11.0', 'html': '4.1.1', 'xdist': '3.8.0', 'langsmith': '0.4.37', 'metadata': '3.1.1', 'Faker': '37.11.0', 'benchmark': '5.1.0', 'hypothesis': '6.142.3', 'bdd': '8.1.0', 'rerunfailures': '16.1', 'cov': '7.0.0'}}
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'devsynth' -> max_examples=50, deadline=timedelta(milliseconds=500), suppress_health_check=(HealthCheck.too_slow,), phases=(Phase.explicit, Phase.generate, Phase.shrink)
+rootdir: /Users/caitlyn/Projects/github.com/ravenoak/devsynth
+configfile: pytest.ini
+plugins: mock-3.15.1, asyncio-1.2.0, anyio-4.11.0, html-4.1.1, xdist-3.8.0, langsmith-0.4.37, metadata-3.1.1, Faker-37.11.0, benchmark-5.1.0, hypothesis-6.142.3, bdd-8.1.0, rerunfailures-16.1, cov-7.0.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 3 items
+
+tests/unit/security/test_validation.py::TestValidateNonEmpty::test_invalid_string_is_valid[] PASSED [ 33%]
+tests/unit/security/test_validation.py::TestValidateNonEmpty::test_invalid_string_is_valid[   ] PASSED [ 66%]
+tests/unit/security/test_validation.py::TestValidateNonEmpty::test_invalid_string_is_valid[None] PASSED [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.fixtures.optional_deps
+    self.import_plugin(import_spec)
+
+.venv/lib/python3.12/site-packages/astor/op_util.py:92
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in op_data)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= Test Categorization Summary ==========================
+Test Type Distribution:
+  Unit Tests: 3
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 3
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+============================= Top 10 Slowest Tests =============================
+1. tests/unit/security/test_validation.py::TestValidateNonEmpty::test_invalid_string_is_valid[]: 0.17s
+2. tests/unit/security/test_validation.py::TestValidateNonEmpty::test_invalid_string_is_valid[None]: 0.00s
+3. tests/unit/security/test_validation.py::TestValidateNonEmpty::test_invalid_string_is_valid[   ]: 0.00s
+======================== 3 passed, 2 warnings in 0.21s =========================

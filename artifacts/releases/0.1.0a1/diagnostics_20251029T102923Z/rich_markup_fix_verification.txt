@@ -1,0 +1,1 @@
+Rich markup errors fixed - parametrized test names with brackets no longer cause MarkupError

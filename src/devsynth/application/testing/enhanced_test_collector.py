@@ -28,7 +28,7 @@ try:
     from devsynth.ports.memory_port import MemoryPort
 except ImportError:
     # Optional import - memory system may not be available
-    MemoryPort = None
+    MemoryPort = type(None)  # type: ignore[assignment,misc]
 
 
 @dataclass

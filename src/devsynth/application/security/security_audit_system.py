@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from devsynth.ports.memory_port import MemoryPort
+from devsynth.domain.models.memory import MemoryType
 
 
 @dataclass
@@ -958,34 +959,36 @@ class SecurityAuditSystem:
 
         try:
             memory_key = "security_audit_latest"
-            self.memory_port.store(
-                key=memory_key,
-                data={
-                    "timestamp": report.timestamp.isoformat(),
-                    "overall_score": report.overall_score,
-                    "risk_level": report.risk_level,
-                    "total_issues": (
-                        (
-                            report.bandit_report.total_issues
-                            if report.bandit_report
-                            else 0
-                        )
-                        + (
-                            report.safety_report.total_vulnerabilities
-                            if report.safety_report
-                            else 0
-                        )
-                        + (
-                            report.custom_report.issues_found
-                            if report.custom_report
-                            else 0
-                        )
-                    ),
-                    "recommendations": report.recommendations,
-                },
+            content = {
+                "timestamp": report.timestamp.isoformat(),
+                "overall_score": report.overall_score,
+                "risk_level": report.risk_level,
+                "total_issues": (
+                    (
+                        report.bandit_report.total_issues
+                        if report.bandit_report
+                        else 0
+                    )
+                    + (
+                        report.safety_report.total_vulnerabilities
+                        if report.safety_report
+                        else 0
+                    )
+                    + (
+                        report.custom_report.issues_found
+                        if report.custom_report
+                        else 0
+                    )
+                ),
+                "recommendations": report.recommendations,
+            }
+            self.memory_port.store_memory(
+                content=content,
+                memory_type=MemoryType.CODE_ANALYSIS,
                 metadata={
                     "type": "security_audit",
                     "project_path": report.project_path,
+                    "key": "security_audit_latest"
                 },
             )
 

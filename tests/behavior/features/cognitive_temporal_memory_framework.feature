@@ -1,5 +1,5 @@
 @cognitive_temporal_memory @memory @agentic_ai
-Feature: Cognitive-Temporal Memory (CTM) Framework
+Feature: Cognitive-Temporal Memory (CTM) Framework Specification
     As a DevSynth developer
     I want to implement a Cognitive-Temporal Memory framework
     So that agents can have sophisticated memory capabilities for advanced reasoning

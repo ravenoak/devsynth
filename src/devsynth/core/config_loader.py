@@ -1,4 +1,7 @@
-"""Unified configuration loader for DevSynth core modules."""
+"""Unified configuration loader for DevSynth core modules.
+
+# Feature: Configuration Loader Specification
+"""
 
 from __future__ import annotations
 

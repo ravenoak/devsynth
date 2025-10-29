@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field  # type: ignore[attr-defined]
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import TypeGuard
 from collections.abc import Mapping, Sequence
 
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
@@ -33,14 +36,14 @@ def is_back_command(reply: str, *, keyboard_shortcuts: bool) -> bool:
     return normalized in KEYBOARD_BACK_COMMANDS
 
 
-@dataclass(slots=True)  # type: ignore
+@dataclass
 class _FieldRecord:
     key: str
     label: str
     value: str
 
 
-@dataclass(slots=True)  # type: ignore
+@dataclass
 class TextualWizardViewModel:
     """Maintain wizard state for bridges that expose Textual layouts."""
 
@@ -119,15 +122,19 @@ class TextualWizardViewModel:
 
     def resolve_help(self, topic: str, subtopic: str | None = None) -> str | None:
         entry = self.contextual_help.get(topic)
+        if entry is None:
+            return None
+
         if isinstance(entry, Mapping):
             if subtopic is None:
                 return None
             help_text = entry.get(subtopic)
+            if help_text is None:
+                return None
+            return sanitize_output(help_text)  # type: ignore[no-any-return]
         else:
-            help_text = entry
-        if help_text is None:
-            return None
-        return sanitize_output(cast(str, help_text))  # type: ignore[no-any-return,redundant-cast]
+            # entry is a string
+            return sanitize_output(entry)  # type: ignore[no-any-return]
 
     def present_question(
         self,

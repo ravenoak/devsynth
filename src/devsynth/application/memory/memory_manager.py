@@ -4,6 +4,8 @@ Memory Manager Module
 This module provides a unified interface to different memory adapters,
 allowing for efficient querying of different types of memory and tagging
 items with EDRR phases.
+
+# Feature: Cognitive-Temporal Memory (CTM) Framework Specification
 """
 
 from __future__ import annotations

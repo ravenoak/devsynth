@@ -1,0 +1,1 @@
+Import fix verification: Moved 4 test files from src/devsynth/application/testing/ to tests/unit/application/testing/. Source file enhanced_test_collector.py remains in src as expected.

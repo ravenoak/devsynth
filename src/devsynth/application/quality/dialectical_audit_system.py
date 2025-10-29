@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 from devsynth.ports.memory_port import MemoryPort
+from devsynth.domain.models.memory import MemoryType
 
 
 @dataclass
@@ -515,20 +516,21 @@ class DialecticalAuditSystem:
             return
 
         try:
-            memory_key = "dialectical_audit_latest"
-            self.memory_port.store(
-                key=memory_key,
-                data={
-                    "timestamp": result.timestamp.isoformat(),
-                    "total_features": result.total_features_found,
-                    "inconsistencies": result.inconsistencies_found,
-                    "questions": [q.question for q in result.questions_generated],
-                    "coverage_analysis": result.coverage_analysis,
-                    "health_score": result.audit_summary["health_score"],
-                },
+            content = {
+                "timestamp": result.timestamp.isoformat(),
+                "total_features": result.total_features_found,
+                "inconsistencies": result.inconsistencies_found,
+                "questions": [q.question for q in result.questions_generated],
+                "coverage_analysis": result.coverage_analysis,
+                "health_score": result.audit_summary["health_score"],
+            }
+            self.memory_port.store_memory(
+                content=content,
+                memory_type=MemoryType.DIALECTICAL_REASONING,
                 metadata={
                     "type": "dialectical_audit",
                     "project_path": result.project_path,
+                    "key": "dialectical_audit_latest"
                 },
             )
 

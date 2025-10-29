@@ -1,0 +1,432 @@
+task: [release:prep] poetry env info --path
+/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv
+task: [release:prep] poetry run python scripts/verify_python_version.py
+[info] Python 3.12.12 detected
+task: [release:prep] poetry install --with dev --extras "tests retrieval chromadb api"
+Installing dependencies from lock file
+
+No dependencies to install or update
+
+Installing the current project: devsynth (0.1.0a1)
+task: [release:prep] bash -lc 'mkdir -p diagnostics; poetry run python scripts/verify_test_markers.py | tee diagnostics/release_prep_verify_markers.txt; EXIT=${PIPESTATUS[0]}; exit $EXIT'
+[info] verify_test_markers: files=1316, cache_hits=1315, cache_misses=1, issues=0, speed_violations=0, property_violations=0
+task: [clean] rm -rf dist
+task: [clean] rm -rf .pytest_cache
+task: [clean] rm -rf .coverage
+task: [clean] rm -rf coverage.xml
+task: [clean] rm -rf site
+task: [clean] find . -type d -name __pycache__ -exec rm -rf {} +
+task: [clean] find . -name '*\,cover' -delete
+task: [build:wheel] poetry build --format wheel
+Building devsynth (0.1.0a1)
+Building wheel
+  - Building wheel
+  - Built devsynth-0.1.0a1-py3-none-any.whl
+task: [build:sdist] poetry build --format sdist
+Building devsynth (0.1.0a1)
+Building sdist
+  - Building sdist
+  - Built devsynth-0.1.0a1.tar.gz
+task: [test:smoke] PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 poetry run pytest -p pytest_bdd.plugin -p no:cov -p no:xdist --maxfail=1 -q
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  1%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  2%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  4%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  5%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  7%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [  8%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 10%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 11%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 13%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 14%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 16%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 17%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 19%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 20%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 21%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 23%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 24%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 26%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 27%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 29%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 30%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 32%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 33%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 35%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 36%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 38%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 39%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 40%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 42%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 43%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 45%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 46%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 48%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 49%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 51%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 52%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 54%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 55%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 57%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 58%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 59%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 61%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 62%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 64%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 65%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 67%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 68%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 70%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 71%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 73%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 74%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 76%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 77%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 78%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 80%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 81%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 83%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 84%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 86%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 87%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 89%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 90%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 92%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 93%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 95%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 96%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 97%]
+ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss [ 99%]
+sssssssssssssssssssssssssss                                              [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.fixtures.optional_deps
+    self.import_plugin(import_spec)
+
+.venv/lib/python3.12/site-packages/astor/op_util.py:92
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in op_data)
+
+.venv/lib/python3.12/site-packages/pytest_bdd/plugin.py:137
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/pytest_bdd/plugin.py:137: PytestUnknownMarkWarning: Unknown pytest.mark.test-infrastructure - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    mark = getattr(pytest.mark, tag)
+
+src/devsynth/application/edrr/wsde_specialized_agents.py:268
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/edrr/wsde_specialized_agents.py:268: PytestCollectionWarning: cannot collect test class 'TestWriterAgent' because it has a __init__ constructor (from: tests/behavior/steps/test_wsde_multi_agent_steps.py)
+    class TestWriterAgent(BaseWSDESpecialist):
+
+tests/integration/general/test_error_handling_at_integration_points.py:15
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_error_handling_at_integration_points.py:15: PytestDeprecationWarning: 
+  Module 'lmstudio' was found, but when imported by pytest it raised:
+      ImportError("cannot import name 'ASGITransport' from 'httpx' (unknown location)")
+  In pytest 9.1 this warning will become an error by default.
+  You can fix the underlying problem, or alternatively overwrite this behavior and silence this warning by passing exc_type=ImportError explicitly.
+  See https://docs.pytest.org/en/stable/deprecations.html#pytest-importorskip-default-behavior-regarding-importerror
+    pytest.importorskip("lmstudio")
+
+tests/integration/general/test_provider_system.py:15
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_provider_system.py:15: PytestDeprecationWarning: 
+  Module 'lmstudio' was found, but when imported by pytest it raised:
+      ImportError("cannot import name 'ASGITransport' from 'httpx' (unknown location)")
+  In pytest 9.1 this warning will become an error by default.
+  You can fix the underlying problem, or alternatively overwrite this behavior and silence this warning by passing exc_type=ImportError explicitly.
+  See https://docs.pytest.org/en/stable/deprecations.html#pytest-importorskip-default-behavior-regarding-importerror
+    pytest.importorskip("lmstudio")
+
+tests/integration/general/test_provider_system_configurations.py:14
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_provider_system_configurations.py:14: PytestDeprecationWarning: 
+  Module 'lmstudio' was found, but when imported by pytest it raised:
+      ImportError("cannot import name 'ASGITransport' from 'httpx' (unknown location)")
+  In pytest 9.1 this warning will become an error by default.
+  You can fix the underlying problem, or alternatively overwrite this behavior and silence this warning by passing exc_type=ImportError explicitly.
+  See https://docs.pytest.org/en/stable/deprecations.html#pytest-importorskip-default-behavior-regarding-importerror
+    pytest.importorskip("lmstudio")
+
+tests/integration/llm/test_critical_llm_workflows.py:22
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/llm/test_critical_llm_workflows.py:22: PytestCollectionWarning: cannot collect test class 'TestGenerator' because it has a __init__ constructor (from: tests/integration/llm/test_critical_llm_workflows.py)
+    class TestGenerator:
+
+tests/unit/adapters/test_chromadb_memory_store.py:19
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning: 
+  Module 'devsynth.adapters.chromadb_memory_store' was found, but when imported by pytest it raised:
+      ImportError("ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras.")
+  In pytest 9.1 this warning will become an error by default.
+  You can fix the underlying problem, or alternatively overwrite this behavior and silence this warning by passing exc_type=ImportError explicitly.
+  See https://docs.pytest.org/en/stable/deprecations.html#pytest-importorskip-default-behavior-regarding-importerror
+    chromadb_memory_store = pytest.importorskip(
+
+src/devsynth/application/testing/enhanced_test_collector.py:48
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/enhanced_test_collector.py:48: PytestCollectionWarning: cannot collect test class 'TestCollectionResult' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhanced_test_collector.py)
+    @dataclass
+
+src/devsynth/application/testing/enhanced_test_collector.py:34
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/enhanced_test_collector.py:34: PytestCollectionWarning: cannot collect test class 'TestInfo' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhanced_test_collector.py)
+    @dataclass
+
+tests/unit/application/testing/test_isolation_analyzer.py:68
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_isolation_analyzer.py:68: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalyzer' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhancer.py)
+    class TestIsolationAnalyzer:
+
+tests/unit/application/testing/test_enhancer.py:62
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_enhancer.py:62: PytestCollectionWarning: cannot collect test class 'TestEnhancer' because it has a __init__ constructor (from: tests/unit/application/testing/test_enhancer.py)
+    class TestEnhancer:
+
+tests/unit/application/testing/test_isolation_analyzer.py:58
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_isolation_analyzer.py:58: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalysis' because it has a __init__ constructor (from: tests/unit/application/testing/test_isolation_analyzer.py)
+    @dataclass
+
+tests/unit/application/testing/test_isolation_analyzer.py:68
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_isolation_analyzer.py:68: PytestCollectionWarning: cannot collect test class 'TestIsolationAnalyzer' because it has a __init__ constructor (from: tests/unit/application/testing/test_isolation_analyzer.py)
+    class TestIsolationAnalyzer:
+
+src/devsynth/application/testing/enhanced_test_collector.py:48
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/src/devsynth/application/testing/enhanced_test_collector.py:48: PytestCollectionWarning: cannot collect test class 'TestCollectionResult' because it has a __init__ constructor (from: tests/unit/application/testing/test_report_generator.py)
+    @dataclass
+
+tests/unit/application/testing/test_report_generator.py:27
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_report_generator.py:27: PytestCollectionWarning: cannot collect test class 'TestReport' because it has a __init__ constructor (from: tests/unit/application/testing/test_report_generator.py)
+    @dataclass
+
+tests/unit/application/testing/test_report_generator.py:62
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/application/testing/test_report_generator.py:62: PytestCollectionWarning: cannot collect test class 'TestReportGenerator' because it has a __init__ constructor (from: tests/unit/application/testing/test_report_generator.py)
+    class TestReportGenerator:
+
+.venv/lib/python3.12/site-packages/vbuild/__init__.py:33
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:33: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    hasLess = bool(pkgutil.find_loader("lesscpy"))
+
+.venv/lib/python3.12/site-packages/vbuild/__init__.py:34
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:34: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    hasSass = bool(pkgutil.find_loader("scss"))
+
+.venv/lib/python3.12/site-packages/vbuild/__init__.py:35
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:35: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    hasClosure = bool(pkgutil.find_loader("closure"))
+
+scripts/analyze_test_dependencies.py:41
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/scripts/analyze_test_dependencies.py:41: PytestCollectionWarning: cannot collect test class 'TestDependencyAnalyzer' because it has a __init__ constructor (from: tests/unit/scripts/test_analyze_test_dependencies.py)
+    class TestDependencyAnalyzer(ast.NodeVisitor):
+
+scripts/analyze_test_dependencies.py:162
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/scripts/analyze_test_dependencies.py:162: PytestCollectionWarning: cannot collect test class 'TestFileAnalyzer' because it has a __init__ constructor (from: tests/unit/scripts/test_analyze_test_dependencies.py)
+    class TestFileAnalyzer:
+
+scripts/benchmark_test_execution.py:34
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/scripts/benchmark_test_execution.py:34: PytestCollectionWarning: cannot collect test class 'TestExecutionBenchmark' because it has a __init__ constructor (from: tests/unit/scripts/test_benchmark_test_execution.py)
+    class TestExecutionBenchmark:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= Test Categorization Summary ==========================
+Test Type Distribution:
+  Unit Tests: 4307
+  Integration Tests: 546
+  Behavior Tests: 43
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 4945
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+============================= Top 10 Slowest Tests =============================
+1. tests/unit/methodology/test_sprint_adapter.py::test_is_phase_time_exceeded_false: 0.12s
+2. tests/integration/llm/test_provider_consistency.py::TestProviderConfigurationConsistency::test_standardized_config_acceptance[openai]: 0.00s
+3. tests/unit/application/memory/test_phase3_integration_system.py::TestEnhancedGraphRAGQueryEngine::test_plan_multi_hop_traversal: 0.00s
+4. tests/unit/adapters/cli/test_typer_adapter.py::test_dashboard_hook_option_registers: 0.00s
+5. tests/unit/application/memory/test_graph_memory_adapter.py::TestGraphMemoryAdapter::test_memory_item_triple_creation_succeeds: 0.00s
+6. tests/integration/llm/test_critical_llm_workflows.py::TestCriticalLLMWorkflows::test_documentation_generation: 0.00s
+7. tests/unit/adapters/test_provider_system.py::test_embed_success_succeeds: 0.00s
+8. tests/unit/adapters/test_kuzu_memory_store.py::test_store_failure_raises_memory_store_error: 0.00s
+9. tests/unit/application/memory/test_graph_memory_adapter.py::TestGraphMemoryAdapter::test_integrate_with_store_succeeds: 0.00s
+10. tests/unit/scripts/test_auto_issue_comment.py::test_posts_comment_when_env_present: 0.00s
+4945 skipped, 24 warnings in 45.72s
+task: [release:prep] echo "[release:prep] Skipping security audit for alpha release - using relaxed validation"
+[release:prep] Skipping security audit for alpha release - using relaxed validation
+task: [setup:minimal] poetry install --with dev --extras minimal
+Installing dependencies from lock file
+
+No dependencies to install or update
+
+Installing the current project: devsynth (0.1.0a1)
+task: [verify:minimal] poetry run python scripts/verify_minimal_install.py
+[verify_minimal_install] minimal extras path verified (CLI help and imports ok)
+task: [release:prep] poetry run python scripts/verify_release_state.py
+[release_state] Allowing unresolved questions for alpha release
+task: [release:prep] poetry run python scripts/dialectical_audit.py
+Questions raised during dialectical audit:
+- Feature 'Agent API stub' has tests but is not documented.
+- Feature 'Agentic Memory Management' has tests but is not documented.
+- Feature 'Autoresearch graph traversal and durability' has tests but is not documented.
+- Feature 'CLI long-running progress telemetry' has tests but is not documented.
+- Feature 'Cli overhaul pseudocode' has tests but is not documented.
+- Feature 'Cli ui improvements' has tests but is not documented.
+- Feature 'Code Analysis' has tests but is not documented.
+- Feature 'Cognitive-Temporal Memory (CTM) Framework' has tests but is not documented.
+- Feature 'Complete Sprint-EDRR integration' has tests but is not documented.
+- Feature 'Complete memory system integration' has tests but is not documented.
+- Feature 'Configuration Loader Specification' has tests but is not documented.
+- Feature 'Context Engineering Framework' has tests but is not documented.
+- Feature 'Critical recommendations follow-up' has tests but is not documented.
+- Feature 'Delimiting recursion algorithms' has tests but is not documented.
+- Feature 'DevSynth Specification' has tests but is not documented.
+- Feature 'DevSynth Specification MVP Updated' has tests but is not documented.
+- Feature 'Dialectical audit gating' has tests but is not documented.
+- Feature 'Dialectical reasoner evaluation hooks' has tests but is not documented.
+- Feature 'Dialectical reasoning impact memory persistence' has tests but is not documented.
+- Feature 'Document generator enhancement requirements' has tests but is not documented.
+- Feature 'Documentation plan' has tests but is not documented.
+- Feature 'Edrr cycle specification' has tests but is not documented.
+- Feature 'Edrr framework integration summary' has tests but is not documented.
+- Feature 'Edrr phase recovery threshold helpers' has tests but is not documented.
+- Feature 'Edrr reasoning loop integration' has tests but is not documented.
+- Feature 'Edrr recursion termination' has tests but is not documented.
+- Feature 'End to end deployment' has tests but is not documented.
+- Feature 'Enhance retry mechanism' has tests but is not documented.
+- Feature 'Enhanced CTM with Execution Trajectory Learning' has tests but is not documented.
+- Feature 'Enhanced GraphRAG Multi-Hop Reasoning and Semantic Linking' has tests but is not documented.
+- Feature 'Enhanced Knowledge Graph with Business Intent Layer' has tests but is not documented.
+- Feature 'Exceptions Framework' has tests but is not documented.
+- Feature 'Execution Learning Integration with Enhanced Memory System' has tests but is not documented.
+- Feature 'Executive Summary' has tests but is not documented.
+- Feature 'Expand test generation capabilities' has tests but is not documented.
+- Feature 'Feature Markers' has tests but is not documented.
+- Feature 'Finalize WSDE/EDRR workflow logic' has tests but is not documented.
+- Feature 'Finalize dialectical reasoning' has tests but is not documented.
+- Feature 'Generated test execution failure' has tests but is not documented.
+- Feature 'GraphRAG Integration' has tests but is not documented.
+- Feature 'Hybrid memory architecture' has tests but is not documented.
+- Feature 'Improve deployment automation' has tests but is not documented.
+- Feature 'Index' has tests but is not documented.
+- Feature 'Integration test generation' has tests but is not documented.
+- Feature 'Interactive Requirements Gathering' has tests but is not documented.
+- Feature 'LM Studio provider integration' has tests but is not documented.
+- Feature 'Link requirement changes to EDRR outcomes' has tests but is not documented.
+- Feature 'Lmstudio integration' has tests but is not documented.
+- Feature 'Logging Setup Utilities' has tests but is not documented.
+- Feature 'Memetic Unit Abstraction for Universal Memory Representation' has tests but is not documented.
+- Feature 'Memory optional tinydb dependency' has tests but is not documented.
+- Feature 'Metrics system' has tests but is not documented.
+- Feature 'Multi-Agent Collaboration' has tests but is not documented.
+- Feature 'Multi-Layered Memory System' has tests but is not documented.
+- Feature 'Mvuu config' has tests but is not documented.
+- Feature 'Nicegui interface' has tests but is not documented.
+- Feature 'OpenRouter Integration' has tests but is not documented.
+- Feature 'Performance and scalability testing' has tests but is not documented.
+- Feature 'Phase 3 Advanced Reasoning Integration' has tests but is not documented.
+- Feature 'Provider failover for EDRR integration' has tests but is not documented.
+- Feature 'RAG+ Integration' has tests but is not documented.
+- Feature 'Recursive edrr pseudocode' has tests but is not documented.
+- Feature 'Release state check' has tests but is not documented.
+- Feature 'Resolve pytest-xdist assertion errors' has tests but is not documented.
+- Feature 'Review and Reprioritize Open Issues' has tests but is not documented.
+- Feature 'Run tests maxfail option' has tests but is not documented.
+- Feature 'Run-tests CLI reporting, segmentation, and smoke behavior' has tests but is not documented.
+- Feature 'Shared UXBridge across CLI, Textual TUI, and WebUI' has tests but is not documented.
+- Feature 'Spec template' has tests but is not documented.
+- Feature 'Specification Evaluation' has tests but is not documented.
+- Feature 'Test generation multi module' has tests but is not documented.
+- Feature 'Testing Infrastructure' has tests but is not documented.
+- Feature 'Tiered cache validation' has tests but is not documented.
+- Feature 'Unified configuration loader' has tests but is not documented.
+- Feature 'Unified configuration loader behavior' has tests but is not documented.
+- Feature 'Uxbridge extension' has tests but is not documented.
+- Feature 'Verify test markers performance' has tests but is not documented.
+- Feature 'Version bump script' has tests but is not documented.
+- Feature 'WSDE specialist rotation validates knowledge graph provenance' has tests but is not documented.
+- Feature 'WebUI bridge message routing' has tests but is not documented.
+- Feature 'Webui core' has tests but is not documented.
+- Feature 'Webui detailed spec' has tests but is not documented.
+- Feature 'Webui diagnostics audit logs' has tests but is not documented.
+- Feature 'Webui pseudocode' has tests but is not documented.
+- Feature 'Webui spec' has tests but is not documented.
+- Feature 'Wsde interaction specification' has tests but is not documented.
+- Feature 'Wsde role progression memory' has tests but is not documented.
+- Feature 'Complete Project Lifecycle' is documented but has no corresponding tests.
+- Feature 'Enhanced CTM Semantic Understanding' is documented but has no corresponding tests.
+- Feature 'Enhanced GraphRAG Multi-Hop Reasoning' is documented but has no corresponding tests.
+- Feature 'Enhanced Knowledge Graph Intent Discovery' is documented but has no corresponding tests.
+- Feature 'Memetic Unit Abstraction' is documented but has no corresponding tests.
+- Feature '[Feature Name]' is documented but has no corresponding tests.
+- Feature 'Agent API stub' is referenced in docs or tests but not in code.
+- Feature 'Agentic Memory Management' is referenced in docs or tests but not in code.
+- Feature 'Automated Quality Assurance' is referenced in docs or tests but not in code.
+- Feature 'Autoresearch graph traversal and durability' is referenced in docs or tests but not in code.
+- Feature 'CLI long-running progress telemetry' is referenced in docs or tests but not in code.
+- Feature 'Cli overhaul pseudocode' is referenced in docs or tests but not in code.
+- Feature 'Cli ui improvements' is referenced in docs or tests but not in code.
+- Feature 'Cognitive-Temporal Memory (CTM) Framework' is referenced in docs or tests but not in code.
+- Feature 'Complete Project Lifecycle' is referenced in docs or tests but not in code.
+- Feature 'Complete memory system integration' is referenced in docs or tests but not in code.
+- Feature 'Comprehensive Security Validation' is referenced in docs or tests but not in code.
+- Feature 'Configuration Loader Specification' is referenced in docs or tests but not in code.
+- Feature 'Context Engineering Framework' is referenced in docs or tests but not in code.
+- Feature 'Delimiting recursion algorithms' is referenced in docs or tests but not in code.
+- Feature 'DevSynth Specification' is referenced in docs or tests but not in code.
+- Feature 'DevSynth Specification MVP Updated' is referenced in docs or tests but not in code.
+- Feature 'Dialectical reasoner evaluation hooks' is referenced in docs or tests but not in code.
+- Feature 'Dialectical reasoning impact memory persistence' is referenced in docs or tests but not in code.
+- Feature 'Document generator enhancement requirements' is referenced in docs or tests but not in code.
+- Feature 'Documentation plan' is referenced in docs or tests but not in code.
+- Feature 'Edrr cycle specification' is referenced in docs or tests but not in code.
+- Feature 'Edrr framework integration summary' is referenced in docs or tests but not in code.
+- Feature 'Edrr phase recovery threshold helpers' is referenced in docs or tests but not in code.
+- Feature 'Edrr reasoning loop integration' is referenced in docs or tests but not in code.
+- Feature 'Edrr recursion termination' is referenced in docs or tests but not in code.
+- Feature 'End to end deployment' is referenced in docs or tests but not in code.
+- Feature 'Enhanced CTM Semantic Understanding' is referenced in docs or tests but not in code.
+- Feature 'Enhanced CTM with Execution Trajectory Learning' is referenced in docs or tests but not in code.
+- Feature 'Enhanced GraphRAG Multi-Hop Reasoning' is referenced in docs or tests but not in code.
+- Feature 'Enhanced GraphRAG Multi-Hop Reasoning and Semantic Linking' is referenced in docs or tests but not in code.
+- Feature 'Enhanced Knowledge Graph Intent Discovery' is referenced in docs or tests but not in code.
+- Feature 'Enhanced Knowledge Graph with Business Intent Layer' is referenced in docs or tests but not in code.
+- Feature 'Enhanced Test Infrastructure' is referenced in docs or tests but not in code.
+- Feature 'Exceptions Framework' is referenced in docs or tests but not in code.
+- Feature 'Execution Learning Integration with Enhanced Memory System' is referenced in docs or tests but not in code.
+- Feature 'Executive Summary' is referenced in docs or tests but not in code.
+- Feature 'Feature Markers' is referenced in docs or tests but not in code.
+- Feature 'Finalize dialectical reasoning' is referenced in docs or tests but not in code.
+- Feature 'Generated test execution failure' is referenced in docs or tests but not in code.
+- Feature 'GraphRAG Integration' is referenced in docs or tests but not in code.
+- Feature 'Hybrid memory architecture' is referenced in docs or tests but not in code.
+- Feature 'Index' is referenced in docs or tests but not in code.
+- Feature 'Integration test generation' is referenced in docs or tests but not in code.
+- Feature 'Interactive Requirements Gathering' is referenced in docs or tests but not in code.
+- Feature 'LM Studio provider integration' is referenced in docs or tests but not in code.
+- Feature 'Link requirement changes to EDRR outcomes' is referenced in docs or tests but not in code.
+- Feature 'Lmstudio integration' is referenced in docs or tests but not in code.
+- Feature 'Logging Setup Utilities' is referenced in docs or tests but not in code.
+- Feature 'Memetic Unit Abstraction' is referenced in docs or tests but not in code.
+- Feature 'Memetic Unit Abstraction for Universal Memory Representation' is referenced in docs or tests but not in code.
+- Feature 'Memory optional tinydb dependency' is referenced in docs or tests but not in code.
+- Feature 'Metrics system' is referenced in docs or tests but not in code.
+- Feature 'Multi-disciplinary dialectical reasoning' is referenced in docs or tests but not in code.
+- Feature 'Mvuu config' is referenced in docs or tests but not in code.
+- Feature 'Nicegui interface' is referenced in docs or tests but not in code.
+- Feature 'OpenRouter Integration' is referenced in docs or tests but not in code.
+- Feature 'Performance and scalability testing' is referenced in docs or tests but not in code.
+- Feature 'Phase 3 Advanced Reasoning Integration' is referenced in docs or tests but not in code.
+- Feature 'Provider Harmonization' is referenced in docs or tests but not in code.
+- Feature 'Provider failover for EDRR integration' is referenced in docs or tests but not in code.
+- Feature 'RAG+ Integration' is referenced in docs or tests but not in code.
+- Feature 'Recursive edrr pseudocode' is referenced in docs or tests but not in code.
+- Feature 'Requirements Traceability Engine' is referenced in docs or tests but not in code.
+- Feature 'Run tests maxfail option' is referenced in docs or tests but not in code.
+- Feature 'Run-tests CLI reporting, segmentation, and smoke behavior' is referenced in docs or tests but not in code.
+- Feature 'Shared UXBridge across CLI, Textual TUI, and WebUI' is referenced in docs or tests but not in code.
+- Feature 'Spec template' is referenced in docs or tests but not in code.
+- Feature 'Specification Evaluation' is referenced in docs or tests but not in code.
+- Feature 'Test generation multi module' is referenced in docs or tests but not in code.
+- Feature 'Testing Infrastructure' is referenced in docs or tests but not in code.
+- Feature 'Tiered cache validation' is referenced in docs or tests but not in code.
+- Feature 'Unified configuration loader' is referenced in docs or tests but not in code.
+- Feature 'Unified configuration loader behavior' is referenced in docs or tests but not in code.
+- Feature 'Uxbridge extension' is referenced in docs or tests but not in code.
+- Feature 'Verify test markers performance' is referenced in docs or tests but not in code.
+- Feature 'WSDE specialist rotation validates knowledge graph provenance' is referenced in docs or tests but not in code.
+- Feature 'WebUI bridge message routing' is referenced in docs or tests but not in code.
+- Feature 'Webui core' is referenced in docs or tests but not in code.
+- Feature 'Webui detailed spec' is referenced in docs or tests but not in code.
+- Feature 'Webui diagnostics audit logs' is referenced in docs or tests but not in code.
+- Feature 'Webui pseudocode' is referenced in docs or tests but not in code.
+- Feature 'Webui spec' is referenced in docs or tests but not in code.
+- Feature 'Wsde interaction specification' is referenced in docs or tests but not in code.
+- Feature 'Wsde role progression memory' is referenced in docs or tests but not in code.
+- Feature '[Feature Name]' is referenced in docs or tests but not in code.
+[dialectical_audit] Allowing unresolved questions for alpha release

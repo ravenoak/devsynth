@@ -256,6 +256,7 @@ Primary users are individual software developers who:
 - [FR-91] The system shall allow requirements and setup wizards to support keyboard navigation (forward, backward, review) without relying on sentinel keywords, ensuring parity across CLI, Textual, and WebUI bridges.
 - [FR-92] The system shall provide a Textual-based TUI that reuses the UXBridge workflows to present multi-pane wizard layouts with persistent summaries and context-aware help.
 - [FR-93] The system shall render Rich-based structured summaries (tables, panels, or layouts) for wizard outcomes and command help so users can review decisions without scanning linear transcripts.
+- [FR-94] The system shall provide a code analysis command (`inspect-code`) that analyzes codebase architecture, structure, dependencies, and quality metrics to support development and maintenance activities.
 
 ## 4. Non-Functional Requirements
 

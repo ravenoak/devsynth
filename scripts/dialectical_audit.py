@@ -29,7 +29,7 @@ LOG_PATH = ROOT / "dialectical_audit.log"
 # file.
 CODE_FEATURE_MAP = {
     "src/devsynth/interface/webui.py": {
-        "diagnostics_page": "WebUI Diagnostics Page",
+        "diagnostics_page": "webui diagnostics page",
     }
 }
 
@@ -37,10 +37,25 @@ CODE_FEATURE_MAP = {
 def _extract_features_from_docs() -> set[str]:
     features: set[str] = set()
     for path in DOCS.rglob("*.md"):
+        # Skip certain directories that don't contain feature specifications
+        if any(skip_dir in str(path) for skip_dir in ['docs/adr', 'docs/archived', 'docs/audits']):
+            continue
+
         for line in path.read_text(encoding="utf-8").splitlines():
+            # Check for Gherkin-style Feature declarations
             match = re.match(r"^Feature:\s*(.+)", line)
             if match:
-                features.add(match.group(1).strip())
+                features.add(match.group(1).strip().lower())
+                continue
+
+            # Check for specification titles in docs/specifications/
+            if 'docs/specifications' in str(path):
+                match = re.match(r"^#\s+(.+)", line)
+                if match:
+                    title = match.group(1).strip()
+                    # Normalize to lowercase for consistent comparison
+                    features.add(title.lower())
+                    break  # Only take the first H1 title per file
     return features
 
 
@@ -49,7 +64,7 @@ def _extract_features_from_tests() -> set[str]:
     for path in TESTS.rglob("*.feature"):
         for line in path.read_text(encoding="utf-8").splitlines():
             if line.startswith("Feature:"):
-                features.add(line.split("Feature:", 1)[1].strip())
+                features.add(line.split("Feature:", 1)[1].strip().lower())
                 break
     return features
 
@@ -64,7 +79,7 @@ def _extract_features_from_code() -> set[str]:
         for line in text.splitlines():
             match = re.search(r"#\s*Feature:\s*(.+)", line)
             if match:
-                features.add(match.group(1).strip())
+                features.add(match.group(1).strip().lower())
         rel_path = str(path.relative_to(ROOT))
         if rel_path in CODE_FEATURE_MAP:
             for func_name, feature_name in CODE_FEATURE_MAP[rel_path].items():

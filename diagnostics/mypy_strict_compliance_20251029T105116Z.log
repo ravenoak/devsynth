@@ -1,0 +1,5 @@
+src/devsynth/application/wizard_textual.py:36: error: Unused "type: ignore[misc]" comment  [unused-ignore]
+src/devsynth/application/wizard_textual.py:37: error: Cannot instantiate type "type[Never]"  [misc]
+src/devsynth/application/wizard_textual.py:43: error: Unused "type: ignore[misc]" comment  [unused-ignore]
+src/devsynth/application/wizard_textual.py:44: error: Cannot instantiate type "type[Never]"  [misc]
+Found 4 errors in 1 file (checked 456 source files)

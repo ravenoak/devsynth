@@ -1,0 +1,1 @@
+Coverage configuration verified: pytest addopts includes --cov=src/devsynth and --cov-report settings
