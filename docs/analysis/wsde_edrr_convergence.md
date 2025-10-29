@@ -2,7 +2,7 @@
 
 title: "WSDE/EDRR Convergence"
 date: "2025-08-20"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "analysis"
 status: "draft"

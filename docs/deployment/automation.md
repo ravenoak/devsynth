@@ -7,7 +7,7 @@ tags:
   - deployment
   - automation
 title: Deployment Automation
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Deployment</a> &gt; Deployment Automation

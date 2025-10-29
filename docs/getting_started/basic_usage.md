@@ -9,7 +9,7 @@ tags:
 - basic-usage
 - tutorial
 title: DevSynth Basic Usage Guide
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Basic Usage Guide

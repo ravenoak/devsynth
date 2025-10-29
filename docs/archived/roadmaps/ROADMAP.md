@@ -6,7 +6,7 @@ last_reviewed: '2025-07-20'
 tags:
   - roadmap
   - milestones
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 status: published
 author: DevSynth Team
 ---

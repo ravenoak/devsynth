@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: Documentation Fetch and Cache
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

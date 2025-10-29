@@ -1,7 +1,7 @@
 ---
 title: "WSDE-EDRR Workflow"
 date: "2025-08-01"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - implementation
   - wsde

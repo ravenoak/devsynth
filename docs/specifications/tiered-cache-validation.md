@@ -7,7 +7,7 @@ tags:
 - specification
 
 title: Tiered Cache Validation
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

@@ -2,7 +2,7 @@
 
 title: "EDRR Command User Guide"
 date: "2025-07-07"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "user-guide"
 status: "published"

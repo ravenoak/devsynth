@@ -9,7 +9,7 @@ tags:
 - technical-reference
 
 title: API Reference
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="../index.md">Technical Reference</a> &gt; <a href="index.md">Api Reference</a> &gt; API Reference

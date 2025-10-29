@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Glossary"
 date: "2025-08-02"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "glossary"
   - "terminology"

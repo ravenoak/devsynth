@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: WebUI Requirements Wizard with WizardState
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

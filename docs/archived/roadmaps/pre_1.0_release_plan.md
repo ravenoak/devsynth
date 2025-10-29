@@ -8,7 +8,7 @@ tags:
 - release-plan
 - roadmap
 title: DevSynth Pre-1.0 Release Plan
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Pre-1.0 Release Plan

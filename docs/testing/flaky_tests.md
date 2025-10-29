@@ -2,7 +2,7 @@
 author: DevSynth Team
 date: "2025-08-25"
 status: reference
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 # Flaky Tests: Root Causes and Mitigations
 

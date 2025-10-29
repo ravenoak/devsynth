@@ -2,7 +2,7 @@
 title: "Orchestration State Machines and Recovery"
 author: "DevSynth Team"
 date: "2025-08-25"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 status: "draft"
 tags:
   - architecture

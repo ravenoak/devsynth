@@ -9,7 +9,7 @@ tags:
 - methodology
 - framework
 title: 'EDRR Framework: Expand, Differentiate, Refine, Retrospect'
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -302,7 +302,7 @@ The EDRR Manifest is a configuration file that defines the structure and paramet
 ```yaml
 name: "Feature Implementation Cycle"
 description: "EDRR for implementing a new feature"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 phases:
   expand:
     instructions: "Explore multiple approaches to implementing the feature"

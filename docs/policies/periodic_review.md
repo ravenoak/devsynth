@@ -6,7 +6,7 @@ last_reviewed: '2025-07-10'
 status: published
 tags:
 - policy
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Periodic Review Process

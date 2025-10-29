@@ -3,7 +3,7 @@
 title: "Interactive Requirements Wizard"
 date: "2025-06-16"
 last_reviewed: "2025-09-19"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "specification"
   - "requirements"

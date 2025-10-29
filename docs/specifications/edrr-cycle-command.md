@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: EDRR cycle command
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

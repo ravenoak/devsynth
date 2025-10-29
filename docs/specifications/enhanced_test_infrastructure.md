@@ -12,7 +12,7 @@ tags:
 - enhanced-infrastructure
 
 title: Enhanced Test Infrastructure System
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -42,6 +42,7 @@ The enhanced test infrastructure system wraps pytest with advanced analytics and
 The enhanced test collector provides more sophisticated test discovery and analysis:
 
 ```python
+# Implementation: src/devsynth/application/testing/enhanced_test_collector.py
 class EnhancedTestCollector:
     """Enhanced test collector with advanced analysis capabilities."""
 

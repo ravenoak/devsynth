@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: Resolve pytest-xdist assertion errors
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

@@ -9,7 +9,7 @@ tags:
   - peer-review
 
 title: WSDE Peer Review Workflow
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Summary

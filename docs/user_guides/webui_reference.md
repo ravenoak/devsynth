@@ -8,7 +8,7 @@ tags:
   - webui
   - user-guide
 title: DevSynth WebUI Reference
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth WebUI Reference

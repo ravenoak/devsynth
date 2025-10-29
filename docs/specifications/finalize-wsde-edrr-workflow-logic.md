@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: Finalize WSDE/EDRR workflow logic
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

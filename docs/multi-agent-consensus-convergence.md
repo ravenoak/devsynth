@@ -7,7 +7,7 @@ tags:
   - research
   - consensus
 title: Multi-Agent Consensus Convergence
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Multi-Agent Consensus Convergence

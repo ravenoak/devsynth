@@ -9,7 +9,7 @@ tags:
   - consensus
 
 title: Delegating tasks with consensus voting
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Summary

@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: WebUI Alignment Metrics Page
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

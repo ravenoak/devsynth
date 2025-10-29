@@ -1,7 +1,7 @@
 ---
 title: "Requirements Traceability Matrix"
 date: "2025-09-29"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "requirements"
   - "traceability"

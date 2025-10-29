@@ -7,7 +7,7 @@ tags:
   - specification
   - dialectical-reasoning
 title: Multi-disciplinary Dialectical Reasoning
-version: '0.1.0-alpha.1'
+version: '0.1.0a1'
 ---
 
 # Feature: Multi-disciplinary dialectical reasoning

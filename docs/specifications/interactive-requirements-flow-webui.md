@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: Interactive Requirements Flow WebUI
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

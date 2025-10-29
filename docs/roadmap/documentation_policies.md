@@ -7,7 +7,7 @@ status: published
 tags:
 - roadmap
 title: Documentation Policies
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; Documentation Policies

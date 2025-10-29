@@ -2,7 +2,7 @@
 
 title: "DevSynth Documentation Ownership"
 date: "2025-08-02"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "documentation"
   - "ownership"

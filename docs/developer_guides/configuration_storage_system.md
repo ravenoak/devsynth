@@ -2,7 +2,7 @@
 
 title: "DevSynth Configuration and Storage System"
 date: "2025-07-07"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "developer-guide"
   - "configuration"
@@ -51,7 +51,7 @@ Example:
 
 ```yaml
 projectName: example-project
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 lastUpdated: 2025-05-25T12:00:00
 structure:
   type: single_package

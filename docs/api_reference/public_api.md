@@ -7,7 +7,7 @@ tags:
 - api
 - reference
 title: Public API Surface
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 # Public API Surface

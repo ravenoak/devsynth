@@ -7,7 +7,7 @@ tags:
 - implementation
 - deployment
 title: DevSynth Deployment Guide
-version: '0.1.0-alpha.1'
+version: '0.1.0a1'
 ---
 
 <div class="breadcrumbs">

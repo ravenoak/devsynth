@@ -1,7 +1,7 @@
 ---
 title: "Layered Cache Analysis"
 date: "2025-08-23"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "analysis"
   - "caching"

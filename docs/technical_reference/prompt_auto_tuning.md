@@ -9,7 +9,7 @@ tags:
 - prompts
 - tuning
 title: Prompt Auto-Tuning Framework
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Prompt Auto-Tuning Framework

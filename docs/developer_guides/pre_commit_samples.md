@@ -1,7 +1,7 @@
 ---
 title: "Pre-commit Hook Samples"
 date: "2025-08-04"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "pre-commit"
   - "hooks"

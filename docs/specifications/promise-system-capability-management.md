@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: Promise System Capability Management
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

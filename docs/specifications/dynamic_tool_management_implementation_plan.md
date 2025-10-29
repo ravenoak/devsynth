@@ -11,7 +11,7 @@ tags:
   - roadmap
 
 title: Dynamic Tool Management Implementation Plan
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Dynamic Tool Management Implementation Plan

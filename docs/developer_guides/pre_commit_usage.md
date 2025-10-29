@@ -1,7 +1,7 @@
 ---
 title: "Pre-commit Usage"
 date: "2025-08-05"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "pre-commit"
   - "hooks"

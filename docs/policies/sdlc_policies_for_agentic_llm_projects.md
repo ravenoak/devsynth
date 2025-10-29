@@ -2,7 +2,7 @@
 
 title: "SDLC Policies and Repository Artifacts for Agentic LLM Projects"
 date: "2025-05-30"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "devsynth"
   - "sdlc"

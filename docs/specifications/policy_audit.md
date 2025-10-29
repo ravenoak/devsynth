@@ -6,7 +6,7 @@ status: draft
 tags:
 - specification
 title: Policy Audit Script
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Summary

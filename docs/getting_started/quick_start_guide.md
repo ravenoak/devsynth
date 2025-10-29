@@ -9,7 +9,7 @@ tags:
 - quick-start
 - tutorial
 title: DevSynth Quick Start Guide
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Quick Start Guide

@@ -1,7 +1,7 @@
 ---
 Title: "Dialectical Reasoning Loop Convergence"
 Date: "2025-08-22"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - analysis
   - methodology

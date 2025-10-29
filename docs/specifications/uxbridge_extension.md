@@ -3,7 +3,7 @@
 title: "UXBridge Interface Extension"
 date: "2025-06-19"
 last_reviewed: "2025-07-20"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "specification"
   - "ux"

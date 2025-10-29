@@ -8,7 +8,7 @@ tags:
 - retry
 - error-handling
 title: Per-Error Retry Policies
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Per-Error Retry Policies

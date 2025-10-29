@@ -8,7 +8,7 @@ tags:
   - mvu
   - command-execution
 title: MVU Command Execution
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Feature: MVU shell command execution

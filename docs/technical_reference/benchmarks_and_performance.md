@@ -2,7 +2,7 @@
 
 title: "Benchmarks and Performance Metrics"
 date: "2025-07-08"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "benchmarks"
   - "performance"

@@ -11,7 +11,7 @@ tags:
 - issue-104
 
 title: Security Configuration Guidelines
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Security Configuration Guidelines

@@ -6,7 +6,7 @@ status: review
 tags:
   - specification
 title: devsynth run-tests command
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Summary

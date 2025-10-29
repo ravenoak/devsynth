@@ -1,7 +1,7 @@
 ---
 title: CLI Usage
 date: "2025-06-19"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - user-guide
   - cli

@@ -1,7 +1,7 @@
 ---
 title: "Docker Build and Runtime Guide"
 date: 2025-08-24
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 status: published
 last_reviewed: 2025-08-24
 ---

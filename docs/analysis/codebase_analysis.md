@@ -2,7 +2,7 @@
 
 title: "DevSynth Codebase Analysis"
 date: "2025-07-07"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "analysis"
 

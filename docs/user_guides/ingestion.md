@@ -1,7 +1,7 @@
 ---
 title: Ingestion
 date: "2025-07-12"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - user-guide
   - ingestion

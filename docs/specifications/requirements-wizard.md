@@ -4,7 +4,7 @@ author: DevSynth Team
 date: 2025-08-19
 last_reviewed: 2025-09-19
 status: review
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 tags:
   - specification
   - requirements

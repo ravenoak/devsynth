@@ -12,7 +12,7 @@ tags:
 - validation
 
 title: Requirements Traceability Engine
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -42,8 +42,9 @@ The requirements traceability engine provides:
 The traceability verification engine validates requirement links:
 
 ```python
-class TraceabilityVerificationEngine:
-    """Verifies requirements traceability throughout the system."""
+# Implementation: src/devsynth/application/quality/requirements_traceability_engine.py
+class RequirementsTraceabilityEngine:
+    """Automated requirements traceability engine."""
 
     def verify_requirements_matrix(
         self,

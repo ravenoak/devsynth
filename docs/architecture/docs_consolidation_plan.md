@@ -2,7 +2,7 @@
 author: DevSynth Team
 date: "2025-08-25"
 status: living-doc
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 # Documentation Consolidation Plan (Single Sources of Truth)
 

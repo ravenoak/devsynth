@@ -1,7 +1,7 @@
 ---
 title: "Enhanced Test Collector"
 date: "2025-08-05"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "developer-guide"
 status: "published"

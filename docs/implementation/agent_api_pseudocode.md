@@ -8,7 +8,7 @@ tags:
   - pseudocode
   - api
 title: Agent API Pseudocode
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Agent API Pseudocode

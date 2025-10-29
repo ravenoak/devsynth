@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: WSDE Model and Memory System Integration
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

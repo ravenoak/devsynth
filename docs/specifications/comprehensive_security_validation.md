@@ -12,7 +12,7 @@ tags:
 - compliance
 
 title: Comprehensive Security Validation Framework
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -42,6 +42,7 @@ The comprehensive security validation framework provides:
 The security auditing system performs comprehensive security analysis:
 
 ```python
+# Implementation: src/devsynth/application/security/security_audit_system.py
 class SecurityAuditSystem:
     """Multi-layered security auditing system."""
 

@@ -2,7 +2,7 @@
 author: DevSynth Team
 date: "2025-08-25"
 status: guide
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 # Smoke Benchmarks
 

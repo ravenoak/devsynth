@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Testing Infrastructure Master Plan"
 date: "2025-01-17"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "implementation"
   - "testing"

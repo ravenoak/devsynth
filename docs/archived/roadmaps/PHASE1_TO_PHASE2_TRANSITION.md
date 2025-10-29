@@ -1,7 +1,7 @@
 ---
 title: "Phase 1 to Phase 2 Transition Plan"
 date: "2025-08-05"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "documentation"
 status: "published"

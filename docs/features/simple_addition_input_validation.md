@@ -2,7 +2,7 @@
 
 title: "Simple addition input validation"
 date: "2025-07-21"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "documentation"
   - "feature"

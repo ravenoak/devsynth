@@ -3,7 +3,7 @@ title: DevSynth Memory Guide
 date: 2025-09-30
 last_reviewed: 2025-09-30
 status: review
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Memory Guide

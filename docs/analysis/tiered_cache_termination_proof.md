@@ -1,7 +1,7 @@
 ---
 title: "Tiered Cache Termination Proof"
 date: "2025-08-24"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - analysis
   - caching

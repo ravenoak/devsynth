@@ -10,7 +10,7 @@ tags:
 - configuration
 
 title: DevSynth Configuration Examples
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; DevSynth Configuration Examples
@@ -28,7 +28,7 @@ A minimal configuration file for a Python project:
 
 # .devsynth/project.yaml
 
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 structure: "single_package"
 language: "python"
 goals: "Create a web application with user authentication and database integration"
@@ -152,7 +152,7 @@ A complete configuration example with all Phase 1 features enabled:
 
 # .devsynth/project.yaml
 
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 structure: "single_package"
 language: "python"
 goals: "Create a comprehensive web application with advanced features"

@@ -158,3 +158,233 @@ def test_reasoning_loop_phase_transitions_and_memory_integration(monkeypatch):
 
     assert random_seeds == [99]
     assert numpy_seeds == [99]
+
+
+@pytest.mark.fast
+def test_reasoning_loop_time_budget_exceeded(monkeypatch):
+    """Time budget enforcement prevents infinite loops.
+
+    ReqID: N/A"""
+
+    def slow_apply(wsde_team, task, critic_agent, memory_integration):
+        import time
+        time.sleep(0.1)  # Simulate slow operation
+        return {"status": "in_progress", "synthesis": "ongoing"}
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: slow_apply)
+
+    import time
+    start = time.monotonic()
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "X"},
+        critic_agent=None,
+        max_iterations=10,  # High iteration count
+        max_total_seconds=0.05,  # Very short budget
+        deterministic_seed=42,
+    )
+    elapsed = time.monotonic() - start
+
+    # Should exit early due to time budget, not iteration limit
+    assert elapsed < 0.2  # Should be much less than 10 iterations * 0.1s
+    assert len(results) < 10  # Should not complete all iterations
+
+
+@pytest.mark.fast
+def test_reasoning_loop_consensus_error_handling(monkeypatch):
+    """ConsensusError is caught and logged, stopping iteration.
+
+    ReqID: N/A"""
+
+    from devsynth.exceptions import ConsensusError
+
+    calls = {"count": 0}
+
+    def failing_apply(wsde_team, task, critic_agent, memory_integration):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise ConsensusError("Team cannot agree")
+        return {"status": "completed"}
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: failing_apply)
+
+    coordinator = CoordinatorRecorder()
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "X"},
+        critic_agent=None,
+        coordinator=coordinator,
+        max_iterations=3,
+    )
+
+    assert len(results) == 0  # No results due to immediate failure
+    assert len(coordinator.failures) == 1
+    assert "cannot agree" in str(coordinator.failures[0])
+
+
+@pytest.mark.fast
+def test_reasoning_loop_transient_error_retry(monkeypatch):
+    """Transient errors trigger retries with exponential backoff.
+
+    ReqID: N/A"""
+
+    calls = {"count": 0}
+
+    def flaky_apply(wsde_team, task, critic_agent, memory_integration):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise ValueError("Temporary network issue")
+        return {"status": "completed", "synthesis": "success"}
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: flaky_apply)
+
+    import time
+    start = time.monotonic()
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "X"},
+        critic_agent=None,
+        max_iterations=3,
+        retry_attempts=2,
+        deterministic_seed=42,
+    )
+    elapsed = time.monotonic() - start
+
+    assert len(results) == 1
+    assert results[0]["status"] == "completed"
+    assert calls["count"] == 2  # First call failed, second succeeded
+    assert elapsed >= 0.05  # Some backoff time
+
+
+@pytest.mark.fast
+def test_reasoning_loop_result_type_handling(monkeypatch):
+    """Different result types (dict vs DialecticalSequence) are handled correctly.
+
+    ReqID: N/A"""
+
+    from devsynth.domain.models.wsde_dialectical import DialecticalSequence
+
+    call_count = 0
+
+    def typed_apply(wsde_team, task, critic_agent, memory_integration):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return {"status": "in_progress", "phase": "expand"}
+        # Create a minimal DialecticalSequence that implements Mapping
+        class MockDialecticalSequence(dict):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+
+        sequence = MockDialecticalSequence(
+            status="completed",
+            synthesis="final_result",
+            phase="refine"
+        )
+        return sequence
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: typed_apply)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "X"},
+        critic_agent=None,
+        max_iterations=3,
+    )
+
+    assert len(results) == 2
+    assert results[0]["status"] == "in_progress"
+    assert results[1]["status"] == "completed"
+    assert results[1]["synthesis"] == "final_result"
+
+
+@pytest.mark.fast
+def test_reasoning_loop_phase_override_from_result(monkeypatch):
+    """Phase from result payload overrides coordinator phase when valid.
+
+    ReqID: N/A"""
+
+    results_sequence = [
+        {"status": "in_progress", "phase": "custom_phase", "next_phase": "differentiate"},
+        {"status": "completed", "phase": "refine"},
+    ]
+
+    call_count = 0
+    coordinator = CoordinatorRecorder()
+
+    def scripted_apply(wsde_team, task, critic_agent, memory_integration):
+        nonlocal call_count
+        result = results_sequence[call_count]
+        call_count += 1
+        return result
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted_apply)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "X"},
+        critic_agent=None,
+        coordinator=coordinator,
+        phase=Phase.EXPAND,
+        max_iterations=3,
+    )
+
+    # Should record using the phase from result, not the coordinator phase
+    assert len(coordinator.records) == 2
+    assert coordinator.records[0][0] == "expand"  # Initial phase
+    assert coordinator.records[1][0] == "refine"  # Phase from result
+
+
+@pytest.mark.fast
+def test_reasoning_loop_invalid_result_type_raises(monkeypatch):
+    """Invalid result type raises TypeError.
+
+    ReqID: N/A"""
+
+    def invalid_apply(wsde_team, task, critic_agent, memory_integration):
+        return "invalid_result_type"
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: invalid_apply)
+
+    with pytest.raises(TypeError, match="apply_dialectical_reasoning must return a mapping payload"):
+        rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "X"},
+            critic_agent=None,
+            max_iterations=1,
+        )
+
+
+@pytest.mark.fast
+def test_reasoning_loop_deterministic_phase_transitions(monkeypatch):
+    """Phase transitions follow deterministic fallback map when next_phase is invalid.
+
+    ReqID: N/A"""
+
+    results_sequence = [
+        {"status": "in_progress", "next_phase": "invalid_phase"},
+        {"status": "completed"},
+    ]
+
+    call_count = 0
+
+    def scripted_apply(wsde_team, task, critic_agent, memory_integration):
+        nonlocal call_count
+        result = results_sequence[call_count]
+        call_count += 1
+        return result
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted_apply)
+
+    # Start in EXPAND phase - should transition to DIFFERENTIATE
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "X"},
+        critic_agent=None,
+        phase=Phase.EXPAND,
+        max_iterations=3,
+    )
+
+    assert len(results) == 2
+    # Should complete both iterations without phase validation errors

@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: WebUI Doctor
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

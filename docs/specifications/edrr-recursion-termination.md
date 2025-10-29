@@ -1,7 +1,7 @@
 ---
 title: "EDRR Recursion Termination"
 date: "2025-05-09"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "specification"
   - "EDRR"

@@ -10,7 +10,7 @@ tags:
   - edrr
   - memory
 title: WSDE Role Progression and Memory Flush
-version: '0.1.0-alpha.1'
+version: '0.1.0a1'
 ---
 
 # WSDE Role Progression and Memory Flush

@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Release Roadmap"
 date: "2025-08-16"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "devsynth"
   - "roadmap"

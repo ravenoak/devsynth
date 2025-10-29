@@ -1,7 +1,7 @@
 ---
 title: "Critical LLM Workflows Testing Strategy"
 date: "2025-07-14"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "testing"
   - "llm"

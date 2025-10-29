@@ -2,7 +2,7 @@
 
 title: "Configuration Overview"
 date: "2025-06-01"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "configuration"
   - "feature-flags"

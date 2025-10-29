@@ -11,7 +11,7 @@ tags:
   - llm-context-management
 
 title: Context Engineering Framework Specification
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Context Engineering Framework Specification

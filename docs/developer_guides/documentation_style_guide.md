@@ -2,7 +2,7 @@
 
 title: "DevSynth Documentation Style Guide"
 date: "2025-08-02"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "documentation"
   - "style guide"
@@ -49,7 +49,7 @@ All documentation files should follow this basic structure:
 ---
 title: "Document Title"
 date: "YYYY-MM-DD"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "tag1"
   - "tag2"
@@ -112,7 +112,7 @@ Example:
 ---
 title: "DevSynth Documentation Style Guide"
 date: "2025-08-02"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "documentation"
   - "style guide"

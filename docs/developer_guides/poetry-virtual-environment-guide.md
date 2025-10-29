@@ -1,7 +1,7 @@
 ---
 title: "Poetry Virtual Environment Management Guide"
 date: "2025-10-08"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags: ["development", "poetry", "virtual-environment", "python"]
 status: "published"
 author: "DevSynth Team"

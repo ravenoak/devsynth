@@ -2,7 +2,7 @@
 
 title: "Recursive EDRR Architecture"
 date: "2025-06-16"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "architecture"
   - "EDRR"

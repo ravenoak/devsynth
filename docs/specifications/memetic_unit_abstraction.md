@@ -1,7 +1,7 @@
 ---
 title: "Memetic Unit Abstraction for Universal Memory Representation"
 date: "2025-10-23"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "specification"
   - "memory"

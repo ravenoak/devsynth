@@ -2,7 +2,7 @@
 
 title: "Phase 2 CLI Interface Implementation Report"
 date: "2025-07-30"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "implementation"
   - "cli"

@@ -8,7 +8,7 @@ tags:
   - logging
 
 title: Logging Setup Utilities
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Summary

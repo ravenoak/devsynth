@@ -1,7 +1,7 @@
 ---
 title: "Memory Adapter Performance Simulation"
 date: "2025-07-10"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - analysis
 status: "published"

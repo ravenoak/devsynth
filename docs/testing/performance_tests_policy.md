@@ -2,7 +2,7 @@
 author: DevSynth Team
 date: "2025-08-26"
 status: active
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 # Performance Tests Policy (tests/performance/)
 

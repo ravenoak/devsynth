@@ -12,7 +12,7 @@ tags:
 - interface
 
 title: WebUI Architecture Overview
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -1005,7 +1005,7 @@ For more complex deployments with multiple services, Docker Compose provides a c
 
 # docker-compose.yml
 
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 
 services:
   webui:

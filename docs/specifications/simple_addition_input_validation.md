@@ -7,7 +7,7 @@ tags:
   - specification
   - simple-addition
 title: Simple Addition Input Validation
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Feature: Simple addition input validation

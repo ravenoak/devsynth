@@ -1,7 +1,7 @@
 ---
 title: "Enhanced Cognitive-Temporal Memory with Execution Trajectory Learning"
 date: "2025-10-22"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "specification"
   - "cognitive-temporal-memory"

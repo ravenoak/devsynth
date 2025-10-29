@@ -1,7 +1,7 @@
 ---
 title: "Enhanced DevSynth Architecture with Research-Backed Improvements"
 date: "2025-10-22"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "diagram"
   - "architecture"

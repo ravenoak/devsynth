@@ -12,7 +12,7 @@ tags:
   - agentic-architecture
 
 title: Dynamic Tool Management Specification
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 # Dynamic Tool Management Specification

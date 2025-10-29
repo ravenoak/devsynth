@@ -12,7 +12,7 @@ tags:
 - dialectical-audit
 
 title: Automated Quality Assurance Engine
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -42,6 +42,7 @@ The automated quality assurance engine provides:
 The dialectical audit system cross-references documentation, code, and tests for consistency:
 
 ```python
+# Implementation: src/devsynth/application/quality/dialectical_audit_system.py
 class DialecticalAuditSystem:
     """Cross-references docs, code, and tests for conflicting statements."""
 

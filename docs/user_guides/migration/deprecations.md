@@ -7,7 +7,7 @@ tags:
 - migration
 - deprecations
 title: Deprecations and Migration Notes
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 # Deprecations and Migration Notes

@@ -4,7 +4,7 @@ author: "DevSynth Team"
 date: "2025-07-21"
 last_reviewed: "2025-07-21"
 status: "draft"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - deployment
   - ci

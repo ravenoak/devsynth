@@ -8,7 +8,7 @@ tags:
 - specification
 
 title: Additional Storage Backends
-version: 0.1.0-alpha.1
+version: 0.1.0a1
 ---
 
 <!--

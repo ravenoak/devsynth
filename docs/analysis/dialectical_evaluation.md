@@ -12,7 +12,7 @@ tags:
 - project-assessment
 
 title: 'DevSynth Project: Multi-Disciplinary Dialectical Evaluation'
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; 'DevSynth Project: Multi-Disciplinary Dialectical Evaluation'

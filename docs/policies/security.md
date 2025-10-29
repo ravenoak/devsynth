@@ -9,7 +9,7 @@ tags:
 - policy
 
 title: Security Policy
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 review_cadence: quarterly
 ---
 <div class="breadcrumbs">

@@ -3,7 +3,7 @@ author: DevSynth Team
 date: "2025-08-24"
 last_reviewed: "2025-08-24"
 status: draft
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 # Atomic-Rewrite Baseline Integration Checklist
 

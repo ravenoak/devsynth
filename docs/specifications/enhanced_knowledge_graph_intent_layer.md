@@ -1,7 +1,7 @@
 ---
 title: "Enhanced Knowledge Graph with Business Intent Layer"
 date: "2025-10-23"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "specification"
   - "knowledge-graph"
