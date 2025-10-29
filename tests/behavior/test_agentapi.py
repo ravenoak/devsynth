@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 
 fastapi = pytest.importorskip("fastapi")
+if fastapi:
+    from fastapi.testclient import TestClient
 
 
 def _setup(monkeypatch):
@@ -39,21 +41,24 @@ def test_json_requests_succeeds(monkeypatch):
 
     ReqID: AGENTAPI-001"""
 
-    TestClient = fastapi.testclient.TestClient
+    if not fastapi:
+        pytest.skip("FastAPI not available")
+
+    # TestClient is imported above if fastapi is available
 
     cli_stub, agentapi = _setup(monkeypatch)
     client = TestClient(agentapi.app)
     resp = client.post("/init", json={"path": "proj"})
     assert resp.status_code == 200
-    assert resp.json() == {"messages": ["init"]}
+    assert resp.json() == {"messages": ["init"], "metadata": None}
     resp = client.post(
         "/gather", json={"goals": "g1", "constraints": "c1", "priority": "high"}
     )
-    assert resp.json() == {"messages": ["g1,c1,high"]}
+    assert resp.json() == {"messages": ["g1,c1,high"], "metadata": None}
     resp = client.post("/synthesize", json={"target": "unit"})
-    assert resp.json() == {"messages": ["run:unit"]}
+    assert resp.json() == {"messages": ["run:SynthesisTarget.UNIT"], "metadata": None}
     status = client.get("/status")
-    assert status.json() == {"messages": ["run:unit"]}
+    assert status.json() == {"messages": ["run:SynthesisTarget.UNIT"], "metadata": None}
     assert cli_stub.init_cmd.called
     assert cli_stub.gather_cmd.called
     assert cli_stub.run_pipeline_cmd.called

@@ -1,8 +1,0 @@
-2025-10-20 02:50:33,557 - devsynth.testing.run_tests - INFO - Injected -p pytest_bdd.plugin into PYTEST_ADDOPTS to preserve pytest-bdd hooks
-2025-10-20 02:50:33,558 - devsynth.testing.run_tests - INFO - Injected -p pytest_asyncio.plugin into PYTEST_ADDOPTS to preserve async test support
-2025-10-20 02:50:33,558 - devsynth.application.cli.commands.run_tests_cmd - INFO - CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to preserve pytest-bdd hooks
--p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled
-2025-10-20 02:50:33,559 - devsynth.application.cli.commands.run_tests_cmd - INFO - CLI appended -p pytest_asyncio.plugin to PYTEST_ADDOPTS to preserve async test support
--p pytest_asyncio.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled
-2025-10-20 02:50:33,619 - devsynth.testing.run_tests - INFO - test collection cache hit for target=all-tests (fast)
-2025-10-20 02:51:18,588 - devsynth.testing.run_tests - WARNING - Coverage artifact generation skipped: data file missing

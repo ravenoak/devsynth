@@ -1,5 +1,5 @@
 # Related issue: ../../docs/specifications/dialectical_reasoning_impact_memory_persistence.md
-Feature: Dialectical reasoning impact memory persistence
+Feature: Impact Assessment Persists Results to Memory
   As a developer
   I want to ensure the Dialectical reasoning impact memory persistence specification has BDD coverage
   So that the system behavior aligns with requirements

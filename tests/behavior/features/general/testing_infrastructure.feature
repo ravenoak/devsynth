@@ -1,4 +1,4 @@
-Feature: Testing Infrastructure
+Feature: DevSynth Post-MVP Testing Infrastructure
   As a developer
   I want reliable testing infrastructure
   So that code changes are verified automatically

@@ -131,10 +131,11 @@ class TextualWizardViewModel:
             help_text = entry.get(subtopic)
             if help_text is None:
                 return None
-            return sanitize_output(help_text)  # type: ignore[no-any-return]
+            # At this point, help_text is guaranteed to be str due to type narrowing
+            return sanitize_output(help_text)
         else:
             # entry is a string
-            return sanitize_output(entry)  # type: ignore[no-any-return]
+            return sanitize_output(entry)
 
     def present_question(
         self,

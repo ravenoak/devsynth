@@ -77,9 +77,6 @@ devsynth inspect-code
 
 # Analyze specific path
 devsynth inspect-code --path /path/to/project
-
-# Generate detailed report
-devsynth inspect-code --output report.json
 ```
 
 ### Output Formats
@@ -90,27 +87,6 @@ devsynth inspect-code --output report.json
 - Color-coded quality indicators
 - Progress indicators for long-running analysis
 
-#### JSON Report (Optional)
-```json
-{
-  "project_info": {
-    "name": "example-project",
-    "language": "python",
-    "total_files": 42,
-    "total_lines": 1234
-  },
-  "structure_analysis": {
-    "directories": [...],
-    "file_types": {...},
-    "dependencies": {...}
-  },
-  "quality_metrics": {
-    "complexity_score": 7.2,
-    "documentation_coverage": 85.3,
-    "test_coverage": 92.1
-  }
-}
-```
 
 ### Analysis Components
 

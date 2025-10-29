@@ -482,6 +482,49 @@ def test_add_agent_creates_default_team(monkeypatch: pytest.MonkeyPatch) -> None
 
 
 @pytest.mark.fast
+def test_agent_adapter_register_agent_type() -> None:
+    """Test that agent types can be registered."""
+    adapter = AgentAdapter()
+    adapter.register_agent_type("test_agent", StubAgent)
+    # The factory should now be able to create this agent type
+    agent = adapter.create_agent("test_agent")
+    assert isinstance(agent, StubAgent)
+
+
+@pytest.mark.fast
+def test_agent_adapter_get_team() -> None:
+    """Test getting a team by ID."""
+    adapter = AgentAdapter()
+    team = adapter.create_team("test_team")
+    retrieved = adapter.get_team("test_team")
+    assert retrieved is team
+    assert retrieved.name == "test_team"
+
+
+@pytest.mark.fast
+def test_agent_adapter_get_team_nonexistent() -> None:
+    """Test getting a nonexistent team returns None."""
+    adapter = AgentAdapter()
+    result = adapter.get_team("nonexistent")
+    assert result is None
+
+
+@pytest.mark.fast
+def test_agent_adapter_set_current_team() -> None:
+    """Test setting the current active team."""
+    adapter = AgentAdapter()
+    team1 = adapter.create_team("team1")
+    team2 = adapter.create_team("team2")
+
+    # Initially, the last created team should be current
+    assert adapter.agent_coordinator.current_team_id == "team2"
+
+    # Set current team explicitly
+    adapter.set_current_team("team1")
+    assert adapter.agent_coordinator.current_team_id == "team1"
+
+
+@pytest.mark.fast
 def test_agent_adapter_process_task_multi_agent_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

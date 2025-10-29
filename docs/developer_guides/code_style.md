@@ -36,7 +36,8 @@ This document outlines the coding standards and style guidelines for the DevSynt
 - **Type Hinting (PEP 484):**
     - All new code MUST include type hints.
     - Gradually add type hints to existing code, prioritizing critical modules.
-    - Use `mypy` for static type checking. Configuration is in `pyproject.toml`.
+    - Use `mypy --strict` for static type checking. All code must pass strict type checking.
+    - Configuration is in `pyproject.toml`.
 - **Docstrings (PEP 257):**
     - All public modules, classes, functions, and methods MUST have docstrings.
     - Follow the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#3.8-comments-and-docstrings) for docstring format (or specify another, e.g., NumPy/SciPy, reStructuredText).

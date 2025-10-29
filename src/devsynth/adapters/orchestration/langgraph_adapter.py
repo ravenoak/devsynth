@@ -3,6 +3,7 @@ LangGraph adapter for the orchestration layer.
 Implements the WorkflowEngine and WorkflowRepository interfaces.
 """
 
+# Feature: complete project lifecycle
 # flake8: noqa
 
 import os

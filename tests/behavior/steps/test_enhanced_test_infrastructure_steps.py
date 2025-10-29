@@ -1127,6 +1127,16 @@ def test_collection_performance(context):
     )
 
 
+@pytest.mark.fast
+def test_collection_performance_unit():
+    """Unit test for test_collection_performance step."""
+    context = {
+        "performance_results": {"collection_time": 1.8},
+        "performance_targets": {"collection_time": 2.0}
+    }
+    test_collection_performance(context)
+
+
 @then("test analysis should complete within performance targets")
 def test_analysis_performance(context):
     """Verify test analysis completes within performance targets."""
@@ -1134,6 +1144,16 @@ def test_analysis_performance(context):
         context["performance_results"]["analysis_time"]
         <= context["performance_targets"]["analysis_time"]
     )
+
+
+@pytest.mark.fast
+def test_analysis_performance_unit():
+    """Unit test for test_analysis_performance step."""
+    context = {
+        "performance_results": {"analysis_time": 3.2},
+        "performance_targets": {"analysis_time": 5.0}
+    }
+    test_analysis_performance(context)
 
 
 @then("report generation should complete within performance targets")

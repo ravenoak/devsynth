@@ -20,7 +20,7 @@ def test_feature_flags_set_environment(monkeypatch) -> None:
     monkeypatch.delenv("DEVSYNTH_FEATURE_BETA", raising=False)
 
     runner = CliRunner()
-    with patch.object(module, "run_tests", return_value=(True, "")) as mock_run:
+    with patch("devsynth.testing.run_tests.run_tests", return_value=(True, "")) as mock_run:
         app = build_app()
         result = runner.invoke(
             app,
@@ -43,7 +43,7 @@ def test_feature_flags_set_environment(monkeypatch) -> None:
 def test_no_parallel_flag_is_passed_to_runner() -> None:
     """--no-parallel should result in parallel=False in run_tests call."""
     runner = CliRunner()
-    with patch.object(module, "run_tests", return_value=(True, "")) as mock_run:
+    with patch("devsynth.testing.run_tests.run_tests", return_value=(True, "")) as mock_run:
         app = build_app()
         result = runner.invoke(app, ["run-tests", "--no-parallel", "--speed", "fast"])
         assert result.exit_code == 0
@@ -56,7 +56,7 @@ def test_no_parallel_flag_is_passed_to_runner() -> None:
 def test_segment_options_are_propagated() -> None:
     """--segment and --segment-size should be passed through to run_tests."""
     runner = CliRunner()
-    with patch.object(module, "run_tests", return_value=(True, "")) as mock_run:
+    with patch("devsynth.testing.run_tests.run_tests", return_value=(True, "")) as mock_run:
         app = build_app()
         result = runner.invoke(
             app,
@@ -83,9 +83,9 @@ def test_cli_rejects_invalid_target() -> None:
     app = build_app()
 
     with (
-        patch.object(module, "_configure_optional_providers", return_value=None),
-        patch.object(module, "increment_counter", return_value=None),
-        patch.object(module, "run_tests") as mock_run,
+        patch("devsynth.application.cli.commands.run_tests_cmd._configure_optional_providers", return_value=None),
+        patch("devsynth.observability.metrics.increment_counter", return_value=None),
+        patch("devsynth.testing.run_tests.run_tests") as mock_run,
     ):
         result = runner.invoke(app, ["run-tests", "--target", "invalid"])
 
@@ -102,9 +102,9 @@ def test_cli_rejects_invalid_speed() -> None:
     app = build_app()
 
     with (
-        patch.object(module, "_configure_optional_providers", return_value=None),
-        patch.object(module, "increment_counter", return_value=None),
-        patch.object(module, "run_tests") as mock_run,
+        patch("devsynth.application.cli.commands.run_tests_cmd._configure_optional_providers", return_value=None),
+        patch("devsynth.observability.metrics.increment_counter", return_value=None),
+        patch("devsynth.testing.run_tests.run_tests") as mock_run,
     ):
         result = runner.invoke(app, ["run-tests", "--speed", "warp"])
 
@@ -121,20 +121,19 @@ def test_cli_reports_disabled_coverage() -> None:
     app = build_app()
 
     with (
-        patch.object(module, "_configure_optional_providers", return_value=None),
-        patch.object(module, "increment_counter", return_value=None),
-        patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
-        patch.object(module, "run_tests", return_value=(True, "Done")) as mock_run,
-        patch.object(
-            module,
-            "_coverage_instrumentation_status",
+        patch("devsynth.application.cli.commands.run_tests_cmd._configure_optional_providers", return_value=None),
+        patch("devsynth.observability.metrics.increment_counter", return_value=None),
+        patch("devsynth.application.cli.commands.run_tests_cmd._emit_coverage_artifact_messages", return_value=None),
+        patch("devsynth.testing.run_tests.run_tests", return_value=(True, "Done")) as mock_run,
+        patch(
+            "devsynth.application.cli.commands.run_tests_cmd._coverage_instrumentation_status",
             return_value=(
                 False,
                 "pytest plugin autoload disabled without -p pytest_cov",
             ),
         ),
-        patch.object(module, "coverage_artifacts_status") as mock_artifacts,
-        patch.object(module, "enforce_coverage_threshold") as mock_enforce,
+        patch("devsynth.testing.run_tests.coverage_artifacts_status") as mock_artifacts,
+        patch("devsynth.testing.run_tests.enforce_coverage_threshold") as mock_enforce,
     ):
         result = runner.invoke(app, ["run-tests"])
 

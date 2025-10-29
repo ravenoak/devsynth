@@ -22,7 +22,9 @@ Required metadata fields:
 - version: specification version
 -->
 
-# Summary
+# User Authentication
+
+## Summary
 
 ## Socratic Checklist
 - What is the problem?

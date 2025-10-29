@@ -126,7 +126,7 @@ class MemeticUnitIngestionPipeline:
         import hashlib
 
         text_content = str(data)
-        hash_obj = hashlib.md5(text_content.encode())
+        hash_obj = hashlib.md5(text_content.encode(), usedforsecurity=False)
         hash_int = int(hash_obj.hexdigest(), 16)
 
         # Generate pseudo-random vector based on content hash

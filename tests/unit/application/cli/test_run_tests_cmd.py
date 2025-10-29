@@ -40,7 +40,7 @@ def test_cli_reports_coverage_percent() -> None:
 
     with (
         patch.object(module, "run_tests", return_value=(True, "")),
-        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch("devsynth.application.cli.commands.run_tests_cmd._configure_optional_providers", return_value=None),
         patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
         patch.object(
             module, "enforce_coverage_threshold", return_value=92.5
@@ -67,7 +67,7 @@ def test_cli_errors_when_plugins_disabled() -> None:
 
     with (
         patch.object(module, "run_tests", return_value=(True, "")),
-        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch("devsynth.application.cli.commands.run_tests_cmd._configure_optional_providers", return_value=None),
         patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
         patch.object(module, "enforce_coverage_threshold", return_value=95.0),
         patch.object(
@@ -100,7 +100,7 @@ def test_cli_errors_when_artifacts_missing() -> None:
 
     with (
         patch.object(module, "run_tests", return_value=(True, "")),
-        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch("devsynth.application.cli.commands.run_tests_cmd._configure_optional_providers", return_value=None),
         patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
         patch.object(
             module, "enforce_coverage_threshold", return_value=95.0

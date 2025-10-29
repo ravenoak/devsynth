@@ -1,2 +1,0 @@
-2025-10-17T16:45:56Z
-Warning: Defining console scripts in [tool.poetry.scripts] is deprecated. Use [project.scripts] instead. ([tool.poetry.scripts] should only be used for scripts of type 'file').

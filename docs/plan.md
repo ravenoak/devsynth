@@ -2,211 +2,286 @@
 
 ## Executive Summary
 
-Using multi-disciplined analysis driven by dialectical and Socratic reasoning, this plan outlines the comprehensive steps required to fully prepare DevSynth for the v0.1.0a1 release. The foundation remediation is complete, but critical gaps remain in version synchronization, type safety, test infrastructure, coverage metrics, and documentation alignment.
+**Status**: READY FOR EXECUTION  
+**Framework**: EDRR (Expand, Differentiate, Refine, Retrospect)  
+**Methodology**: Specification-Driven Development (SDD) + Behavior-Driven Development (BDD)  
+**Quality Gates**: MyPy Strict Compliance, 70%+ Coverage, Dialectical Audit Resolution  
 
-**Current State**: Foundation remediation completed, but release readiness requires addressing version sync, mypy compliance, smoke test stability, coverage metrics, and dialectical audit gaps.
+This plan synthesizes a comprehensive, multi-disciplined approach using dialectical and Socratic reasoning to prepare DevSynth for v0.1.0a1 alpha release. The plan addresses all critical gaps identified through empirical codebase analysis while maintaining architectural integrity and quality standards.
 
-**Goal**: Achieve full compliance with DevSynth's quality standards and prepare codebase for v0.1.0a1 alpha release.
+## Dialectical Analysis
 
-## Completed Foundation Work
+### Thesis (Current State)
+- Extensive specification and behavior test coverage (4933 tests collecting)
+- Foundation remediation completed (plugin consolidation, memory protocol stability)
+- Poetry-based packaging infrastructure operational
+- CI workflows disabled until post-tag (appropriate for alpha)
 
-✅ **Version Synchronization**: Fixed mismatch between pyproject.toml (0.1.0a2) and __init__.py (0.1.0a1)
-✅ **MyPy Compliance**: Resolved 4 remaining strict mypy errors in src/devsynth/application/wizard_textual.py
-✅ **Smoke Test Infrastructure**: Fixed collection hanging issues, tests now run (1 failure remaining out of 2968 tests)
-✅ **Test Coverage Path**: Direct pytest execution achieves adequate coverage; devsynth wrapper issues identified but core functionality verified
+### Antithesis (Critical Gaps)
+- Test coverage at 23.9% (below 70% alpha requirement)
+- MyPy strict compliance issues (4 errors in wizard_textual.py)
+- 200+ dialectical audit issues (features with tests but no documentation)
+- Issue tracker requires synchronization with current state
+- Repository requires cleanup for release hygiene
 
-## Critical Remaining Tasks
+### Synthesis (Integrated Approach)
+Comprehensive remediation plan balancing quality requirements with pragmatic alpha release goals, prioritizing specification alignment and test coverage while deferring non-critical enhancements.
 
-### 1. Dialectical Audit Resolution
-**Status**: Major gaps identified (180+ audit questions)
-**Impact**: Documentation and test alignment failures prevent release
+## EDRR Framework Execution
 
-**Action Plan**:
-- **Phase 1**: Inventory and categorize audit gaps
-  - Map features with tests but no docs (120+ instances)
-  - Map features with docs but no tests (60+ instances)
-  - Identify features that should be removed vs. properly documented/tested
+### Phase 1: EXPAND - Comprehensive State Analysis (COMPLETED)
 
-- **Phase 2**: Prioritized remediation
-  - Focus on high-priority features first (CLI, core APIs, memory system)
-  - Create missing specifications for tested features
-  - Implement missing tests for documented features
-  - Update traceability matrices
+**Objectives**: Establish empirical understanding of current codebase state
 
-- **Phase 3**: Validation and closure
-  - Re-run dialectical audit
-  - Update issue tracker with resolved items
-  - Ensure all specifications have corresponding BDD coverage
+**Completed Analysis**:
+- ✅ Codebase structure and architecture review
+- ✅ Test infrastructure assessment (4933 tests, 23.9% coverage)
+- ✅ MyPy compliance evaluation (4 strict errors identified)
+- ✅ Dialectical audit analysis (200+ documentation gaps)
+- ✅ Specification-to-implementation traceability review
+- ✅ CI/CD pipeline status assessment
 
-### 2. Behavior Test Validation
-**Status**: Collection working, but specification alignment needs verification
-**Impact**: Ensures features match documented requirements
+**Key Findings**:
+- Core functionality operational with extensive behavior test coverage
+- Memory system foundation solid with protocol stability achieved
+- Plugin architecture consolidated and functional
+- Quality infrastructure (mypy, coverage, BDD) operational but requires tuning
 
-**Action Plan**:
-- Audit BDD scenarios against specifications
-- Verify all Gherkin features have corresponding spec files
-- Ensure behavior tests cover all acceptance criteria
-- Update step definitions for consistency
+### Phase 2: DIFFERENTIATE - Prioritized Remediation Strategy
 
-### 3. Issue Tracker Cleanup
-**Status**: 346+ issues exist, many outdated
-**Impact**: Clean issue tracker essential for release management
+**Decision Framework**: Multi-criteria analysis balancing business value, technical risk, and alpha appropriateness
 
-**Action Plan**:
-- Close resolved issues with proper documentation
-- Update status on active issues
-- Create issues for newly identified gaps
-- Ensure all issues have proper metadata and links
+#### Priority A: Critical Release Blockers (Must Fix)
+1. **MyPy Strict Compliance** - 4 errors preventing quality gate
+2. **Test Coverage Minimum** - Reach 70% for alpha UAT criteria
+3. **Core Behavior Test Alignment** - Ensure specifications match implementations
+4. **Dialectical Audit Resolution** - Address documentation gaps for tracked features
 
-### 4. Documentation Synchronization
-**Status**: Specifications, RTMs, Gherkin files, diagrams, ADRs need harmonization
-**Impact**: Ensures all documentation tells a consistent story
+#### Priority B: Quality Enhancement (Should Fix)
+1. **Issue Tracker Synchronization** - Update status and close resolved items
+2. **Repository Hygiene** - Clean artifacts and prepare for distribution
+3. **Specification Harmonization** - Ensure RTMs and requirements are consistent
 
-**Action Plan**:
-- Synchronize specifications with implementation
-- Update architectural diagrams to reflect current state
-- Harmonize Gherkin scenarios with spec requirements
-- Update ADRs for recent decisions
-- Refresh roadmaps and release plans
+#### Priority C: Post-Alpha (Nice to Have - Defer)
+1. **Advanced Coverage Goals** (90%+)
+2. **Performance Optimization**
+3. **Extended Feature Documentation**
 
-### 5. Repository Cleanup
-**Status**: Artifacts and diagnostics need organization
-**Impact**: Clean repository presentation for release
+### Phase 3: REFINE - Detailed Implementation Plan
 
-**Action Plan**:
-- Archive old artifacts and logs
-- Clean up temporary files and caches
-- Organize documentation structure
-- Update CI/CD configurations for post-release
-- Prepare release notes and changelog
+## Detailed Task Execution Plan
 
-### 6. Final Validation
-**Status**: Quality gates need verification
-**Impact**: Ensures release meets alpha quality standards
+### Task Group 1: MyPy Strict Compliance Remediation
+**Priority**: Critical | **Effort**: 2-4 hours | **Risk**: Low
 
-**Action Plan**:
-- Run complete test suite with coverage
-- Verify mypy strict compliance
-- Execute security scans
-- Validate documentation completeness
-- Perform final dialectical audit
+**Rationale**: Quality gate blocker preventing release progression
 
-## Quality Gate Requirements
+**Specific Tasks**:
+1. **Fix wizard_textual.py Type Errors**
+   - Resolve "Cannot instantiate type 'type[Never]'" errors (lines 36-37, 43-44)
+   - Verify type annotations align with runtime behavior
+   - Ensure no unused type ignore comments remain
 
-### Test Coverage
-- **Target**: ≥90% coverage
-- **Current**: 21.46% via devsynth wrapper, ~75%+ via direct pytest
-- **Path**: Fix devsynth wrapper issues or establish alternative coverage validation
+2. **Validate Strict Compliance**
+   - Run `poetry run mypy src/devsynth --strict`
+   - Confirm zero errors across all source files
+   - Generate compliance artifacts for audit trail
 
-### Type Safety
-- **Target**: Full mypy strict compliance
-- **Current**: 4 errors remaining (resolved)
-- **Status**: ✅ Complete
+3. **Regression Prevention**
+   - Update pre-commit hooks to catch type issues
+   - Add type checking to CI pipeline validation
 
-### Test Quality
-- **Target**: All tests pass, proper markers, behavior coverage
-- **Current**: Smoke tests mostly working, individual tests pass
-- **Gaps**: 1 failing test in smoke mode, dialectical audit gaps
+### Task Group 2: Test Coverage Enhancement
+**Priority**: Critical | **Effort**: 8-12 hours | **Risk**: Medium
 
-### Documentation
-- **Target**: Specifications aligned with implementation and tests
-- **Current**: Major gaps in dialectical audit
-- **Effort**: Significant remediation required
+**Rationale**: Alpha UAT requires ≥70% coverage for functional validation
 
-## Risk Assessment
+**Specific Tasks**:
+1. **Coverage Analysis and Gap Identification**
+   - Generate detailed coverage report with missing lines
+   - Identify high-priority modules requiring coverage
+   - Map coverage gaps to specification requirements
 
-### High Risk
-- **Dialectical Audit Gaps**: 180+ unresolved questions could indicate fundamental misalignment
-- **Documentation Inconsistencies**: Specifications may not reflect actual implementation
-- **Test Coverage Validation**: DevSynth wrapper issues may prevent proper coverage measurement
+2. **Core Module Coverage (Priority Order)**
+   - CLI entrypoints and command handlers (highest user impact)
+   - Agent system and workflow orchestration
+   - Memory adapters and storage backends
+   - Configuration and validation systems
 
-### Medium Risk
-- **Issue Tracker Complexity**: 346+ issues require careful curation
-- **Repository Cleanup**: May inadvertently remove important artifacts
+3. **Behavior Test Enhancement**
+   - Ensure all BDD scenarios execute successfully
+   - Add missing step implementations
+   - Validate specification-to-test traceability
 
-### Low Risk
-- **Version Synchronization**: Already resolved
-- **MyPy Compliance**: Already resolved
-- **Smoke Test Stability**: Core issues resolved, 1 remaining failure manageable
+4. **Coverage Gate Implementation**
+   - Configure 70% minimum threshold for alpha
+   - Generate coverage artifacts and verification reports
+   - Document coverage strategy for future releases
 
-## Success Metrics
+### Task Group 3: Specification and Behavior Alignment
+**Priority**: Critical | **Effort**: 6-8 hours | **Risk**: Medium
 
-### Primary Metrics
-- [ ] All tests pass in smoke mode (0 failures)
-- [ ] ≥90% test coverage achieved and validated
-- [ ] Dialectical audit passes (0 questions)
-- [ ] MyPy strict compliance maintained
-- [ ] Documentation fully synchronized
+**Rationale**: BDD foundation requires specifications and tests to be harmonious
 
-### Secondary Metrics
-- [ ] Issue tracker cleaned and current
-- [ ] Repository structure organized
-- [ ] All specifications have BDD coverage
-- [ ] CI/CD configurations updated for post-release
+**Specific Tasks**:
+1. **Specification Audit**
+   - Review all docs/specifications/ against current implementation
+   - Identify documentation gaps for implemented features
+   - Update specifications to reflect current architecture
 
-## Implementation Phases
+2. **Behavior Test Validation**
+   - Execute all behavior tests and capture failures
+   - Implement missing step definitions
+   - Ensure test scenarios accurately reflect specifications
 
-### Phase 1: Critical Infrastructure (Week 1)
-1. Complete smoke test stabilization
-2. Fix devsynth wrapper coverage issues
-3. Resolve remaining test failures
-4. Establish reliable coverage measurement
+3. **Traceability Matrix Updates**
+   - Update RTMs to reflect current implementation state
+   - Ensure requirement-to-code-to-test linkages are complete
+   - Document any intentional deviations from specifications
 
-### Phase 2: Documentation Alignment (Weeks 2-3)
-1. Execute dialectical audit remediation plan
-2. Synchronize specifications with implementation
-3. Update Gherkin scenarios and step definitions
-4. Refresh architectural documentation
+### Task Group 4: Dialectical Audit Resolution
+**Priority**: Critical | **Effort**: 4-6 hours | **Risk**: Low
 
-### Phase 3: Quality Assurance (Week 4)
-1. Complete issue tracker cleanup
-2. Perform repository cleanup
-3. Execute final validation runs
-4. Prepare release artifacts
+**Rationale**: 200+ audit issues indicate documentation gaps that must be addressed
 
-### Phase 4: Release Preparation (Week 5)
-1. Final quality gate verification
-2. Release notes and changelog completion
-3. CI/CD post-release configuration
-4. Tag creation and distribution
+**Specific Tasks**:
+1. **Audit Issue Categorization**
+   - Group features by implementation status (code, tests, docs)
+   - Identify documentation-only gaps vs. implementation gaps
+   - Prioritize based on user-facing functionality
+
+2. **Documentation Gap Remediation**
+   - Create missing documentation for features with tests
+   - Update existing documentation for accuracy
+   - Ensure consistent documentation standards
+
+3. **Audit Resolution Validation**
+   - Re-run dialectical audit after remediation
+   - Verify all critical issues are resolved
+   - Generate audit compliance artifacts
+
+### Task Group 5: Issue Tracker Synchronization
+**Priority**: High | **Effort**: 3-4 hours | **Risk**: Low
+
+**Rationale**: Issue tracker must reflect current state for accurate project management
+
+**Specific Tasks**:
+1. **Issue Status Audit**
+   - Review all open issues against current implementation
+   - Close resolved issues with evidence links
+   - Update issue status and priority levels
+
+2. **Issue Content Updates**
+   - Ensure issue descriptions are accurate and current
+   - Add missing evidence links and resolution details
+   - Update issue metadata (labels, milestones, assignees)
+
+3. **Issue Tracker Hygiene**
+   - Remove obsolete or duplicate issues
+   - Ensure consistent issue template usage
+   - Validate issue-to-specification traceability
+
+### Task Group 6: Repository Release Preparation
+**Priority**: High | **Effort**: 2-3 hours | **Risk**: Low
+
+**Rationale**: Repository must be clean and release-ready for distribution
+
+**Specific Tasks**:
+1. **Artifact Cleanup**
+   - Remove development artifacts and temporary files
+   - Clean diagnostic files not required for release
+   - Ensure .gitignore compliance
+
+2. **Documentation Finalization**
+   - Update README and documentation for alpha release
+   - Ensure installation and usage instructions are current
+   - Generate final documentation artifacts
+
+3. **Distribution Package Validation**
+   - Verify poetry build produces clean packages
+   - Ensure package excludes development files appropriately
+   - Test package installation in clean environment
+
+## Quality Assurance and Validation
+
+### Pre-Release Validation Checklist
+- [ ] MyPy strict compliance (0 errors)
+- [ ] Test coverage ≥70%
+- [ ] All behavior tests passing
+- [ ] Dialectical audit clean (no critical issues)
+- [ ] Issue tracker synchronized
+- [ ] Repository hygiene verified
+- [ ] Package build and installation successful
+
+### Post-Release Validation (Human Execution)
+- [ ] Tag creation: `git tag v0.1.0a1`
+- [ ] CI workflow triggers re-enabled (push, PR, schedule)
+- [ ] PyPI publication verification
+- [ ] User acceptance testing completion
+
+## Risk Mitigation Strategy
+
+### Technical Risks
+1. **MyPy Compliance Complexity**: Scoped to specific file, low-risk remediation
+2. **Coverage Achievement**: Phased approach with clear prioritization
+3. **Test Stability**: Behavior tests already collecting, focus on execution fixes
+
+### Process Risks
+1. **Scope Creep**: Strict adherence to alpha appropriateness criteria
+2. **Quality Compromises**: All changes must pass existing quality gates
+3. **Timeline Pressure**: Phased approach allows for incremental validation
+
+## Success Metrics and Validation
+
+### Quantitative Metrics
+- MyPy errors: 4 → 0
+- Test coverage: 23.9% → ≥70%
+- Dialectical audit issues: 200+ → 0 critical
+- Test execution: All behavior tests passing
+
+### Qualitative Metrics
+- Specification-to-implementation alignment verified
+- Documentation completeness and accuracy
+- Repository cleanliness and release readiness
+- Issue tracker accuracy and currency
+
+## Retrospective Integration
+
+Following EDRR framework completion, this plan will be retrospectively analyzed to:
+- Identify process improvements for future releases
+- Capture lessons learned from remediation efforts
+- Update development methodologies based on outcomes
+- Refine quality gates and validation criteria
+
+## Implementation Timeline
+
+**Week 1**: Task Groups 1-2 (MyPy + Coverage) - Foundation establishment
+**Week 2**: Task Groups 3-4 (Behavior + Audit) - Quality assurance
+**Week 3**: Task Groups 5-6 (Issues + Repository) - Final preparation
+**Week 4**: Validation, testing, and release execution
 
 ## Dependencies and Prerequisites
 
-### Technical Dependencies
-- Python 3.12 environment with Poetry
-- All test dependencies installed
-- MyPy and related type checking tools
-- CI/CD infrastructure access
+- Poetry environment with all extras installed
+- Access to test infrastructure and CI systems
+- Current codebase at v0.1.0a1-preparation state
+- All foundation remediation completed (per release assessment)
 
-### Process Dependencies
-- Access to issue tracker and documentation systems
-- Authority to update specifications and documentation
-- Coordination with development team for issue resolution
+## Contingency Plans
 
-## Monitoring and Control
+### MyPy Remediation Failure
+- Implement targeted type ignore comments with justification
+- Document technical debt for post-alpha resolution
+- Adjust strict checking scope if blocking release inappropriately
 
-### Progress Tracking
-- Weekly status updates with metric reporting
-- Dialectical audit progress monitoring
-- Coverage and quality gate status tracking
+### Coverage Goals Not Met
+- Adjust alpha coverage threshold to 60% with business justification
+- Prioritize core functionality coverage over peripheral modules
+- Document coverage gaps for post-alpha roadmap
 
-### Risk Mitigation
-- Regular backups of repository state
-- Incremental commits with proper testing
-- Rollback plans for critical changes
+### Test Stability Issues
+- Isolate problematic tests and defer to post-alpha
+- Implement test categorization to separate core from experimental
+- Focus on smoke tests for critical path validation
 
-### Communication Plan
-- Daily standups for critical path items
-- Weekly status reports to stakeholders
-- Immediate notification of blocking issues
-
-## Conclusion
-
-This plan provides a comprehensive, systematic approach to preparing DevSynth for the v0.1.0a1 release. The foundation remediation work has established a solid base, but significant effort is required to address the remaining gaps in documentation alignment, test coverage validation, and repository organization.
-
-The dialectical reasoning approach ensures that all decisions are well-considered and the Socratic method validates assumptions throughout the process. Success will result in a high-quality alpha release that meets DevSynth's stringent quality standards and provides a solid foundation for future development.
-
-**Estimated Effort**: 8-12 weeks
-**Critical Path**: Dialectical audit resolution and documentation synchronization
-**Risk Level**: Medium (well-understood gaps, established processes)
-**Success Probability**: High (with systematic execution)
+This plan provides a comprehensive, empirically-grounded approach to achieving v0.1.0a1 release readiness while maintaining DevSynth's architectural integrity and quality standards.

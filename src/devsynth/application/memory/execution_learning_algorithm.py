@@ -348,7 +348,7 @@ class ExecutionLearningAlgorithm:
 
         # Create signature
         signature = f"lines_{line_count}_funcs_{function_count}"
-        return hashlib.md5(signature.encode()).hexdigest()[:8]
+        return hashlib.md5(signature.encode(), usedforsecurity=False).hexdigest()[:8]
 
     def _extract_semantic_components(
         self, trajectories: list[ExecutionTrace]
